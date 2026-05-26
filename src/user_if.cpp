@@ -453,6 +453,9 @@ void user_if::update_disturber_widgets() {
 	// Get noise severity setting
 	int noise_severity;
 	settings.get("Noise Severity", noise_severity, 0);
+	if (noise_severity < 0) noise_severity = 0;
+	else if (noise_severity > 100) noise_severity = 100;
+	settings.set("Noise Severity", noise_severity);
 	sl_noise_severity_->value(noise_severity);
 
 	// Get drift rate setting
@@ -515,6 +518,14 @@ void user_if::update_disturber_widgets() {
 		sl_drift_period_->deactivate();
 		break;
 	case disturber_type::NOISE_IMPACT:
+		sl_timing_dist_->deactivate();
+		sl_softness_->deactivate();
+		sl_noise_vol_->deactivate();
+		sl_noise_severity_->activate();
+		sl_drift_rate_->deactivate();
+		sl_drift_amplitude_->deactivate();
+		sl_drift_period_->deactivate();
+		break;
 	case disturber_type::NOISE_TONES:
 		sl_timing_dist_->deactivate();
 		sl_softness_->deactivate();

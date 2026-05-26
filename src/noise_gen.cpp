@@ -66,6 +66,9 @@ void noise_gen::apply_settings() {
 			// No additional settings needed
 			break;
 		case disturber_type::NOISE_IMPACT:
+			noise_volume_ = 0.0F;
+			settings.get("Noise Severity", noise_severity_, 0.0F);
+			break;
 		case disturber_type::NOISE_TONES:
 			// Impact and Plink/plonk specific settings
 			settings.get("Noise Volume", noise_volume_, 0.0F);
@@ -82,7 +85,7 @@ void noise_gen::apply_settings() {
 	// We can model this using an exponential distribution, where the 
 	// mean time between events is inversely proportional to the severity.
 	// Add a smidgeon to avoid division by zero when severity is zero.
-	noise_event_dist_ = std::exponential_distribution<float>(1.0F / (noise_severity_ + 1e-6F));
+	noise_event_dist_ = std::exponential_distribution<float>(noise_severity_ / 10.0F + 1e-6F);
 	// Update the white noise distribution based on the volume setting
 	// Convert dB to linear amplitude: amplitude = 10^(dB/20)
 	float noise_amplitude = std::pow(10.0F, noise_volume_ / 20.0F);
@@ -168,8 +171,12 @@ void noise_gen::generation_loop(noise_gen* instance) {
 void noise_gen::generate_impact_noise(std::vector<float>& noise) {
 	// Generate a burst of white noise samples for the impact event
 	int num_samples = static_cast<int>(0.1F * DEFAULT_SAMPLE_RATE); // 100ms burst
+	// Generate white noise starting at amplitude 1.0 and decaying 
+	// linerarly over the duration of the burst
 	for (int i = 0; i < num_samples; ++i) {
-		noise.push_back(white_noise_dist_(rng_));
+		float decay_factor = 1.0F - static_cast<float>(i) / num_samples; // Linear decay over the burst duration
+		float sample = white_noise_dist_(rng_) * decay_factor; // Apply decay to the white noise sample
+		noise.push_back(sample);
 	}
 }
 
