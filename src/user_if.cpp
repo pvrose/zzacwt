@@ -382,27 +382,29 @@ void user_if::update_speed_widgets() {
 
 	// Get the current Farnsworth setting
 	int farnsworth;
-	settings.get("Farnsworth", farnsworth, 0);
-	// Restrict the Farnsworth value to be between 0 and WPM.
-	if (farnsworth < 0) {
-		farnsworth = 0;
+	settings.get("Farnsworth", farnsworth, 6);
+	// Restrict the Farnsworth value to be between 6 and WPM.
+	if (farnsworth < 6) {
+		farnsworth = 6;
 	}
 	else if (farnsworth > wpm) {
 		farnsworth = wpm;
 	}
 	sl_farnsworth_->value(farnsworth);
+	settings.set("Farnsworth", farnsworth);
 
 	// Get the current Wordsworth setting
 	int wordsworth;
-	settings.get("Wordsworth", wordsworth, 0);
-	// Restrict the Wordsworth value to be between 0 and farnsworth.
-	if (wordsworth < 0) {
-		wordsworth = 0;
+	settings.get("Wordsworth", wordsworth, 6);
+	// Restrict the Wordsworth value to be between 6 and farnsworth.
+	if (wordsworth < 6) {
+		wordsworth = 6;
 	}
 	else if (wordsworth > farnsworth) {
 		wordsworth = farnsworth;
 	}
 	sl_wordsworth_->value(wordsworth);
+	settings.set("Wordsworth", wordsworth);
 
 	// Depending on the speed type, enable/disable the Farnsworth and Wordsworth sliders
 	switch (current_speed_type) {

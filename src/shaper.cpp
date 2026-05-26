@@ -79,7 +79,7 @@ void shaper::apply_settings() {
 	else {
 		rise_fall_time_ = DEFAULT_RISE_FALL; // Default softness if disturber type is not softness
 	}
-	settings.get("Speed Mode", speed_mode_, speed_type::NORMAL);
+	settings.get("Speed Type", speed_mode_, speed_type::NORMAL);
 	if (speed_mode_ == speed_type::FARNSWORTH) {
 		settings.get("Farnsworth", farnsworth_speed_, 12.0F);
 	}
