@@ -231,8 +231,8 @@ float shaper::generate_delta_t() {
 		return 0.0F; // No disturbance
 	}
 	// Define the disturbance range based on the level
-	float min_factor = 1.0F - 0.02F * timing_disturbance_level_; // Minimum factor (e.g. 0.98 for level 1)
-	float max_factor = 1.0F + 0.05F * timing_disturbance_level_; // Maximum factor (e.g. 1.05 for level 1)
+	float min_factor = 1.0F - 0.05F * timing_disturbance_level_; // Minimum factor (e.g. 0.98 for level 1)
+	float max_factor = 1.0F + 0.10F * timing_disturbance_level_; // Maximum factor (e.g. 1.05 for level 1)
 	// TODO: Implement a non-uniform distribution with a mean of 1.0F. 
 	// For simplicity, we will use a uniform distribution here, 
 	// but you can replace this with a more complex distribution as needed.
