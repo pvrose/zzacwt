@@ -299,7 +299,7 @@ void user_if::create_widgets() {
 	cy += HBUTTON;
 	sl_drift_amplitude_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Ampl:");
 	sl_drift_amplitude_->type(FL_HOR_SLIDER);
-	sl_drift_amplitude_->bounds(0, 100);
+	sl_drift_amplitude_->bounds(0, 50);
 	sl_drift_amplitude_->step(1.0);
 	sl_drift_amplitude_->callback(cb_drift_amplitude, this);
 	sl_drift_amplitude_->tooltip("Adjusts the amplitude of the frequency drift");
@@ -308,8 +308,8 @@ void user_if::create_widgets() {
 	cy += HBUTTON;
 	sl_drift_period_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Period:");
 	sl_drift_period_->type(FL_HOR_SLIDER);
-	sl_drift_period_->bounds(0, 60);
-	sl_drift_period_->step(1.0);
+	sl_drift_period_->bounds(1.0, 10.0);
+	sl_drift_period_->step(0.1);
 	sl_drift_period_->callback(cb_drift_period, this);
 	sl_drift_period_->tooltip("Adjusts the period over which the tone drifts");
 	sl_drift_period_->align(FL_ALIGN_LEFT);
@@ -463,12 +463,18 @@ void user_if::update_disturber_widgets() {
 	// Get drift amplitude setting
 	int drift_amplitude;
 	settings.get("Drift Amplitude", drift_amplitude, 0);
+	if (drift_amplitude < 0) drift_amplitude = 0;
+	else if (drift_amplitude > 50) drift_amplitude = 50;
 	sl_drift_amplitude_->value(drift_amplitude);
+	settings.set("Drift Amplitude", drift_amplitude);
 
 	// Get drift period setting
-	int drift_period;
-	settings.get("Drift Period", drift_period, 0);
+	float drift_period;
+	settings.get("Drift Period", drift_period, 1.0F);
+	if (drift_period < 1.0F) drift_period = 1.0F;
+	if (drift_period > 10.0F) drift_period = 10.0F;
 	sl_drift_period_->value(drift_period);
+	settings.set("Drift Period", drift_period);
 
 	// Depending on the disturber type, enable/disable the relevant sliders
 	switch (current_disturber_type) {

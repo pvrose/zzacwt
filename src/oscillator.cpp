@@ -53,7 +53,7 @@ void oscillator::apply_settings() {
 	settings.get("Disturber Type", current_disturber_, disturber_type::NONE);
 	settings.get("Drift Rate", drift_rate_, 0.0F);
 	settings.get("Drift Amplitude", drift_amplitude_, 0.0F);
-	settings.get("Drift Period", drift_period_, 0.0F);
+	settings.get("Drift Period", drift_period_, 1.0F);
 	// Reset drift state when settings are applied
 	current_drift_offset_ = 0.0F;
 	drift_phase_accumulator_ = 0.0F;
