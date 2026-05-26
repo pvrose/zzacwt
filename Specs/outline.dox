@@ -1,0 +1,164 @@
+ZZACWT ZZA CW Trainer.
+
+This document describes the outline of the ZZA CW Trainer.
+
+A. Functional Requirements.
+
+1. Text Generation.
+
+ZZACWT generates text for Morse code practice. The generated text will be one of:
+
+- Random 5-letter groups.
+- Random 5-number groups.
+- Random 5-character groups (letters and numbers).
+- Text randomly selected from a user-provided text file - no punctuation.
+- Text randomly selected from a user-provided text file - with punctuation.
+- Random QSO text (callsigns, signal reports, locations, etc.).
+  - [CALL] de [CALL]
+  - tnx [CALL] ur RST [RST]
+  - [my|op] name is [NAME]
+  - qth is [QTH]
+  - wx is [sunny|cloudy|rainy|snowy] temp is [nn] [c|f]
+  - rig [RIG] pwr [PWR]W ant is [ANT]
+  - etc.
+- Random callsigns. 
+  - A9A, A9AA, A9AAA, 9A9A, 9A9AA, 
+  - AA9A, aA9AA, AA9AAA, 9A9AA, 9A9AAA,
+  - A99A, A99AA, A99AAA.
+  - A=random letter, 9=random number.
+- User-entered text. The user can enter their own text for practice.
+- Control the size of the generated text.
+  - 1 to 50 groups or words per practice session.
+- Test modes:
+  - "A": Generate "VVV" continually until the user stops it.
+
+2. Speed Control.
+
+- Normal speed control: 6 to 50 WPM in 1 WPM increments.
+- Farnsworth speed control: 6 to Normal in 1 WPM increments.
+  - Farnsworth keeps the character speed at Normal, but 
+increases the spacing between characters and words 
+to achieve the desired overall WPM. 
+
+- Wordsworth speed control: 6 to Farnsworth in 1 WPM increments.
+  - Wordsworth keeps the character speed at Farnsworth, 
+but increases the spacing between characters and words 
+to achieve the desired overall WPM.
+
+3. Disturber.
+
+- Vary the timing of the Morse code to simulate a less-than-ideal signal.
+5 levels of disturbance:
+  - 0 : No disturbance.
+  - 1 : vary dit-length by -2% to +5% (average 0%).
+  - 2 : vary dit-length by -4% to +10% (average 0%).
+  - 3 : vary dit-length by -6% to +15% (average 0%).
+  - 4: vary dit-length by -8% to +20% (average 0%).
+  - 5 : vary dit-rate by -10% to +25% (average 0%).
+  - Apply the disturbance randomly for each dit, dah and space.
+
+- Vary the rise and fall time of the Morse code signal to simulate a less-than-ideal signal.
+  - From 0 ms to 10ms in 1 ms increments.
+  - Default is 5 ms. Standard to avoid key clicks is 5 ms or more.
+
+- Add noise to the Morse code signal to simulate a less-than-ideal signal.
+  - White noise - vary the noise level.
+  - Impact noise - random short bursts (0.5~4xdit-time) of noise.
+  - "plinks" - random short bursts (0.5~4xdit-time) of tones.
+
+- Apply drift to the Morse code signal to simulate a less-than-ideal signal.
+  - Constant drift - vary the drift rate in Hz/s.
+  - Cyclic drift - vary the drift rate in Hz/s and the cycle time in seconds.
+
+4. Volume Control.
+  - Control the volume of the Morse code signal.
+  - From 0% to 100% in 1% increments.
+  - Default is 100%.
+
+5. Frequency Control.
+  - Control the frequency of the Morse code signal.
+  - From 350 Hz to 1400 Hz in 1 Hz increments.
+  - Default is 700 Hz.
+
+B. User interface.
+
+- The user interface will be a single window with the following controls:
+  - Content:
+    - Content selection: a dropdown menu to select the type of text to generate.
+    - Slider to control the size of the generated text (1 to 50 groups or words).
+    - Once the text is generated, sending continues until finished.
+    - Input area for user to enter their own text for practice.
+    - Applies after the text has been sent.
+  - Speed:
+    - Dropdown menu to select the speed type (Normal, Farnsworth, Wordsworth).
+    - Slider to control the normal speed (6 to 50 WPM).
+    - Slider to control the Farnsworth speed (6 to Normal WPM).
+    - Slider to control the Wordsworth speed (6 to Farnsworth WPM).
+    - Applies immediately to the generated text.
+  - Disturber:
+    - Disturber selection: a dropdown menu to select the type of disturbance to apply.
+    - Slider to control the level of timing disturbance (0 to 5).
+    - Slider to control the rise and fall time (0 ms to 10 ms).
+    - Slider to control the noise level (0% to 100%).
+    - Slider to control the severity of impact or plink noise.
+    - Slider to control the drift rate (0 Hz/s to +/-100 Hz/s).
+    - Slider to control the amplitude of cyclic drift (0 Hz to +/-100 Hz).
+    - Slider to control the cycle time of cyclic drift (0 s to 60 s).
+    - Button to reset default values.
+    - Applies immediately to the generated text.
+  - Volume control.
+    - Slider to control the volume (0% to 100%).
+    - Applies immediately to the generated text.
+  - Frequency control.
+    - Slider to control the frequency (350 Hz to 1400 Hz).
+    - Applies immediately to the generated text.
+  - Text entry area.
+    - Allows the user to enter the text for checking their copy accuracy. 
+    - "Reveal" button to show the generated text for comparison.
+    - "Repeat" button to repeat the generated text for additional practice.
+    - "Next" button to generate new text based on the current settings.
+- The selected values will be retained for the next practice session.
+  - Use zzacommon::zc_settings to save and load the settings in ZZACWT.json
+    per GM3ZZA standards.
+- A seperate window with a text editor for the user to type in what
+  they copied. Plus:
+  - "Reveal" button to show the generated text for comparison.
+  - "Repeat" button to repeat the generated text for additional practice.
+  - "Next" button to generate new text based on the current settings.
+
+
+C. Implementation.
+
+  - The ZZA CW Trainer will be implemented in C++ using FLTK for the user interface and PortAudio for audio output.
+  - Audio will be generated in real-time based on the selected settings. 
+    - Audio sample rate will be 22050 sps, 16-bit mono.
+    - The audio will be generated on-demand N samples at a time, 
+      where N is a reasonable buffer size for real-time audio processing
+      but small enough to minimize latency from user input changes 
+      (e.g., 512 samples).
+  - It comprises the following modules:
+    - Oscillator: generates a constant level tone with the controls:
+      - Frequency control (350 Hz to 1400 Hz).
+      - Drift controls (constant and cyclic, rate and cycle time).
+    - Text Generator: generates the text for Morse code practice based on the selected content type and size.
+    - Codec: 
+      - encodes the generated text into symbols (dits, dahs, and spaces).
+      - decoding is not required for this application, but implemented
+        
+        for completeness and potential future use.
+    - Shaper: 
+      - Converts the symbols into an audio envelope 
+        based on the selected speed and timing disturbance settings.
+      - Applies the timing disturbance based on the selected level.
+    - Modulator/Mixer: 
+      - Modulates the tone generated by the Oscillator with the 
+        output of the Shaper.
+      - Merges the modulated signal with the noise generated by the Noise Generator.
+    - Noise Generator: generates noise based on the selected type and level.
+    - Audio Output: outputs the final audio signal to the speakers using
+      zzacommon::zc_speaker.
+    - User Interface: handles the user interface and user interactions,
+      updating the controls and parameters of the other modules based on  
+      user input. 
+      - Use zzacommon::zc_settings to communicate settings between
+      the User Interface and the other modules.
