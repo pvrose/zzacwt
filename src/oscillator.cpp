@@ -54,6 +54,9 @@ void oscillator::apply_settings() {
 	settings.get("Drift Rate", drift_rate_, 0.0F);
 	settings.get("Drift Amplitude", drift_amplitude_, 0.0F);
 	settings.get("Drift Period", drift_period_, 0.0F);
+	// Reset drift state when settings are applied
+	current_drift_offset_ = 0.0F;
+	drift_phase_accumulator_ = 0.0F;
 }
 
 //! \brief Generation loop for the oscillator thread

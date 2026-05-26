@@ -288,12 +288,12 @@ void user_if::create_widgets() {
 	sl_noise_severity_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
-	sl_drift_rate_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Rate:");
+	sl_drift_rate_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift (Hz/s):");
 	sl_drift_rate_->type(FL_HOR_SLIDER);
-	sl_drift_rate_->bounds(-100, 100);
-	sl_drift_rate_->step(1.0);
+	sl_drift_rate_->bounds(-10, 10);
+	sl_drift_rate_->step(0.2);
 	sl_drift_rate_->callback(cb_drift_rate, this);
-	sl_drift_rate_->tooltip("Adjusts the rate at which the tone drifts");
+	sl_drift_rate_->tooltip("Adjusts the rate at which the tone drifts (Hz/s)");
 	sl_drift_rate_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
@@ -822,6 +822,10 @@ void user_if::cb_new(Fl_Widget* w, void* data)
 	// Start a new session
 	(void)w;
 	user_if* ui = static_cast<user_if*>(data);
+	ui->apply_noise_settings();
+	ui->apply_shaper_settings();
+	ui->apply_oscillator_settings();
+	ui->apply_speaker_settings();
 	text_gen_->generate_new_sequence();
 }
 
@@ -841,5 +845,9 @@ void user_if::cb_repeat(Fl_Widget* w, void* data)
 	// Repeat the current session
 	(void)w;
 	user_if* ui = static_cast<user_if*>(data);
+	ui->apply_noise_settings();
+	ui->apply_shaper_settings();
+	ui->apply_oscillator_settings();
+	ui->apply_speaker_settings();
 	text_gen_->repeat_sequence();
 }
