@@ -88,6 +88,9 @@ private:
 	//! Oscillator base pitch (in Hz).
 	float base_pitch_ = 700.0F;
 
+	//! Output level for the oscillator. This is a constant value that represents the amplitude of the output signal. The actual audio sample value will be this level multiplied by the sine of the phase accumulator.
+	float output_level_ = 1.0F;
+
 	//! Drift parameters - drift type.
 	disturber_type current_disturber_ = disturber_type::NONE;
 	//! Drift rate for steady drift (in Hz per second).

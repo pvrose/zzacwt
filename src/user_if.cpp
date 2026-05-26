@@ -520,7 +520,7 @@ void user_if::update_disturber_widgets() {
 	case disturber_type::NOISE_IMPACT:
 		sl_timing_dist_->deactivate();
 		sl_softness_->deactivate();
-		sl_noise_vol_->deactivate();
+		sl_noise_vol_->activate();
 		sl_noise_severity_->activate();
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
@@ -589,10 +589,6 @@ void user_if::apply_noise_settings()
 
 void user_if::apply_speaker_settings()
 {
-	zc_settings settings;
-	float volume = 0.0F;
-	settings.get("Volume (dB)", volume, 0.0F);
-	speaker_->volume(volume);
 }
 
 // Callback implementations (placeholders)
@@ -819,7 +815,7 @@ void user_if::cb_volume(Fl_Widget* w, void* data)
 	int volume = static_cast<int>(sl->value());
 	settings.set("Volume (dB)", volume);
 	ui->update_tone_widgets();
-	ui->apply_speaker_settings(); // Apply speaker settings immediately to reflect volume changes
+	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect volume changes
 }
 
 void user_if::cb_pitch(Fl_Widget* w, void* data)

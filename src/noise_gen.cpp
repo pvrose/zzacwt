@@ -66,7 +66,7 @@ void noise_gen::apply_settings() {
 			// No additional settings needed
 			break;
 		case disturber_type::NOISE_IMPACT:
-			noise_volume_ = 0.0F;
+			settings.get("Noise Volume", noise_volume_, 0.0F);
 			settings.get("Noise Severity", noise_severity_, 0.0F);
 			break;
 		case disturber_type::NOISE_TONES:

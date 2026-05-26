@@ -50,6 +50,9 @@ oscillator::~oscillator() {
 void oscillator::apply_settings() {
 	zc_settings settings;
 	settings.get("Pitch (Hz)", base_pitch_, 700.0F);
+	float volume_dB;
+	settings.get("Volume (dB)", volume_dB, 0.0F);
+	output_level_ = std::pow(10.0F, volume_dB / 20.0F);
 	settings.get("Disturber Type", current_disturber_, disturber_type::NONE);
 	settings.get("Drift Rate", drift_rate_, 0.0F);
 	settings.get("Drift Amplitude", drift_amplitude_, 0.0F);
@@ -95,7 +98,7 @@ float oscillator::next_sample() {
 		phase_accumulator_ -= 2.0F * PI;
 	}
 	// Return the sine of the phase accumulator as the output sample value
-	return std::sin(phase_accumulator_);
+	return std::sin(phase_accumulator_) * output_level_;
 }
 
 //! \brief Update the current drift offset based on the selected 
