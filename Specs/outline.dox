@@ -72,8 +72,8 @@ to achieve the desired overall WPM.
 
 4. Volume Control.
   - Control the volume of the Morse code signal.
-  - From 0% to 100% in 1% increments.
-  - Default is 100%.
+  - From -40dB to 0dB in 1dB increments.
+  - Default is 0dB.
 
 5. Frequency Control.
   - Control the frequency of the Morse code signal.
@@ -99,9 +99,9 @@ B. User interface.
     - Disturber selection: a dropdown menu to select the type of disturbance to apply.
     - Slider to control the level of timing disturbance (0 to 5).
     - Slider to control the rise and fall time (0 ms to 10 ms).
-    - Slider to control the noise level (0% to 100%).
+    - Slider to control the noise level (-40dB to 0dB).
     - Slider to control the severity of impact or plink noise.
-    - Slider to control the drift rate (0 Hz/s to +/-100 Hz/s).
+    - Slider to control the drift rate (0 Hz/s to +/-50 Hz/s).
     - Slider to control the amplitude of cyclic drift (0 Hz to +/-100 Hz).
     - Slider to control the cycle time of cyclic drift (0 s to 60 s).
     - Button to reset default values.
