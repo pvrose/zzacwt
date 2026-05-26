@@ -50,15 +50,15 @@ to achieve the desired overall WPM.
 - Vary the timing of the Morse code to simulate a less-than-ideal signal.
 5 levels of disturbance:
   - 0 : No disturbance.
-  - 1 : vary dit-length by -2% to +5% (average 0%).
-  - 2 : vary dit-length by -4% to +10% (average 0%).
-  - 3 : vary dit-length by -6% to +15% (average 0%).
-  - 4: vary dit-length by -8% to +20% (average 0%).
-  - 5 : vary dit-rate by -10% to +25% (average 0%).
+  - 1 : vary dit-length by -5% to +10% (average 0%).
+  - 2 : vary dit-length by -10% to +20% (average 0%).
+  - 3 : vary dit-length by -15% to +30% (average 0%).
+  - 4 : vary dit-length by -20% to +30% (average 0%).
+  - 5 : vary dit-rate by -25% to +50% (average 0%).
   - Apply the disturbance randomly for each dit, dah and space.
 
 - Vary the rise and fall time of the Morse code signal to simulate a less-than-ideal signal.
-  - From 0 ms to 10ms in 1 ms increments.
+  - From 0 ms to 15ms in 1 ms increments.
   - Default is 5 ms. Standard to avoid key clicks is 5 ms or more.
 
 - Add noise to the Morse code signal to simulate a less-than-ideal signal.

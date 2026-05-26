@@ -97,7 +97,6 @@
 //! varied to achieve softness disturbance as necessary.
 
 extern float DEFAULT_SAMPLE_RATE;  //!< Default audio sample rate
-extern float DEFAULT_RISE_FALL;    //!< Default duration of the raised cosine transition in seconds
 
 class shaper
 {

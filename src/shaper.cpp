@@ -38,6 +38,7 @@ extern int UPPER_QUEUE_THRESHOLD;
 extern int LOWER_QUEUE_THRESHOLD;
 extern int GENERATION_CHUNK_SIZE;
 extern int SHAPER_CHUNK_SIZE;
+extern float DEFAULT_RISE_FALL;
 
 extern text_gen* text_gen_; //!< Pointer to the text generator instance
 
@@ -74,7 +75,10 @@ void shaper::apply_settings() {
 		timing_disturbance_level_ = 0; // No timing disturbance if disturber type is not timing
 	}
 	if (disturber == disturber_type::SOFTNESS) {
-		settings.get("Softness", rise_fall_time_, 10.0F);
+		// Softness is defined in milliseconds in the settings, convert to seconds.
+		float softness;
+		settings.get("Softness", softness, 10.0F);
+		rise_fall_time_ = softness / 1000.0F;
 	}
 	else {
 		rise_fall_time_ = DEFAULT_RISE_FALL; // Default softness if disturber type is not softness

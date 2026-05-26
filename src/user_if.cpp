@@ -46,6 +46,8 @@ extern shaper* shaper_;
 extern zc_speaker* speaker_;
 extern text_gen* text_gen_;
 
+extern float DEFAULT_RISE_FALL;
+
 user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)
 {
 	create_widgets();
@@ -263,7 +265,7 @@ void user_if::create_widgets() {
 	cy += HBUTTON;
 	sl_softness_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Softness:");
 	sl_softness_->type(FL_HOR_SLIDER);
-	sl_softness_->bounds(0, 10);
+	sl_softness_->bounds(0, 3 * (DEFAULT_RISE_FALL * 1000.0F));
 	sl_softness_->step(1.0);
 	sl_softness_->callback(cb_softness, this);
 	sl_softness_->tooltip("Adjusts the rise and fall time (in ms) of the morse tone: normal = 5 ms");
@@ -441,8 +443,8 @@ void user_if::update_disturber_widgets() {
 	sl_timing_dist_->value(timing_dist);
 
 	// Get softness setting
-	int softness;
-	settings.get("Softness", softness, 0);
+	float softness;
+	settings.get("Softness", softness, (DEFAULT_RISE_FALL * 1000.0F));
 	sl_softness_->value(softness);
 
 	// Get noise volume setting
