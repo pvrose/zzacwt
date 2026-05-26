@@ -107,8 +107,24 @@ void mod_mixer::modulation_loop(mod_mixer* that) {
 					that->noise_queue_->wait_and_pop(noise_sample);
 				}
 
-				// Modulate: multiply oscillator by envelope, then add noise
-				float mixed_sample = (oscillator_sample * envelope) + noise_sample;
+				// Modulate: multiply oscillator by envelope, then "or" noise
+				float modulation = oscillator_sample * envelope;
+				float mixed_sample;
+				if (modulation > 0.0F) {
+					if (noise_sample > 0.0F) {
+						mixed_sample = std::max(modulation, noise_sample);
+					}
+					else {
+						mixed_sample = modulation + noise_sample; // Add noise to negative modulation
+					}
+				} else {
+					if (noise_sample < 0.0F) {
+						mixed_sample = std::min(modulation, noise_sample);
+					}
+					else {
+						mixed_sample = modulation + noise_sample; // Add noise to positive modulation
+					}
+				}
 				output_data->data.push(mixed_sample);
 			}
 
