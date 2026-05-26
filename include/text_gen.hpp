@@ -66,6 +66,8 @@ public:
 	void generate_new_sequence();
 	//! Repeat the existing sequence of words.
 	void repeat_sequence();
+	//! Stop the current sequence and clear the internal state.
+	void stop_sequence();
 	//! Get the next word in the sequence. Return an empty string 
 	//! if the sequence is finished.
 	std::string get_next_word();

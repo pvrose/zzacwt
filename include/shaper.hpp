@@ -20,6 +20,7 @@
 
 #include "codec.hpp"
 
+#include "zc_async_queue.h"
 #include "zc_audio_data.h"
 
 #include <map>
@@ -102,11 +103,15 @@ class shaper
 {
 public:
 	//! Constructor. Takes the audio data queue as arguments.
-	shaper(std::queue<zc_audio_data>* audio_data_queue);
+	shaper(zc_async_queue<zc_audio_data>* audio_data_queue);
 	//! Destructor.
 	~shaper();
 	//! Apply the current settings to update the internal state of the shaper.
 	void apply_settings();
+	//! Clear the generation of audio samples.
+	//! This will clear the output queue and reset the internal
+	//! state of the shaper to be ready for a new sequence of symbols.
+	void clear();
 
 private:
 	//! Generate the audio envelope for the specified symbol. 
@@ -155,11 +160,13 @@ private:
 	std::thread generation_thread_;
 	//! Flag to signal the generation thread to stop.
 	bool stop_generation_ = false;
+	//! Flag to suspend and clear down the existing generated samples.
+	bool clear_requested_ = false;
 	//! Method for the generation thread to continuously generate audio samples based on the symbol sequence and push them onto the audio data queue.
 	static void generation_loop(shaper* shaper_instance);
 
 	//! Pointer to the audio data queue.
-	std::queue<zc_audio_data>* audio_data_queue_;
+	zc_async_queue<zc_audio_data>* audio_data_queue_;
 
 	//! Random number generator for timing disturbance.
 	std::mt19937 rng_;

@@ -37,6 +37,7 @@
 //! 
 //! This operation shall be performed in a separate thread.
 
+#include "zc_async_queue.h"
 #include "zc_audio_data.h"
 
 #include <queue>
@@ -45,21 +46,27 @@
 class mod_mixer
 {
 public:
-	mod_mixer(std::queue<float>* oscillator_queue, 
-	    std::queue<zc_audio_data>* shaper_queue, 
-		std::queue<float>* noise_queue, 
-		std::queue<zc_audio_data>* output_queue);
+	mod_mixer(zc_async_queue<float>* oscillator_queue, 
+	    zc_async_queue<zc_audio_data>* shaper_queue, 
+		zc_async_queue<float>* noise_queue, 
+		zc_async_queue<zc_audio_data>* output_queue);
 	~mod_mixer();
+
+	//! Clear all queues and reset the internal state of the modulator/mixer
+	void clear();
 
 private:
 	//! Pointers to the input and output queues
-	std::queue<float>* oscillator_queue_;
-	std::queue<zc_audio_data>* shaper_queue_;
-	std::queue<float>* noise_queue_;
-	std::queue<zc_audio_data>* output_queue_;
+	zc_async_queue<float>* oscillator_queue_;
+	zc_async_queue<zc_audio_data>* shaper_queue_;
+	zc_async_queue<float>* noise_queue_;
+	zc_async_queue<zc_audio_data>* output_queue_;
 	//! Thread for the modulation/mixing process
 	std::thread modulation_thread_;
 	bool stop_modulation_ = false; //!< Flag to signal the modulation thread to stop
+	//! Clear the internal state of the modulator/mixer, including any buffers or state variables used for modulation and mixing
+	bool clear_requested_;
 	//! Modulation/mixing loop for the modulation thread
 	static void modulation_loop(mod_mixer* mixer);
+
 };

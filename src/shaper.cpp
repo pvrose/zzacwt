@@ -20,6 +20,7 @@
 #include "codec.hpp"
 #include "text_gen.hpp"
 
+#include "zc_async_queue.h"
 #include "zc_audio_data.h"
 #include "zc_settings.h"
 
@@ -36,11 +37,12 @@ constexpr float SPACE_VALUE = 0.0F; //!< Value of the audio envelope when in spa
 extern int UPPER_QUEUE_THRESHOLD;
 extern int LOWER_QUEUE_THRESHOLD;
 extern int GENERATION_CHUNK_SIZE;
+extern int SHAPER_CHUNK_SIZE;
 
 extern text_gen* text_gen_; //!< Pointer to the text generator instance
 
 // Constructor
-shaper::shaper(std::queue<zc_audio_data>* audio_data_queue)
+shaper::shaper(zc_async_queue<zc_audio_data>* audio_data_queue)
 	: audio_data_queue_(audio_data_queue),
 	rng_(std::random_device{}())
 {
@@ -124,32 +126,39 @@ void shaper::update_symbol_durations() {
 }
 
 //! Generation loop for the generation thread
-void shaper::generation_loop(shaper* shaper_instance) {
-	while (!shaper_instance->stop_generation_) {
+void shaper::generation_loop(shaper* that) {
+	while (!that->stop_generation_) {
 		if (!text_gen_) continue;
-		// Get the next word from the text generator
-		std::string word = text_gen_->get_next_word();
-		// Create audio data for the word
+		if (that->clear_requested_) {
+			// Clear the audio data queue and reset internal state
+			that->audio_data_queue_->clear();
+			that->is_mark_ = false; // Reset to space state
+			that->clear_requested_ = false; // Reset the clear request flag
+		}
 
-		if (shaper_instance->audio_data_queue_->size() < LOWER_QUEUE_THRESHOLD) {
+		if (that->audio_data_queue_->size() < LOWER_QUEUE_THRESHOLD) {
+			// Get the next word from the text generator
+			std::string word = text_gen_->get_next_word();
+			// Create audio data for the word
 			if (word.empty()) {
 				zc_audio_data audio_data;
 				// Generate silence/zero envelope to keep pipeline flowing
 				// Push a small block of zeros (or appropriate envelope values)
-				for (int i = 0; i < GENERATION_CHUNK_SIZE; ++i) {  // Match a reasonable block size
+				for (int i = 0; i < SHAPER_CHUNK_SIZE; ++i) {  // Match a reasonable block size
 					audio_data.data.push(0.0F);
 				}
 				audio_data.metadata = "\0";
-				shaper_instance->audio_data_queue_->push(audio_data);
+				that->audio_data_queue_->push(audio_data);
 			}
 			else {
 				// Normal processing
 				std::vector<symbol_t> symbols;
-				shaper_instance->generate_symbol_sequence(word, symbols);
+				that->generate_symbol_sequence(word, symbols);
 				bool meta_data_set = false; // Flag to track if metadata has been set for the current word
+				int sample_countdown = SHAPER_CHUNK_SIZE; // Countdown to control chunk sizes for pushing to the queue
 				for (const symbol_t& symbol : symbols) {
 					zc_audio_data audio_data;
-					shaper_instance->generate_envelope(symbol, audio_data.data);
+					that->generate_envelope(symbol, audio_data.data);
 					if (!meta_data_set) {
 						audio_data.metadata = word; // Set metadata to the word for the first symbol of the word
 						meta_data_set = true;
@@ -157,7 +166,22 @@ void shaper::generation_loop(shaper* shaper_instance) {
 					else {
 						audio_data.metadata = "\0"; // Set metadata if needed
 					}
-					shaper_instance->audio_data_queue_->push(audio_data);
+					// Split the generated audio data into chunks and push to the queue
+					zc_audio_data* audio_data_ptr = new zc_audio_data();
+					audio_data_ptr->metadata = audio_data.metadata; // Copy metadata to the chunk
+					while (!audio_data.data.empty()) {
+						audio_data_ptr->data.push(audio_data.data.front());
+						audio_data.data.pop();
+						--sample_countdown;
+						if (sample_countdown <= 0) {
+							that->audio_data_queue_->push(*audio_data_ptr); // Push the chunk to the queue
+							delete audio_data_ptr; // Clean up the chunk after pushing
+							audio_data_ptr = new zc_audio_data(); // Create a new chunk for the next set of samples
+							audio_data_ptr->metadata = "\0"; // Clear metadata for subsequent chunks
+							sample_countdown = SHAPER_CHUNK_SIZE; // Reset countdown for the next chunk
+						}
+					}
+					delete audio_data_ptr; // Clean up the last chunk if it wasn't pushed
 				}
 			}
 		}
@@ -214,4 +238,9 @@ float shaper::generate_delta_t() {
 	// but you can replace this with a more complex distribution as needed.
 	std::uniform_real_distribution<float> dist(min_factor, max_factor);
 	return (dist(rng_) - 1.0F) * dot_time_; // Return the disturbance as a delta time based on the dot time
+}
+
+//! Clear the generation of audio samples
+void shaper::clear() {
+	clear_requested_ = true; // Signal the generation loop to clear the queue and reset state
 }

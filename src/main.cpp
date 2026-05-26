@@ -23,6 +23,7 @@
 #include "text_gen.hpp"
 #include "user_if.hpp"
 
+#include "zc_async_queue.h"
 #include "zc_audio_data.h"
 #include "zc_file_holder.h"
 #include "zc_fltk.h"
@@ -62,9 +63,9 @@ float DEFAULT_WPM = 12.0F; //!< Default speed in words per minute
 int UPPER_QUEUE_THRESHOLD = 64; //!< Threshold for when the oscillator should generate more audio samples (in samples)
 int LOWER_QUEUE_THRESHOLD = 16; //!< Threshold for when the oscillator should stop generating audio samples (in samples)
 int GENERATION_CHUNK_SIZE = 128; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
-int OSCILLATOR_CHUNK_SIZE = 1024; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
-int NOISE_CHUNK_SIZE = 1024; //!< Number of audio samples to generate in each batch when the noise generator is generating audio samples
-
+int OSCILLATOR_CHUNK_SIZE = 64; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
+int NOISE_CHUNK_SIZE = 64; //!< Number of audio samples to generate in each batch when the noise generator is generating audio samples
+int SHAPER_CHUNK_SIZE = 128; //!< Number of audio samples to process in each batch when the shaper is processing audio samples
 oscillator* oscillator_ = nullptr; //!< Pointer to the oscillator instance
 text_gen* text_gen_ = nullptr; //!< Pointer to the text generator instance
 shaper* shaper_ = nullptr; //!< Pointer to the shaper instance
@@ -90,21 +91,21 @@ int main(int argc, char** argv)
 	// Create the main user interface window
 	user_if* window = new user_if(600, 800, "ZZACWT - CW Trainer");
 	// Create the oscillator output queue
-	std::queue<float>* carrier_queue = new std::queue<float>();
+	zc_async_queue<float>* carrier_queue = new zc_async_queue<float>();
 	// Create the oscilaltor
 	oscillator_ = new oscillator(carrier_queue);
 	// Create the audio envelope queue
-	std::queue<zc_audio_data>* envelope_queue = new std::queue<zc_audio_data>();
+	zc_async_queue<zc_audio_data>* envelope_queue = new zc_async_queue<zc_audio_data>();
 	// Create the shaper
 	shaper_ = new shaper(envelope_queue);
 	// Create the text generator
 	text_gen_ = new text_gen();
 	// Create the inserted noise queue
-	std::queue<float>* noise_queue = new std::queue<float>();
+	zc_async_queue<float>* noise_queue = new zc_async_queue<float>();
 	// Create the noise generator
 	noise_gen_ = new noise_gen(noise_queue);
 	// Create the combined audio queue
-	std::queue<zc_audio_data>* audio_out_queue = new std::queue<zc_audio_data>();
+	zc_async_queue<zc_audio_data>* audio_out_queue = new zc_async_queue<zc_audio_data>();
 	// Create the modulator/mixer
 	mod_mixer_ = new mod_mixer(carrier_queue, envelope_queue, noise_queue, audio_out_queue);
 	// Create the speaker

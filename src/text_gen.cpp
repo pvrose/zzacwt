@@ -112,6 +112,11 @@ void text_gen::repeat_sequence() {
 	next_word_index_ = 0;
 }
 
+//! Stop the current sequence and clear the internal state.
+void text_gen::stop_sequence() {
+	next_word_index_ = current_sequence_.size();
+}
+
 //! Get the next word in the sequence. Return an empty string if the sequence is finished.
 std::string text_gen::get_next_word() {
 	if (next_word_index_ < current_sequence_.size()) {

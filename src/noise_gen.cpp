@@ -18,6 +18,7 @@
 
 #include "params.hpp"
 
+#include "zc_async_queue.h"
 #include "zc_settings.h"
 
 #include <chrono>
@@ -33,7 +34,7 @@ extern int LOWER_QUEUE_THRESHOLD; //!< Threshold for when the oscillator should 
 extern int NOISE_CHUNK_SIZE; //!< Number of samples to generate in each chunk when generating noise
 
 //! Constructor
-noise_gen::noise_gen(std::queue<float>* output_queue)
+noise_gen::noise_gen(zc_async_queue<float>* output_queue)
 	: audio_data_queue_(output_queue),
 	rng_(std::random_device{}())
 {
@@ -83,7 +84,9 @@ void noise_gen::apply_settings() {
 	// Add a smidgeon to avoid division by zero when severity is zero.
 	noise_event_dist_ = std::exponential_distribution<float>(1.0F / (noise_severity_ + 1e-6F));
 	// Update the white noise distribution based on the volume setting
-	white_noise_dist_ = std::normal_distribution<float>(0.0F, noise_volume_ / 100.0F);
+	// Convert dB to linear amplitude: amplitude = 10^(dB/20)
+	float noise_amplitude = std::pow(10.0F, noise_volume_ / 20.0F);
+	white_noise_dist_ = std::normal_distribution<float>(0.0F, noise_amplitude);
 	// Reset the next noise event time
 	next_noise_event_time_ = static_cast<int>(noise_event_dist_(rng_) * DEFAULT_SAMPLE_RATE);
 
@@ -94,6 +97,14 @@ void noise_gen::apply_settings() {
 //! the audio data queue.
 void noise_gen::generation_loop(noise_gen* instance) {
 	while (!instance->stop_generation_) {
+		if (instance->clear_requested_) {
+			// Clear the output queue and reset internal state
+			if (instance->audio_data_queue_) {
+				instance->audio_data_queue_->clear();
+			}
+			instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * DEFAULT_SAMPLE_RATE);
+			instance->clear_requested_ = false;
+		}
 		// Check if we need to generate more noise samples
 		if (instance->audio_data_queue_ && instance->audio_data_queue_->size() < LOWER_QUEUE_THRESHOLD) {
 			std::vector<float> noise_samples;
@@ -173,9 +184,11 @@ void noise_gen::generate_plink_plonk(std::vector<float>& noise) {
 	float phase = 0.0F;
 	float phase_increment = TWO_PI * frequency / DEFAULT_SAMPLE_RATE;
 
+	// Convert dB to linear amplitude for plink/plonk tones
+	float noise_amplitude = std::pow(10.0F, noise_volume_ / 20.0F);
 	for (int i = 0; i < num_samples; ++i) {
 		float sample = std::sin(phase);
-		noise.push_back(sample * (noise_volume_ / 100.0F));
+		noise.push_back(sample * noise_amplitude);
 
 		// Increment phase and wrap to keep it within [0, 2π)
 		phase += phase_increment;
@@ -183,4 +196,9 @@ void noise_gen::generate_plink_plonk(std::vector<float>& noise) {
 			phase -= TWO_PI;
 		}
 	}
+}
+
+//! Clear the generation of audio samples. This will clear the output queue and reset the internal state of the noise generator to be ready for a new sequence of symbols.
+void noise_gen::clear() {
+	clear_requested_ = true; // Signal the generation loop to clear the queue and reset state
 }

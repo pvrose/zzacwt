@@ -16,6 +16,7 @@
 */
 #include "user_if.hpp"
 #include "oscillator.hpp"
+#include "mod_mixer.hpp"
 #include "noise_gen.hpp"
 #include "params.hpp"
 #include "shaper.hpp"
@@ -39,6 +40,7 @@
 #include <string>
 
 extern oscillator* oscillator_;
+extern mod_mixer* mod_mixer_;
 extern noise_gen* noise_gen_;
 extern shaper* shaper_;
 extern zc_speaker* speaker_;
@@ -197,6 +199,39 @@ void user_if::create_widgets() {
 	int needed_height = g_tone_->y() + tone_height + GAP;
 
 	cy = GAP;
+	cx = g_content_->x() + g_content_->w() + GAP;
+
+	// Create the controls group for play/stop/repeat buttons
+	g_controls_ = new Fl_Group(cx, cy, WGROUPS, 100, "Controls");
+	g_controls_->box(FL_BORDER_BOX);
+	g_controls_->align(FL_ALIGN_LEFT | FL_ALIGN_TOP | FL_ALIGN_INSIDE);
+
+	cx += GAP;
+	cy += HTEXT;
+	bt_new_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "New");
+	bt_new_->callback(cb_new, this);
+	bt_new_->tooltip("Start a new session");
+
+	cx += WBUTTON;
+	bt_stop_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Clear");
+	bt_stop_->callback(cb_stop, this);
+	bt_stop_->tooltip("Clear the current session");
+
+	cx += WBUTTON;
+	bt_repeat_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Repeat");
+	bt_repeat_->callback(cb_repeat, this);
+	bt_repeat_->tooltip("Repeat the current session");
+
+	cy += HBUTTON + GAP;
+
+	// End the controls group
+	g_controls_->end();
+	// Resize the controls group to fit the buttons
+	g_controls_->resizable(nullptr);
+	int controls_height = cy - g_controls_->y();
+	g_controls_->size(g_controls_->w(), controls_height);
+
+	cy += GAP;
 	cx = g_content_->x() + g_content_->w() + GAP;
 
 	// Create the disturber controls group
@@ -780,3 +815,29 @@ void user_if::cb_pitch(Fl_Widget* w, void* data)
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect pitch changes
 }
 
+void user_if::cb_new(Fl_Widget* w, void* data)
+{
+	// Start a new session
+	(void)w;
+	user_if* ui = static_cast<user_if*>(data);
+	text_gen_->generate_new_sequence();
+}
+
+void user_if::cb_stop(Fl_Widget* w, void* data)
+{
+	// Stop the current session
+	(void)w;
+	user_if* ui = static_cast<user_if*>(data);
+	text_gen_->stop_sequence(); // Stop the text generator to stop any ongoing sequence
+	noise_gen_->clear(); // Clear the noise generator to stop any ongoing noise
+	shaper_->clear(); // Clear the shaper to stop any ongoing playback
+	mod_mixer_->clear(); // Clear the mod mixer to stop any ongoing modulation
+}
+
+void user_if::cb_repeat(Fl_Widget* w, void* data)
+{
+	// Repeat the current session
+	(void)w;
+	user_if* ui = static_cast<user_if*>(data);
+	text_gen_->repeat_sequence();
+}

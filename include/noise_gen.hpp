@@ -18,6 +18,8 @@
 
 #include "params.hpp"
 
+#include "zc_async_queue.h"
+
 #include <queue>
 #include <random>
 #include <string>
@@ -65,12 +67,15 @@ class noise_gen
 {
 public:
 	//! Constructor. Takes the audio data queue as arguments.
-	noise_gen(std::queue<float>* audio_data_queue);
+	noise_gen(zc_async_queue<float>* audio_data_queue);
 	//! Destructor.
 	~noise_gen();
 
 	//! Apply settings and update internal state. This will be called whenever the settings are changed by the user interface.
 	void apply_settings();
+
+	//! Clear the generation of audio samples. This will clear the output queue and reset the internal state of the noise generator to be ready for a new sequence of symbols.
+	void clear();
 
 private:
 	//! Generate a single burst of impact noise. 
@@ -86,11 +91,13 @@ private:
 	static void generation_loop(noise_gen* instance);
 	//! Flag to signal the generation thread to stop when the noise generator is destroyed.
 	bool stop_generation_ = false;
+	//! Flag to request clearing the output queue and resetting internal state. This will be set when the clear() method is called and will be checked by the generation thread.
+	bool clear_requested_ = false;
 	//! Thread object for the noise generation thread.
 	std::thread generation_thread_;
 
 	//! Pointer to the audio data queue where generated noise samples will be pushed.
-	std::queue<float>* audio_data_queue_;
+	zc_async_queue<float>* audio_data_queue_;
 
 	//! Random number generator for generating noise samples and determining when noise events occur.
 	std::mt19937 rng_;

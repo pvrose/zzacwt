@@ -30,7 +30,7 @@ extern int OSCILLATOR_CHUNK_SIZE; //!< Number of samples to generate in each chu
 //! \brief Constructor for the oscillator class
 //! \param output_queue Pointer to the queue where generated audio samples will be pushed
 //! 
-oscillator::oscillator(std::queue<float>* output_queue) {
+oscillator::oscillator(zc_async_queue<float>* output_queue) {
 	apply_settings();
 	output_queue_ = output_queue;
 	// Start the generation thread
@@ -58,6 +58,9 @@ void oscillator::apply_settings() {
 
 //! \brief Generation loop for the oscillator thread
 void oscillator::generation_loop(oscillator* osc) {
+	// Set first phase accumulator value to 0 and set first output value to 0.
+	osc->phase_accumulator_ = 0.0F;
+	osc->output_queue_->push(0.0F);
 	while (!osc->stop_generation_) {
 		// If the output queue is nearly empty, generate more samples
 		if (osc->output_queue_ && osc->output_queue_->size() < LOWER_QUEUE_THRESHOLD) {

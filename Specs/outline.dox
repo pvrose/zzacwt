@@ -94,7 +94,7 @@ B. User interface.
     - Slider to control the normal speed (6 to 50 WPM).
     - Slider to control the Farnsworth speed (6 to Normal WPM).
     - Slider to control the Wordsworth speed (6 to Farnsworth WPM).
-    - Applies immediately to the generated text.
+    - Applies after the text has been sent.
   - Disturber:
     - Disturber selection: a dropdown menu to select the type of disturbance to apply.
     - Slider to control the level of timing disturbance (0 to 5).
@@ -105,26 +105,23 @@ B. User interface.
     - Slider to control the amplitude of cyclic drift (0 Hz to +/-100 Hz).
     - Slider to control the cycle time of cyclic drift (0 s to 60 s).
     - Button to reset default values.
-    - Applies immediately to the generated text.
+    - Applies after the text has been sent.
   - Volume control.
     - Slider to control the volume (0% to 100%).
-    - Applies immediately to the generated text.
+    - Applies after the text has been sent.
   - Frequency control.
     - Slider to control the frequency (350 Hz to 1400 Hz).
-    - Applies immediately to the generated text.
-  - Text entry area.
-    - Allows the user to enter the text for checking their copy accuracy. 
-    - "Reveal" button to show the generated text for comparison.
-    - "Repeat" button to repeat the generated text for additional practice.
-    - "Next" button to generate new text based on the current settings.
+    - Applies after the text has been sent.
+  - Control buttons:
+    - "New" button to start a session with new content.
+    - "Stop" button to abandon the current session.
+    - "Repeat" button to repeat the session with the same content.
 - The selected values will be retained for the next practice session.
   - Use zzacommon::zc_settings to save and load the settings in ZZACWT.json
     per GM3ZZA standards.
 - A seperate window with a text editor for the user to type in what
   they copied. Plus:
   - "Reveal" button to show the generated text for comparison.
-  - "Repeat" button to repeat the generated text for additional practice.
-  - "Next" button to generate new text based on the current settings.
 
 
 C. Implementation.

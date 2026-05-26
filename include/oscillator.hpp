@@ -19,6 +19,8 @@
 
 #include "params.hpp"
 
+#include "zc_async_queue.h"
+
 #include <queue>
 #include <thread>
 
@@ -64,7 +66,7 @@ class oscillator {
 public:
 	//! Constructor
 	//! \param output_queue Pointer to the queue where the oscillator will push generated audio samples
-	oscillator(std::queue<float>* output_queue);
+	oscillator(zc_async_queue<float>* output_queue);
 
 	//! Destructor
 	~oscillator();
@@ -78,7 +80,7 @@ private:
 	float next_sample();
 
 	//! Pointer to the output queue.
-	std::queue<float>* output_queue_ = nullptr;
+	zc_async_queue<float>* output_queue_ = nullptr;
 
 	//! Current phase accumulator for the oscillator (in radians).
 	float phase_accumulator_ = 0.0F;

@@ -56,6 +56,9 @@ public:
 	static void cb_default(Fl_Widget* w, void* data);
 	static void cb_volume(Fl_Widget* w, void* data);
 	static void cb_pitch(Fl_Widget* w, void* data);
+	static void cb_new(Fl_Widget* w, void* data);
+	static void cb_stop(Fl_Widget* w, void* data);
+	static void cb_repeat(Fl_Widget* w, void* data);
 
 private:
 
@@ -84,6 +87,11 @@ private:
 	Fl_Group* g_tone_;                  //!< Group for volume and pitch of tone
 	Fl_Value_Slider* sl_volume_;        //!< Volume slider
 	Fl_Value_Slider* sl_pitch_;         //!< Pitch slider
+
+	Fl_Group* g_controls_;              //!< Group for play/stop/repeat controls
+	Fl_Button* bt_new_;                //!< New button
+	Fl_Button* bt_stop_;               //!< Stop button
+	Fl_Button* bt_repeat_;             //!< Repeat button
 
 	//! Methods to update the state of the user interface controls based on the current settings
 	void update_content_widgets();
