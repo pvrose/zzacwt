@@ -39,6 +39,7 @@ enum class content_mode
 	LETTERS,   //!< Random letters mode
 	NUMBERS,   //!< Random numbers mode
 	MIXED,     //!< Random mixed characters mode
+	WORD_LIST,  //!< Random words from word list
 	TEXT_ONLY,       //!< Text only mode
 	TEXT_PUNCTUATION,   //!< Text with punctuation mode
 	QSO,       //!< Random QSOs mode
@@ -52,6 +53,7 @@ static inline const std::map<content_mode, std::string> content_mode_strings_ = 
 	{content_mode::LETTERS, "5-letter groups"},
 	{content_mode::NUMBERS, "5-number groups"},
 	{content_mode::MIXED, "5-mixed groups"},
+	{content_mode::WORD_LIST, "Word List"},
 	{content_mode::TEXT_ONLY, "Text Only"},
 	{content_mode::TEXT_PUNCTUATION, "Text + Punctuation"},
 	{content_mode::QSO, "QSOs"},

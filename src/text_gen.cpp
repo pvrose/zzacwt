@@ -43,6 +43,8 @@ text_gen::text_gen()
 {
 	// Initialise settings
 	apply_settings();
+	// Load word list if needed
+	load_word_list();
 	if (mode_ == content_mode::TEST_MODE_A) {
 		// Automatically start test mode A when selected. 
 		generate_new_sequence();
@@ -85,6 +87,9 @@ void text_gen::generate_new_sequence() {
 		for (int i = 0; i < num_groups_; ++i) {
 			current_sequence_.push_back(generate_group(3, 7, REGEX_CALLSIGN));
 		}
+		break;
+	case content_mode::WORD_LIST:
+		current_sequence_ = generate_word_list_words();
 		break;
 	case content_mode::TEXT_ONLY:
 		text_file_position_ = text_file_new_position_; // Restore saved position in text file
@@ -219,6 +224,18 @@ std::vector<std::string> text_gen::generate_text_sentence(bool include_punctuati
 	return sentence;
 }
 
+//! Generate a word from the word list file.
+std::vector<std::string> text_gen::generate_word_list_words() {
+	std::vector<std::string> words;
+	// Get words at random from the word list until we have enough
+	std::uniform_int_distribution<> dist(0, word_list_words_.size() - 1);
+	for (int i = 0; i < num_groups_; ++i) {
+		int index = dist(rng_);
+		words.push_back(word_list_words_[index]);
+	}	
+	return words;
+}
+
 //! Generate a QSO exchange.
 //! For simplicity, this function generates a fixed QSO exchange. In a real implementation,
 //! you would want to generate random callsigns, signal reports, and messages according to typical QSO formats.
@@ -238,4 +255,22 @@ std::vector<std::string> text_gen::generate_user_text() {
 		words.push_back(word);
 	}
 	return words;
+}
+
+//! Read word-list file and store words in internal state.
+void text_gen::load_word_list() {
+	word_list_words_.clear();
+	std::ifstream word_list_file;
+	std::string dummy;
+	file_holder_->get_file(FILE_WORD_LIST, word_list_file, dummy);
+	if (!word_list_file) {
+		word_list_words_ = { "To", "be", "implemented" }; // Placeholder words if file can't be opened
+		return; // If file couldn't be opened, just use placeholder words
+	}
+	std::string word;
+	while (std::getline(word_list_file, word)) {
+		if (!word.empty()) {
+			word_list_words_.push_back(word);
+		}
+	}
 }

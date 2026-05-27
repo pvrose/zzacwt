@@ -73,8 +73,12 @@ public:
 	std::string get_next_word();
 
 private:
+	//! Read word-list file and store words in internal state.
+	void load_word_list();
 	//! Generate a word from the text file.
 	std::vector<std::string> generate_text_sentence(bool include_punctuation);
+	//! Generate a word from the word list file.
+	std::vector<std::string> generate_word_list_words();
 	//! Generate a QSO exchange.
 	std::vector<std::string> generate_qso_exchange();
 	//! Generate user defined text.
@@ -106,6 +110,9 @@ private:
 
 	//! File stream for reading text file in option 4.
 	std::ifstream text_file_stream_;
+
+	//! List of words read in from the word list file.
+	std::vector<std::string> word_list_words_;
 
 	//! Random number engine for generating random content.
 	std::mt19937 rng_;

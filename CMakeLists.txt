@@ -65,6 +65,7 @@ set(CPPFILES
 set(DATAFILES
   ${ZZACWT_SOURCE_DIR}/rose.png 
   ${ZZACWT_SOURCE_DIR}/text.txt
+  ${ZZACWT_SOURCE_DIR}/word_list.txt
 )
 
 ## Generate Windows icon and resource file
