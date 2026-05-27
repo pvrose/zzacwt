@@ -91,6 +91,8 @@ private:
 
 	//! Read settings and update internal state accordingly.
 	void apply_settings();
+	//! Save settings that need to be preserved between sessions (e.g. text file position).
+	void save_settings();
 	//! Test type to generate based on settings.
 	content_mode mode_;
 	//! Number of groups to generate for options 1-3 and 7.
@@ -99,6 +101,8 @@ private:
 	std::string user_text_;
 	//! Position in the text file for option 4.
 	std::streampos text_file_position_;
+	//! Position in text file for "New" sequence. This is saved and restored between sessions.
+	std::streampos text_file_new_position_;
 
 	//! File stream for reading text file in option 4.
 	std::ifstream text_file_stream_;

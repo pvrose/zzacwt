@@ -17,12 +17,21 @@
 
 #pragma once
 
+#include "zc_file_holder.h"
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#include <cstdint>
 #include <map>
 #include <stdexcept>
 #include <string>
+
+//! Additional file IDs for the file holder
+enum file_types : uint8_t {
+	FILE_TEXT_FILE = FILE_USER, //!< Text file for option 4 in text generation
+	FILE_WORD_LIST,                 //!< Word list for option 5 in text generation
+};
 
 //! Enumerated type for the different content modes
 enum class content_mode

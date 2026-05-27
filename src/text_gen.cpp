@@ -18,6 +18,7 @@
 
 #include "params.hpp"
 
+#include "zc_file_holder.h"
 #include "zc_settings.h"
 
 #include <algorithm>
@@ -86,9 +87,11 @@ void text_gen::generate_new_sequence() {
 		}
 		break;
 	case content_mode::TEXT_ONLY:
+		text_file_position_ = text_file_new_position_; // Restore saved position in text file
 		current_sequence_ = generate_text_sentence(false);
 		break;
 	case content_mode::TEXT_PUNCTUATION:
+		text_file_position_ = text_file_new_position_; // Restore saved position in text file
 		current_sequence_ = generate_text_sentence(true);
 		break;
 	case content_mode::QSO:
@@ -156,22 +159,39 @@ void text_gen::apply_settings() {
 	settings.get("Content Mode", mode_, content_mode::LETTERS);
 	settings.get("Block Size", num_groups_, 10);
 	settings.get<std::string>("User Text", user_text_, "Hello World");
-	settings.get<std::streampos>("Text File Position", text_file_position_, 0);
+	settings.get<std::streampos>("Text File Position", text_file_new_position_, 0);
+}
+
+//! Save settings that need to be preserved between sessions (e.g. text file position).
+void text_gen::save_settings() {
+	// Save position in text file for next time
+	if (mode_ == content_mode::TEXT_ONLY || mode_ == content_mode::TEXT_PUNCTUATION) {
+		zc_settings settings;
+		settings.set("Text File Position", text_file_new_position_);
+	}
 }
 
 //! Generate a word from the text file.
 std::vector<std::string> text_gen::generate_text_sentence(bool include_punctuation) {
-	std::vector<std::string> sentence;
+	std::vector<std::string> sentence = {"To", "be", include_punctuation ? "implemented!" : "implemented"};
 	// Open text file if not already open
 	if (!text_file_stream_.is_open()) {
-		text_file_stream_.open("text.txt");
+		std::string dummy;
+		file_holder_->get_file(FILE_TEXT_FILE, text_file_stream_, dummy);
 		if (!text_file_stream_) {
-			throw std::runtime_error("Failed to open text file");
+			return sentence; // Return placeholder sentence if file couldn't be opened
 		}
 	}
 	// Seek to saved position in text file
 	text_file_stream_.clear(); // Clear any error flags
 	text_file_stream_.seekg(text_file_position_);
+	// If seek failed, reset to beginning of file
+	if (!text_file_stream_) {
+		text_file_stream_.clear();
+		text_file_stream_.seekg(0);
+		text_file_position_ = 0;
+	}
+	sentence.clear();
 	std::string word;
 	while (text_file_stream_ >> word) {
 		// Check if this word ends with sentence-ending punctuation
@@ -194,7 +214,8 @@ std::vector<std::string> text_gen::generate_text_sentence(bool include_punctuati
 		}
 	}
 	// Save current position in text file for next time
-	text_file_position_ = text_file_stream_.tellg();
+	text_file_new_position_ = text_file_stream_.tellg();
+	save_settings();
 	return sentence;
 }
 
