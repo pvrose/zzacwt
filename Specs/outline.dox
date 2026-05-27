@@ -11,6 +11,7 @@ ZZACWT generates text for Morse code practice. The generated text will be one of
 - Random 5-letter groups.
 - Random 5-number groups.
 - Random 5-character groups (letters and numbers).
+- Random words from a reference word list.
 - Text randomly selected from a user-provided text file - no punctuation.
 - Text randomly selected from a user-provided text file - with punctuation.
 - Random QSO text (callsigns, signal reports, locations, etc.).
@@ -21,6 +22,10 @@ ZZACWT generates text for Morse code practice. The generated text will be one of
   - wx is [sunny|cloudy|rainy|snowy] temp is [nn] [c|f]
   - rig [RIG] pwr [PWR]W ant is [ANT]
   - etc.
+  - Missing words will be provided as random words from the reference word list.
+    - Infers there should be some sort of categorisation. 
+    - Callsigns, signal reports, locations, names, rigs, power levels, antennas, weather conditions, temperatures, etc.
+    - Customisation so that the user can supply own name, QTH etc. for more personalised practice.
 - Random callsigns. 
   - A9A, A9AA, A9AAA, 9A9A, 9A9AA, 
   - AA9A, aA9AA, AA9AAA, 9A9AA, 9A9AAA,
@@ -30,7 +35,7 @@ ZZACWT generates text for Morse code practice. The generated text will be one of
 - Control the size of the generated text.
   - 1 to 50 groups or words per practice session.
 - Test modes:
-  - "A": Generate "VVV" continually until the user stops it.
+  - "A": Generate "VVV VVV VVV" repeated up to 50 times.
 
 2. Speed Control.
 
@@ -80,9 +85,21 @@ to achieve the desired overall WPM.
   - From 350 Hz to 1400 Hz in 1 Hz increments.
   - Default is 700 Hz.
 
+6. Session Control.
+  - "New" button to start a session with new content.
+  - "Stop" button to abandon the current session.
+  - "Repeat" button to repeat the session with the same content.
+
+7. Reviewing and Comparison.
+  - Display the generated morse code as it is being sent or after the
+    session is complete for the user to compare with what they copied.
+  - Allow the user to type in as they copy for real-time comparison.
+  - Allow the user to repeat back what they copied as input audio 
+    and compare with the generated audio (potential future feature).
+
 B. User interface.
 
-- The user interface will be a single window with the following controls:
+1. Control window:
   - Content:
     - Content selection: a dropdown menu to select the type of text to generate.
     - Slider to control the size of the generated text (1 to 50 groups or words).
@@ -119,11 +136,21 @@ B. User interface.
 - The selected values will be retained for the next practice session.
   - Use zzacommon::zc_settings to save and load the settings in ZZACWT.json
     per GM3ZZA standards.
-- A seperate window with a text editor for the user to type in what
-  they copied. Plus:
-  - "Reveal" button to show the generated text for comparison.
 
-
+2. Review window:
+  - A text editing area to allow the user to enter what
+    they copied for comparison with the generated text.
+  - A display area to show the generated text as it is sent for 
+    comparison with what the user copied.
+  - A display area to show the decoded audio (either what is generated 
+    or what the user repeated back) for comparison with the generated text.
+  - Modes:
+    - Show generated text as it is sent or after the session is complete.
+    - Allow the user to type in as they copy for comparison in real time or
+      after the session is complete.
+    - Allow the user to repeat back what they copied as input audio and 
+      compare with the generated audio (potential future feature).
+    
 C. Implementation.
 
   - The ZZA CW Trainer will be implemented in C++ using FLTK for the user interface and PortAudio for audio output.
@@ -159,3 +186,5 @@ C. Implementation.
       user input. 
       - Use zzacommon::zc_settings to communicate settings between
       the User Interface and the other modules.
+    - Review Window: handles the review window and user interactions for 
+      reviewing and comparing the generated text and user input.
