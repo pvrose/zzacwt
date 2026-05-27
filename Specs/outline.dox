@@ -16,11 +16,11 @@ ZZACWT generates text for Morse code practice. The generated text will be one of
 - Text randomly selected from a user-provided text file - with punctuation.
 - Random QSO text (callsigns, signal reports, locations, etc.).
   - [CALL] de [CALL]
-  - tnx [CALL] ur RST [RST]
+  - tnx [NAME] ur RST [RST]
   - [my|op] name is [NAME]
   - qth is [QTH]
   - wx is [sunny|cloudy|rainy|snowy] temp is [nn] [c|f]
-  - rig [RIG] pwr [PWR]W ant is [ANT]
+  - rig [RIG] [pwr|running] [PWR][w|watts] ant is [ANT]
   - etc.
   - Missing words will be provided as random words from the reference word list.
     - Infers there should be some sort of categorisation. 
