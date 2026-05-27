@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-const std::basic_regex<char> REGEX_CALLSIGN("(^[0-9]?[A-Za-z]).*([0-9][A-Za-z]{1,})");
+const std::basic_regex<char> REGEX_CALLSIGN("([2-9][A-Z]|[A-Z]|[A-Z][0-9])([0-9][A-Z]{1,3})");
 const std::basic_regex<char> REGEX_LETTERS("[A-Z]{5}");
 const std::basic_regex<char> REGEX_DIGITS("[0-9]{5}");
 const std::basic_regex<char> REGEX_LETTERS_DIGITS("[A-Z0-9]{5}");
