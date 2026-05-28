@@ -127,6 +127,9 @@ private:
 	//! Add a raised cosine transition onto the specified audio sample queue.
 	void add_raised_cosine(std::queue<float>& audio_samples, float duration, bool target_mark);
 
+	//! Add an overshoot disturbance to the specified audio sample queue.
+	void add_overshoot(std::queue<float>& audio_samples, float duration, bool target_mark);
+
 	//! Current state of the shaper (mark or space)
 	bool is_mark_ = false;
 

@@ -212,8 +212,14 @@ void shaper::generate_envelope(symbol_t symbol, std::queue<float>& audio_samples
 	bool target_mark = (symbol == symbol_t::DOT_MARK || symbol == symbol_t::DASH_MARK);
 	// Calculate the total duration for the symbol including timing disturbance
 	float duration = symbol_durations_[symbol] + generate_delta_t();
-	// Add a raised cosine transition to the target state
-	add_raised_cosine(audio_samples, rise_fall_time_, target_mark);
+	if (duration < 0.0F) {
+		// If the disturbance results in a negative duration, we will treat it as an overshoot disturbance and add a brief overshoot before transitioning to the target state.
+		add_overshoot(audio_samples, -duration, target_mark); 
+	}
+	else {
+		// Add a raised cosine transition to the target state
+		add_raised_cosine(audio_samples, rise_fall_time_, target_mark);
+	}
 	// Add samples for the remaining duration of the symbol
 	float value = target_mark ? MARK_VALUE : SPACE_VALUE;
 	int num_samples = static_cast<int>((duration - rise_fall_time_) * DEFAULT_SAMPLE_RATE);
@@ -230,6 +236,30 @@ void shaper::add_raised_cosine(std::queue<float>& audio_samples, float duration,
 	for (int i = 0; i < num_samples; ++i) {
 		float t = static_cast<float>(i) / num_samples; // Normalized time (0 to 1)
 		float envelope_value = start_value + (end_value - start_value) * 0.5F * (1 - cosf(3.14159265F * t)); // Raised cosine formula
+		audio_samples.push(envelope_value);
+	}
+	is_mark_ = target_mark; // Update current state to target state after transition
+}
+
+//! Add an overshoot disturbance to the specified audio sample queue
+//! For now keep it simple, for each millisecond of overshoot duration,
+//! add a brief overshoot of 10% above the target mark value or 10% below the target space value,
+//! tapering off over the duration of the overshoot.
+void shaper::add_overshoot(std::queue<float>& audio_samples, float duration, bool target_mark) {
+	int num_samples = static_cast<int>(duration * DEFAULT_SAMPLE_RATE);
+	float start_value = is_mark_ ? MARK_VALUE : SPACE_VALUE;
+	float end_value = target_mark ? MARK_VALUE : SPACE_VALUE;
+	// No overshoot if the target state is the same as the current state
+	if (start_value == end_value) {
+		for (int i = 0; i < num_samples; ++i) {
+			audio_samples.push(end_value);
+		}
+		return;
+	}
+	float overshoot_value = target_mark ? MARK_VALUE + (duration * 0.1F) : SPACE_VALUE - (duration * 0.1F);
+	for (int i = 0; i < num_samples; ++i) {
+		float t = static_cast<float>(i) / num_samples; // Normalized time (0 to 1)
+		float envelope_value = start_value + (overshoot_value - start_value) * (1 - t) + (end_value - overshoot_value) * t;
 		audio_samples.push(envelope_value);
 	}
 	is_mark_ = target_mark; // Update current state to target state after transition

@@ -268,7 +268,7 @@ void user_if::create_widgets() {
 	cy += HBUTTON;
 	sl_softness_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Softness:");
 	sl_softness_->type(FL_HOR_SLIDER);
-	sl_softness_->bounds(0, 3 * (DEFAULT_RISE_FALL * 1000.0F));
+	sl_softness_->bounds(-(DEFAULT_RISE_FALL * 1000.0F), 3 * (DEFAULT_RISE_FALL * 1000.0F));
 	sl_softness_->step(1.0);
 	sl_softness_->callback(cb_softness, this);
 	sl_softness_->tooltip("Adjusts the rise and fall time (in ms) of the morse tone: normal = 5 ms");
