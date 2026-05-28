@@ -59,6 +59,8 @@ public:
 	static void cb_new(Fl_Widget* w, void* data);
 	static void cb_stop(Fl_Widget* w, void* data);
 	static void cb_repeat(Fl_Widget* w, void* data);
+	// Callback on close
+	static void cb_close(Fl_Widget* w, void* data);
 
 private:
 

@@ -19,6 +19,7 @@
 #include "mod_mixer.hpp"
 #include "noise_gen.hpp"
 #include "params.hpp"
+#include "review.hpp"
 #include "shaper.hpp"
 #include "text_gen.hpp"
 
@@ -45,11 +46,13 @@ extern noise_gen* noise_gen_;
 extern shaper* shaper_;
 extern zc_speaker* speaker_;
 extern text_gen* text_gen_;
+extern review* review_;
 
 extern float DEFAULT_RISE_FALL;
 
 user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)
 {
+	callback(cb_close, this);
 	create_widgets();
 }
 
@@ -444,7 +447,7 @@ void user_if::update_disturber_widgets() {
 
 	// Get softness setting
 	float softness;
-	settings.get("Softness", softness, (DEFAULT_RISE_FALL * 1000.0F));
+	settings.get<float>("Softness", softness, (DEFAULT_RISE_FALL * 1000.0F));
 	sl_softness_->value(softness);
 
 	// Get noise volume setting
@@ -865,4 +868,17 @@ void user_if::cb_repeat(Fl_Widget* w, void* data)
 	ui->apply_oscillator_settings();
 	ui->apply_speaker_settings();
 	text_gen_->repeat_sequence();
+}
+
+// Callback on close - close all windows and exit the application
+void user_if::cb_close(Fl_Widget* w, void* data)
+{
+	(void)w;
+	(void)data;
+	// Hide the review window if it's open
+	if (review_) {
+		review_->hide();
+	}
+	// Call default close behavior to close the main window and exit the application
+	Fl_Window::default_callback((Fl_Window*)w, data);
 }

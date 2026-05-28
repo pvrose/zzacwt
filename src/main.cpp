@@ -19,6 +19,7 @@
 #include "codec.hpp"
 #include "mod_mixer.hpp"
 #include "noise_gen.hpp"
+#include "review.hpp"
 #include "shaper.hpp"
 #include "text_gen.hpp"
 #include "user_if.hpp"
@@ -74,6 +75,15 @@ shaper* shaper_ = nullptr; //!< Pointer to the shaper instance
 noise_gen* noise_gen_ = nullptr; //!< Pointer to the noise generator instance
 mod_mixer* mod_mixer_ = nullptr; //!< Pointer to the modulator/mixer instance
 zc_speaker* speaker_ = nullptr; //!< Pointer to the speaker instance
+review* review_ = nullptr; //!< Pointer to the review window instance
+
+// In-fill logic. Take the metadata as it's sent by speaker and send it to review.
+void audio_metadata_callback(const std::string& metadata)
+{
+	if (review_ && !metadata.empty()) {
+		review_->add_sent_text(metadata + " ", text_source_t::SENT_TEXT);
+	}
+}
 
 int main(int argc, char** argv)
 {
@@ -112,6 +122,7 @@ int main(int argc, char** argv)
 	mod_mixer_ = new mod_mixer(carrier_queue, envelope_queue, noise_queue, audio_out_queue);
 	// Create the speaker
 	speaker_ = new zc_speaker(audio_out_queue);
+	speaker_->set_text_callback(audio_metadata_callback);
 
 	// Initialize and enable the speaker (uses default audio device)
 	if (!speaker_->use_port(0)) {
@@ -123,6 +134,9 @@ int main(int argc, char** argv)
 
 	// Show the window
 	window->show(argc, argv);
+
+	review_ = new review(600, 800, "ZZACWT - Code window");
+	review_->show();
 
 	// Run the FLTK event loop
 	return Fl::run();

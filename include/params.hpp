@@ -102,6 +102,33 @@ static inline const std::map<disturber_type, std::string> disturber_type_strings
 	{disturber_type::DRIFT_CYCLIC, "Cyclic Drift"}
 };
 
+
+//! Enumerated type for the different text sources
+enum class text_source_t : uint8_t {
+	NO_TEXT,
+	SENT_TEXT,
+	TYPED_TEXT,
+	DECODED_FIRST,
+	DECODED_NONE = DECODED_FIRST,
+	DECODED_SENT_AUDIO,
+	DECODED_MIC_AUDIO,
+	DECODED_LAST,
+	COUNT = DECODED_LAST
+};
+//! Map text source enum to displayed strings
+//! Note that the text sources that are used for decoding results 
+//! are grouped together in the middle of the enum, so that they 
+//! can be easily checked for in the code.
+static inline const std::map<text_source_t, std::string> text_source_strings_ = {
+	{text_source_t::NO_TEXT, "No Text"},
+	{text_source_t::SENT_TEXT, "Sent Text"},
+	{text_source_t::TYPED_TEXT, "Typed Text"},
+	{text_source_t::DECODED_NONE, "No Audio"},
+	{text_source_t::DECODED_SENT_AUDIO, "Sent Audio"},
+	{text_source_t::DECODED_MIC_AUDIO, "Microphone"},
+};
+
+
 // JSON serialization for enums using the shared maps
 namespace nlohmann {
 	template <>

@@ -56,6 +56,7 @@ set(CPPFILES
   ${ZZACWT_SOURCE_DIR}/src/mod_mixer.cpp
   ${ZZACWT_SOURCE_DIR}/src/noise_gen.cpp
   ${ZZACWT_SOURCE_DIR}/src/oscillator.cpp
+  ${ZZACWT_SOURCE_DIR}/src/review.cpp
   ${ZZACWT_SOURCE_DIR}/src/shaper.cpp
   ${ZZACWT_SOURCE_DIR}/src/text_gen.cpp
   ${ZZACWT_SOURCE_DIR}/src/user_if.cpp
@@ -97,7 +98,8 @@ gm3zza_generate_app_source(
 set(ALL_CPPFILES ${GENERATED_APP_CPP} ${CPPFILES})
 
 ## Use shared zzacommon (includes zzaf, zzam, zzad, zzafb)
-gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzafb zzap GIT_TAG master)
+## TODO investigate why zzab is needed to install the runtime DLLs even though zzafb is added.
+gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzab zzafb zzap GIT_TAG master)
 
 
 # Define the zzacwt executable

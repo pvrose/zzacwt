@@ -151,7 +151,7 @@ void shaper::generation_loop(shaper* that) {
 				for (int i = 0; i < SHAPER_CHUNK_SIZE; ++i) {  // Match a reasonable block size
 					audio_data.data.push(0.0F);
 				}
-				audio_data.metadata = "\0";
+				audio_data.metadata = "";
 				that->audio_data_queue_->push(audio_data);
 			}
 			else {
@@ -168,7 +168,7 @@ void shaper::generation_loop(shaper* that) {
 						meta_data_set = true;
 					}
 					else {
-						audio_data.metadata = "\0"; // Set metadata if needed
+						audio_data.metadata = ""; // Set metadata if needed
 					}
 					// Split the generated audio data into chunks and push to the queue
 					zc_audio_data* audio_data_ptr = new zc_audio_data();
@@ -181,7 +181,7 @@ void shaper::generation_loop(shaper* that) {
 							that->audio_data_queue_->push(*audio_data_ptr); // Push the chunk to the queue
 							delete audio_data_ptr; // Clean up the chunk after pushing
 							audio_data_ptr = new zc_audio_data(); // Create a new chunk for the next set of samples
-							audio_data_ptr->metadata = "\0"; // Clear metadata for subsequent chunks
+							audio_data_ptr->metadata = ""; // Clear metadata for subsequent chunks
 							sample_countdown = SHAPER_CHUNK_SIZE; // Reset countdown for the next chunk
 						}
 					}
