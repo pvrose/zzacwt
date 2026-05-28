@@ -388,6 +388,9 @@ void user_if::update_speed_widgets() {
 	// Get the current Farnsworth setting
 	int farnsworth;
 	settings.get("Farnsworth", farnsworth, 6);
+	if (current_speed_type != speed_type::FARNSWORTH) {
+		farnsworth = wpm; // If not in Farnsworth mode, set Farnsworth to WPM
+	}
 	// Restrict the Farnsworth value to be between 6 and WPM.
 	if (farnsworth < 6) {
 		farnsworth = 6;
@@ -401,6 +404,9 @@ void user_if::update_speed_widgets() {
 	// Get the current Wordsworth setting
 	int wordsworth;
 	settings.get("Wordsworth", wordsworth, 6);
+	if (current_speed_type != speed_type::WORDSWORTH) {
+		wordsworth = wpm; // If not in Wordsworth mode, set Wordsworth to WPM
+	}
 	// Restrict the Wordsworth value to be between 6 and farnsworth.
 	if (wordsworth < 6) {
 		wordsworth = 6;
