@@ -204,6 +204,8 @@ void review::hide_text(Fl_Text_Display* td) {
 	*std::fill_n(style_str, highlight_buffer->length(), 'B') = '\0';
 	highlight_buffer->text(style_str);
 	delete[] style_str;
+	td->redraw();
+	Fl::check();
 }
 void review::show_text(Fl_Text_Display* td) {
 	Fl_Text_Buffer* highlight_buffer = td->style_buffer();
@@ -212,6 +214,8 @@ void review::show_text(Fl_Text_Display* td) {
 	*std::fill_n(style_str, highlight_buffer->length(), 'A') = '\0';
 	highlight_buffer->text(style_str);
 	delete[] style_str;
+	td->redraw();
+	Fl::check();
 }
 
 // Add placeholders for the callback functions and the compare_displays function.
@@ -226,13 +230,7 @@ void review::cb_as_sending(Fl_Widget* w, void* data) {
 void review::cb_show(Fl_Widget* w, void* data) {
 	// Change the style of the sent text to normal to show it, and mark the display for redraw.
 	review* r = static_cast<review*>(data);
-	Fl_Text_Buffer* highlight_buffer = r->td_sent_->style_buffer();
-	// Set the style of all text in the display to the normal style (style 'A').
-	char* style_str = new char[highlight_buffer->length() + 1];
-	*std::fill_n(style_str, highlight_buffer->length(), 'A') = '\0';
-	highlight_buffer->text(style_str);
-	delete[] style_str;
-
+	r->show_text(r->td_sent_);
 }
 
 void review::cb_compare_typed(Fl_Widget* w, void* data) {
