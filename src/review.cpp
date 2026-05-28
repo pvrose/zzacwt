@@ -186,6 +186,10 @@ void review::add_sent_text(const std::string& text, text_source_t source) {
 		*std::fill_n(style_str, text.size(), style_char) = '\0';
 		highlight_buffer->append(style_str);
 		delete[] style_str;
+		// Scroll to the end of the display to show the new text.
+		// Get the line number of the last line in the display and scroll to it.
+		int last_line = td_sent_->line_start(buffer->length() - 1);
+		td_sent_->scroll(last_line, 0);
 		// Mark the display for redraw to show the new text.
 		td_sent_->redraw();
 		Fl::check(); // Process events to update the display.
