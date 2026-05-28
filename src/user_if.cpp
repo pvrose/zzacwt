@@ -806,7 +806,7 @@ void user_if::cb_default(Fl_Widget* w, void* data)
 	zc_settings settings;
 	settings.set("Disturber Type", disturber_type::NONE);
 	settings.set("Timing Disturbance", 0);
-	settings.set("Softness", 0);
+	settings.set("Softness", DEFAULT_RISE_FALL * 1000.0F);
 	settings.set("Noise Volume", -40);
 	settings.set("Noise Severity", 0);
 	settings.set("Drift Rate", 0);
