@@ -218,6 +218,35 @@ void review::show_text(Fl_Text_Display* td) {
 	Fl::check();
 }
 
+// Clear a display of text.
+void review::clear_display(text_source_t source) {
+	if (source == text_source_t::SENT_TEXT) {
+		td_sent_->buffer()->text("");
+		td_sent_->style_buffer()->text("");
+		td_sent_->redraw();
+	}
+	else if (source == text_source_t::TYPED_TEXT) {
+		td_typed_->buffer()->text("");
+		td_typed_->style_buffer()->text("");
+		td_typed_->redraw();
+	}
+	else if (source == decode_source_) {
+		td_decoded_->buffer()->text("");
+		td_decoded_->style_buffer()->text("");
+		td_decoded_->redraw();
+	}
+	else {
+		// TODO - handle other sources of text if needed.
+	}
+}
+
+// Clear all displays of text.
+void review::clear_all_displays() {
+	clear_display(text_source_t::SENT_TEXT);
+	clear_display(text_source_t::TYPED_TEXT);
+	clear_display(decode_source_);
+}
+
 // Add placeholders for the callback functions and the compare_displays function.
 void review::cb_as_sending(Fl_Widget* w, void* data) {
 	// Toggle the show_as_sending_ setting and update the display of sent text accordingly.

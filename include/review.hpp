@@ -72,7 +72,10 @@ public:
 	~review();
 	//! \brief Add sent text to the review.
 	void add_sent_text(const std::string& text, text_source_t source = text_source_t::SENT_TEXT);
-
+	//! \brief Clear a display of text.
+	void clear_display(text_source_t source);
+	//! \brief Clear all displays of text.
+	void clear_all_displays();
 	// Callbacks for controls.
 	static void cb_as_sending(Fl_Widget* w, void* data);
 	static void cb_show(Fl_Widget* w, void* data);

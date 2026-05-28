@@ -840,6 +840,7 @@ void user_if::cb_new(Fl_Widget* w, void* data)
 	// Start a new session
 	(void)w;
 	user_if* ui = static_cast<user_if*>(data);
+	review_->clear_all_displays();
 	ui->apply_noise_settings();
 	ui->apply_shaper_settings();
 	ui->apply_oscillator_settings();
@@ -863,6 +864,7 @@ void user_if::cb_repeat(Fl_Widget* w, void* data)
 	// Repeat the current session
 	(void)w;
 	user_if* ui = static_cast<user_if*>(data);
+	review_->clear_all_displays();
 	ui->apply_noise_settings();
 	ui->apply_shaper_settings();
 	ui->apply_oscillator_settings();
