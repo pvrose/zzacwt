@@ -78,10 +78,10 @@ zc_speaker* speaker_ = nullptr; //!< Pointer to the speaker instance
 review* review_ = nullptr; //!< Pointer to the review window instance
 
 // In-fill logic. Take the metadata as it's sent by speaker and send it to review.
-void audio_metadata_callback(const std::string& metadata)
+static void audio_metadata_callback(const std::string& metadata)
 {
 	if (review_ && !metadata.empty()) {
-		review_->add_sent_text(metadata + " ", text_source_t::SENT_TEXT);
+		review_->add_sent_text(metadata, text_source_t::SENT_TEXT);
 	}
 }
 

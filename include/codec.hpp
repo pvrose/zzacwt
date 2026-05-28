@@ -78,10 +78,11 @@ enum class symbol_t {
 class codec
 {
 public:
-	//! Encode a string into a vector of symbol_t values representing the Morse code.
+	//! Encode a string into a vector of vector of symbol_t values representing the Morse code.
 	//! \param input The input string to be encoded.
-	//! \param symbols The vector to store the encoded symbol_t values.
-	static void encode(const std::string& input, std::vector<symbol_t>& symbols);
+	//! \param symbols The vector to store the encoded symbol_t values. 
+	//!        Each inner vector represents a single character's Morse code.
+	static void encode(const std::string& input, std::vector<std::vector<symbol_t>>& symbols);
 	//! Decode a vector of symbol_t values representing Morse code into a string.
 	//! \param symbols The vector of symbol_t values to be decoded.
 	//! \param output The string to store the decoded characters.

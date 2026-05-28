@@ -156,48 +156,54 @@ void shaper::generation_loop(shaper* that) {
 			}
 			else {
 				// Normal processing
-				std::vector<symbol_t> symbols;
-				that->generate_symbol_sequence(word, symbols);
-				bool meta_data_set = false; // Flag to track if metadata has been set for the current word
+				std::vector<std::vector<symbol_t>> symbols;
+				int index = 0;
+				codec::encode(word, symbols);
 				int sample_countdown = SHAPER_CHUNK_SIZE; // Countdown to control chunk sizes for pushing to the queue
-				for (const symbol_t& symbol : symbols) {
-					zc_audio_data audio_data;
-					that->generate_envelope(symbol, audio_data.data);
-					if (!meta_data_set) {
-						audio_data.metadata = word; // Set metadata to the word for the first symbol of the word
-						meta_data_set = true;
-					}
-					else {
-						audio_data.metadata = ""; // Set metadata if needed
-					}
-					// Split the generated audio data into chunks and push to the queue
-					zc_audio_data* audio_data_ptr = new zc_audio_data();
-					audio_data_ptr->metadata = audio_data.metadata; // Copy metadata to the chunk
-					while (!audio_data.data.empty()) {
-						audio_data_ptr->data.push(audio_data.data.front());
-						audio_data.data.pop();
-						--sample_countdown;
-						if (sample_countdown <= 0) {
-							that->audio_data_queue_->push(*audio_data_ptr); // Push the chunk to the queue
-							delete audio_data_ptr; // Clean up the chunk after pushing
-							audio_data_ptr = new zc_audio_data(); // Create a new chunk for the next set of samples
-							audio_data_ptr->metadata = ""; // Clear metadata for subsequent chunks
-							sample_countdown = SHAPER_CHUNK_SIZE; // Reset countdown for the next chunk
+				for (const auto& char_symbols : symbols) {
+					bool meta_data_set = false; // Flag to track if metadata has been set for the current word
+					for (const auto& symbol : char_symbols) {
+						zc_audio_data audio_data;
+						that->generate_envelope(symbol, audio_data.data);
+
+						if (!meta_data_set) {
+							if (index < word.size() - 1) {
+								audio_data.metadata = word[index]; // Set metadata to the word for the first symbol of the word
+							}
+							else {
+								audio_data.metadata = std::string(1, word[index]) + " ";
+							}
+
+							meta_data_set = true;
 						}
+						else {
+							audio_data.metadata = ""; // Set metadata if needed
+						}
+						// Split the generated audio data into chunks and push to the queue
+						zc_audio_data* audio_data_ptr = new zc_audio_data();
+						audio_data_ptr->metadata = audio_data.metadata; // Copy metadata to the chunk
+						while (!audio_data.data.empty()) {
+							audio_data_ptr->data.push(audio_data.data.front());
+							audio_data.data.pop();
+							--sample_countdown;
+							if (sample_countdown <= 0) {
+								that->audio_data_queue_->push(*audio_data_ptr); // Push the chunk to the queue
+								delete audio_data_ptr; // Clean up the chunk after pushing
+								audio_data_ptr = new zc_audio_data(); // Create a new chunk for the next set of samples
+								audio_data_ptr->metadata = ""; // Clear metadata for subsequent chunks
+								sample_countdown = SHAPER_CHUNK_SIZE; // Reset countdown for the next chunk
+							}
+						}
+						delete audio_data_ptr; // Clean up the last chunk if it wasn't pushed
 					}
-					delete audio_data_ptr; // Clean up the last chunk if it wasn't pushed
+					++index;
+
 				}
 			}
 		}
 		// Yield to allow other threads to run and check for stop signal
 		std::this_thread::yield();
 	}
-}
-
-//! Generate the symbol sequence for the specified character and convert it to audio envelope and metadata
-void shaper::generate_symbol_sequence(std::string word, std::vector<symbol_t>& symbols) {
-	// Get the symnbol_t sequence for the character from the encoder
-	codec::encode(word, symbols);
 }
 
 //! Generate the audio envelope for the specified symbol

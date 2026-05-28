@@ -121,11 +121,6 @@ private:
 	//! \param audio_samples The queue to which the generated audio samples will be pushed.
 	void generate_envelope(symbol_t symbol, std::queue<float>& audio_samples);
 
-	//! Generate the symbol sequence for the specified character and convert
-	//! it to the corresponding audio envelope and metadata to be
-	//! pushed onto the audio data queue.
-	void generate_symbol_sequence(std::string word, std::vector<symbol_t>& symbols);
-
 	//! Generate timing disturbance value.
 	float generate_delta_t();
 

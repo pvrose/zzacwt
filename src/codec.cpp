@@ -94,16 +94,17 @@ struct from_morse_initializer {
 static from_morse_initializer initializer;
 
 //! Encoder
-void codec::encode(const std::string& input, std::vector<symbol_t>& symbols)
+void codec::encode(const std::string& input, std::vector<std::vector<symbol_t>>& symbols)
 {
 	std::string current_morse;
 	for (size_t i = 0; i < input.size(); ++i) {
 		char c = toupper(input[i]);
+		std::vector<symbol_t> char_symbols;
 		if (c == ' ') {
 			// If we haven't started a new Morse code character,
 			// no need to add a word space, but if we have, do so.
 			if (!current_morse.empty()) {
-				symbols.push_back(symbol_t::WORD_SPACE);
+				char_symbols.push_back(symbol_t::WORD_SPACE);
 				current_morse.clear();
 			}
 			continue;
@@ -116,24 +117,25 @@ void codec::encode(const std::string& input, std::vector<symbol_t>& symbols)
 			for (size_t j = 0; j < morse.size(); ++j) {
 				char symbol = morse[j];
 				if (symbol == '.') {
-					symbols.push_back(symbol_t::DOT_MARK);
+					char_symbols.push_back(symbol_t::DOT_MARK);
 				}
 				else if (symbol == '-') {
-					symbols.push_back(symbol_t::DASH_MARK);
+					char_symbols.push_back(symbol_t::DASH_MARK);
 				}
 				if (j < morse.size() - 1) {
-					symbols.push_back(symbol_t::INTERNAL_SPACE);
+					char_symbols.push_back(symbol_t::INTERNAL_SPACE);
 				}
 			}
 			current_morse = morse;
 			// Not at the end of the input string nor the current word.
 			if (i < input.size() - 1 && input[i + 1] != ' ') {
-				symbols.push_back(symbol_t::CHARACTER_SPACE);
+				char_symbols.push_back(symbol_t::CHARACTER_SPACE);
 			}
 			else {
-				symbols.push_back(symbol_t::WORD_SPACE);
+				char_symbols.push_back(symbol_t::WORD_SPACE);
 				current_morse.clear();
 			}
+			symbols.push_back(char_symbols);
 		}
 		else {
 			std::cerr << "Warning: Unsupported character '" << c << "' ignored in encoding." << std::endl;
