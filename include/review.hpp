@@ -83,6 +83,17 @@ public:
 	static void cb_decode_source(Fl_Widget* w, void* data);
 	static void cb_compare_decoded(Fl_Widget* w, void* data);
 
+	//! Callback for unfinished styles - null function to prevent FLTK from crashing when it encounters a style that is not defined in the style table.
+	static void cb_unfinished_style(int pos, void* data) {
+		// Do nothing - this is just a placeholder to prevent FLTK from crashing when it encounters a style that is not defined in the style table.
+	}
+
+	//! Callback for Fl_Text_Buffer::add_modify_callback
+	static void cb_modify(
+		int pos, int nInserted, 
+		int nDeleted, int nRestyled, 
+		const char* deleted_text, void* data
+	);
 
 private:
 
@@ -96,9 +107,9 @@ private:
 	void save_settings() const;
 
 	//! \brief Compare the text in two text displays and highlight the differences.
-	//! \param td1 The first text display to compare _ and the one to be highligthed.
-	//! \param td2 The second text display to compare _ and the one to be compared against.
-	void compare_displays(Fl_Text_Display* td1, Fl_Text_Display* td2);
+	//! \param user The first text display to compare _ and the one to be highligthed.
+	//! \param sent The second text display to compare _ and the one to be compared against.
+	void compare_displays(Fl_Text_Display* user, Fl_Text_Display* sent);
 
 	//! \brief Hide the text in a text display by displaying it in background colour.
 	void hide_text(Fl_Text_Display* td);
@@ -114,6 +125,10 @@ private:
 	Fl_Group* g_typed_;    //<! Group for typed text.
 	Fl_Text_Editor* td_typed_;  //<! Text display for typed text.
 	Fl_Button* btn_compare_typed_;  //<! Button to compare sent text with typed text.
+	Fl_Text_Display* td_correct_; //<! Shows how correct characters are displayed.
+	Fl_Text_Display* td_missing_; //<! Shows how missing characters are displayed.
+	Fl_Text_Display* td_wrong_; //<! Shows how wrong characters are displayed.
+	Fl_Text_Display* td_extra_; //<! Shows how extra characters are displayed.
 
 	Fl_Group* g_decoded_;  //<! Group for decoded text.
 	Fl_Text_Display* td_decoded_;  //<! Text display for decoded text.

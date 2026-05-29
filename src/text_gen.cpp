@@ -20,6 +20,7 @@
 
 #include "zc_file_holder.h"
 #include "zc_settings.h"
+#include "zc_fltk.h"
 
 #include <algorithm>
 #include <cctype>
@@ -270,7 +271,7 @@ void text_gen::load_word_list() {
 	std::string word;
 	while (std::getline(word_list_file, word)) {
 		if (!word.empty()) {
-			word_list_words_.push_back(word);
+			word_list_words_.push_back(zc::to_lower(word));
 		}
 	}
 }
