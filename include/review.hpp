@@ -95,6 +95,9 @@ public:
 		const char* deleted_text, void* data
 	);
 
+	//! Callback from zc_ticker to update the sent window
+	static void cb_ticker(void* data);
+
 private:
 
 	//! \brief Create the widgets for the review window.

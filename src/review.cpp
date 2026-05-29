@@ -20,6 +20,7 @@
 
 #include "zc_drawing.h"
 #include "zc_settings.h"
+#include "zc_ticker.h"
 
 #include <FL/Enumerations.H>
 #include <FL/Fl.H>
@@ -55,10 +56,13 @@ static char STYLE_EXTRA = 'D';
 static char STYLE_WRONG = 'E';
 static char STYLE_MATCH = 'F';
 
+extern zc_ticker* ticker_;
+
 // Constructor
 review::review(int W, int H, const char* L) : Fl_Double_Window(W, H, L) {
 	create_widgets();
 	load_settings();
+	ticker_->add_ticker(this, cb_ticker, 5, false);
 }
 
 // Destructor
@@ -451,4 +455,10 @@ void review::cb_modify(
 		// If the text was deleted, remove the corresponding style characters.
 		td->style_buffer()->remove(pos, pos + nDeleted);
 	}
+}
+
+// Callback to refresh sent text display every 500 ms.
+void review::cb_ticker(void* data) {
+	review* r = static_cast<review*>(data);
+	Fl::check();
 }

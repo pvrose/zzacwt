@@ -30,6 +30,7 @@
 #include "zc_fltk.h"
 #include "zc_speaker.h"
 #include "zc_status.h"
+#include "zc_ticker.h"
 
 #include <FL/Fl.H>
 
@@ -99,9 +100,12 @@ int main(int argc, char** argv)
 	file_holder_ = new zc_file_holder(argv[0], FILE_CONTROL);
 	zc::customise_fltk();
 	status_ = new zc_status(zc_status::HAS_CONSOLE, {});
+	ticker_ = new zc_ticker();
 
 	// Create the main user interface window
-	user_if* window = new user_if(600, 800, "ZZACWT - CW Trainer");
+	user_if* window = new user_if(600, 800);
+	std::string label = APP_NAME + " v" + APP_VERSION + " - CW Trainer";
+	window->copy_label(label.c_str());
 	// Create the oscillator output queue
 	zc_async_queue<float>* carrier_queue = new zc_async_queue<float>();
 	// Create the oscilaltor
@@ -135,7 +139,9 @@ int main(int argc, char** argv)
 	// Show the window
 	window->show(argc, argv);
 
-	review_ = new review(600, 800, "ZZACWT - Code window");
+	review_ = new review(600, 800);
+	label = APP_NAME + " v" + APP_VERSION + " - Review";
+	review_->copy_label(label.c_str());
 	review_->show();
 
 	// Run the FLTK event loop
