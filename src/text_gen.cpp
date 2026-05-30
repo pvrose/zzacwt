@@ -243,7 +243,7 @@ std::vector<std::string> text_gen::generate_word_list_words() {
 std::vector<std::string> text_gen::generate_qso_exchange() {
 	//! \todo Implement random generation of QSO exchanges with 
 	//! realistic callsigns, signal reports, and messages.
-	return { "CQ", "DE", "GM3ZZA", "GM3ZZA", "5NN", "TU" };
+	return { "cq", "de", "gm3zza", "gm3zza", "5nn", "tu" };
 }
 
 //! Generate user defined text.
