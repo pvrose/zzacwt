@@ -366,3 +366,5 @@ FodyWeavers.xsd
 /ZZACWT-cache/part1/output-info.ini
 /ZZACWT-SetupFiles/ZZACWT-0.2.msi
 /ZZACWT-SetupFiles/ZZACWT-0.2.1.msi
+*.cab
+*.ini
