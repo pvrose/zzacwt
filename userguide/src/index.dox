@@ -1,0 +1,49 @@
+/** \mainpage Userguide
+
+ZZACWT is a Morse Code (aka CW) training application for amateur radio operators.
+It provides the following functionality:
+- Generate random Morse code sequences for practice.
+- Allows the speed and spacing model (eg Farnsworth) to be configured.
+- Allows the pitch of the generated Morse code to be configured.
+- Adds "disturbances" to the generated Morse code to simulate real-world conditions.
+- Displays the generated text and allows the user to enter what they heard for comparison.	
+
+\section contents Contents
+
+- \subpage overview
+- \subpage generation
+- \subpage review
+- \subpage data
+
+\copyright Philip Rose GM3ZZA 2026.
+	
+ZZACWT is free software: you can redistribute it and/or modify it under the
+terms of the Lesser GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+ZZACWT is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with ZZACWT. 
+If not, see <https://www.gnu.org/licenses/>. 
+
+\page ack Acknowledgments.
+
+ZZACWT uses the following items from third parties:
+- Libraries:
+  - FLTK (https://www.fltk.org/doc-1.4/index.html) Graphical user interface library.
+  - JSON (https://json.nlohmann.me/nlohmann/json) JSON support library.
+  - Boost (https://www.boost.org) Miscellaneous utilities library.
+  - FFTW3 (https://www.fftw.org) Discrete Fourier Transform library.
+  - PortAudio (http://www.portaudio.com) Cross-platform audio I/O library.
+- Reference data:
+  - None.
+- Images:
+  - FlatIcon (https://www.flaticon.com)
+    - Pdf icon created by Smashicons.
+
+LLMs (Large Language Models) were used in the creation of this application to 
+provide coding assistance and guidance.
+
+*/

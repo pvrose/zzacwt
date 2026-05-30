@@ -128,33 +128,23 @@ void user_if::create_widgets() {
 	
 	cy += HBUTTON;
 	// Create WPM slider
-	sl_wpm_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "WPM:");
-	sl_wpm_->type(FL_HOR_SLIDER);
-	sl_wpm_->bounds(6, 50);
-	sl_wpm_->step(1.0);
-	sl_wpm_->callback(cb_wpm, this);
-	sl_wpm_->tooltip("Adjust the words per minute speed");
-	sl_wpm_->align(FL_ALIGN_LEFT);
+	sl_dot_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Dot Speed:");
+	sl_dot_speed_->type(FL_HOR_SLIDER);
+	sl_dot_speed_->bounds(6, 50);
+	sl_dot_speed_->step(1.0);
+	sl_dot_speed_->callback(cb_wpm, this);
+	sl_dot_speed_->tooltip("Adjust the dot speed");
+	sl_dot_speed_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
 	// Create Farnsworth slider
-	sl_farnsworth_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Farnsworth:");
-	sl_farnsworth_->type(FL_HOR_SLIDER);
-	sl_farnsworth_->bounds(0, 50);
-	sl_farnsworth_->step(1.0);
-	sl_farnsworth_->callback(cb_farnsworth, this);
-	sl_farnsworth_->tooltip("Farnsworth: adds spacing between letters to achieve target WPM");
-	sl_farnsworth_->align(FL_ALIGN_LEFT);
-
-	cy += HBUTTON;
-	// Create Wordsworth slider
-	sl_wordsworth_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Wordsworth:");
-	sl_wordsworth_->type(FL_HOR_SLIDER);
-	sl_wordsworth_->bounds(0, 50);
-	sl_wordsworth_->step(1.0);
-	sl_wordsworth_->callback(cb_wordsworth, this);
-	sl_wordsworth_->tooltip("Wordsworth: adds spacing between words to achieve target WPM");
-	sl_wordsworth_->align(FL_ALIGN_LEFT);
+	sl_overall_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Overall WPM:");
+	sl_overall_speed_->type(FL_HOR_SLIDER);
+	sl_overall_speed_->bounds(0, 50);
+	sl_overall_speed_->step(1.0);
+	sl_overall_speed_->callback(cb_farnsworth, this);
+	sl_overall_speed_->tooltip("Overall: adds spacing between letters or words to achieve target WPM");
+	sl_overall_speed_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON + GAP;
 	// End the speed group
@@ -380,60 +370,38 @@ void user_if::update_speed_widgets() {
 	settings.get("Speed Type", current_speed_type, speed_type::NORMAL);
 	ch_speed_type_->value(static_cast<int>(current_speed_type));
 
-	// Get the current WPM from settings
-	int wpm;
-	settings.get("WPM", wpm, 20);
-	sl_wpm_->value(wpm);
+	// Get the current dot speed from settings
+	int dot_speed;
+	settings.get("Dot Speed", dot_speed, 20);
+	sl_dot_speed_->value(dot_speed);
 
 	// Get the current Farnsworth setting
-	int farnsworth;
-	settings.get("Farnsworth", farnsworth, 6);
-	if (current_speed_type != speed_type::FARNSWORTH) {
-		farnsworth = wpm; // If not in Farnsworth mode, set Farnsworth to WPM
+	int overall_speed;
+	settings.get("Overall Speed", overall_speed, 6);
+	if (current_speed_type == speed_type::NORMAL) {
+		overall_speed = dot_speed; // If not in Farnsworth mode, set Overall Speed to dot speed
 	}
-	// Restrict the Farnsworth value to be between 6 and WPM.
-	if (farnsworth < 6) {
-		farnsworth = 6;
+	// Restrict the Overall Speed value to be between 6 and dot speed.
+	if (overall_speed < 6) {
+		overall_speed = 6;
 	}
-	else if (farnsworth > wpm) {
-		farnsworth = wpm;
+	else if (overall_speed > dot_speed) {
+		overall_speed = dot_speed;
 	}
-	sl_farnsworth_->value(farnsworth);
-	settings.set("Farnsworth", farnsworth);
-
-	// Get the current Wordsworth setting
-	int wordsworth;
-	settings.get("Wordsworth", wordsworth, 6);
-	if (current_speed_type != speed_type::WORDSWORTH) {
-		wordsworth = wpm; // If not in Wordsworth mode, set Wordsworth to WPM
-	}
-	// Restrict the Wordsworth value to be between 6 and farnsworth.
-	if (wordsworth < 6) {
-		wordsworth = 6;
-	}
-	else if (wordsworth > farnsworth) {
-		wordsworth = farnsworth;
-	}
-	sl_wordsworth_->value(wordsworth);
-	settings.set("Wordsworth", wordsworth);
+	sl_overall_speed_->value(overall_speed);
+	settings.set("Overall Speed", overall_speed);
 
 	// Depending on the speed type, enable/disable the Farnsworth and Wordsworth sliders
 	switch (current_speed_type) {
 	case speed_type::NORMAL:
-		sl_farnsworth_->deactivate();
-		sl_wordsworth_->deactivate();
-		break;
+		sl_overall_speed_->deactivate();
+        break;
 	case speed_type::FARNSWORTH:
-		sl_farnsworth_->activate();
-		sl_wordsworth_->deactivate();
-		break;
 	case speed_type::WORDSWORTH:
-		sl_farnsworth_->deactivate();
-		sl_wordsworth_->activate();
+		sl_overall_speed_->activate();
 		break;
 	default:
-		sl_farnsworth_->deactivate();
-		sl_wordsworth_->deactivate();
+		sl_overall_speed_->deactivate();
 		break;
 	}
 }

@@ -26,7 +26,10 @@
 
 //! \file oscillator.hpp
 //! 
-//! \brief Header file for the oscillator component of ZZACWT, 
+
+extern float DEFAULT_SAMPLE_RATE;  //!< Default audio sample rate
+
+//! \brief Class for the oscillator component of ZZACWT, 
 //! responsible for generating the audio signal based on user 
 //! settings and applying various distortions to the frequency.
 //! 
@@ -58,8 +61,6 @@
 //! determines the amplitude of the frequency variation, and the drift period (in seconds) 
 //! which determines how quickly the frequency oscillates.
 //! 
-
-extern float DEFAULT_SAMPLE_RATE;  //!< Default audio sample rate
 
 class oscillator {
 

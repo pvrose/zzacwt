@@ -31,13 +31,14 @@ class Fl_Input;
 class Fl_Text_Editor;
 class Fl_Value_Slider;
 
+//! \brief Class user_if - the user interface for the CW trainer.
 class user_if : public Fl_Double_Window
 {
 public:
 	user_if(int W, int H, const char* L = 0);
 	~user_if();
 
-	//! Callbacks for user interface controls
+	// Callbacks for user interface controls
 	static void cb_mode(Fl_Widget* w, void* data);
 	static void cb_tx_size(Fl_Widget* w, void* data);
 	static void cb_text(Fl_Widget* w, void* data);
@@ -59,7 +60,7 @@ public:
 	static void cb_new(Fl_Widget* w, void* data);
 	static void cb_stop(Fl_Widget* w, void* data);
 	static void cb_repeat(Fl_Widget* w, void* data);
-	// Callback on close
+	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
 
 private:
@@ -71,9 +72,8 @@ private:
 
 	Fl_Group* g_speed_;                 //!< Group for speed controls
 	Fl_Choice* ch_speed_type_;          //!< Speed type choice
-	Fl_Value_Slider* sl_wpm_;           //!< WPM slider
-	Fl_Value_Slider* sl_farnsworth_;    //!< Farnsworth slider
-	Fl_Value_Slider* sl_wordsworth_;    //!< Wordsworth slider
+	Fl_Value_Slider* sl_dot_speed_;     //!< Dot speed slider
+	Fl_Value_Slider* sl_overall_speed_; //!< Overall speed slider
 
 	Fl_Group* g_disturber_;             //!< Group for disturber controls
 	Fl_Choice* ch_disturber_type_;      //!< Disturber type choice
@@ -95,11 +95,11 @@ private:
 	Fl_Button* bt_stop_;               //!< Stop button
 	Fl_Button* bt_repeat_;             //!< Repeat button
 
-	//! Methods to update the state of the user interface controls based on the current settings
-	void update_content_widgets();
-	void update_speed_widgets();
-	void update_disturber_widgets();
-	void update_tone_widgets();
+	// Methods to update the state of the user interface controls based on the current settings
+	void update_content_widgets();     //!< Update content mode and related widgets
+	void update_speed_widgets();       //!< Update speed type and related widgets
+	void update_disturber_widgets();  //!< Update disturber type and related widgets
+	void update_tone_widgets();       //!< Update tone settings and related widgets
 
 	//! Create the user interface controls and set their initial states
 	void create_widgets();

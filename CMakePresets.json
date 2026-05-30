@@ -41,7 +41,7 @@
       "cacheVariables": {
         "VCPKG_ROOT": "C:/Users/pvros/source/repos/vcpkg",
         "PORTAUDIO_ROOT": "C:/Users/pvros/source/repos/portaudio",
-        "ZZACWT_DOX": "OFF",
+        "ZZACWT_DOX": "ON",
         "ZZACWT_PDF": "OFF"
       },
       "condition": {

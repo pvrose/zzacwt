@@ -1,0 +1,28 @@
+/** \page overview Overview
+
+The ZZACWT app generates random Morse code sequences for practice.
+It comprises the following components:
+- An "Oscillator" which generates a continuous audio stream comprising
+a single uninterrupted tone. The pitch of this tone can be set by the
+user. In addition, the tone can be set to vary in pitch over time
+to simulate a "bad" transmission.
+- A "Text Generator" which generates random text sequences.
+This can be configured to produce random text of differing natures:
+random 5-letter groups, random words etc.
+- A "Shaper" (or "Keyer") which converts the generated text into a
+sequence of "dots" and "dashes" representing the Morse code equivalent
+of the text. It produces an audio stream that represents the
+envelope of the Morse signal. The user has control over the 
+speed of the Morse code and the spacing model (eg Farnsworth). 
+The user can also configure the shaper to add distortion to the 
+generated envelope, to simulate a "bad" transmission.
+- A "Noise Generator" which generates a noise signal that can be added to the
+generated Morse code to simulate "poor" reception conditions.
+- A "Modulator/Mixer" which uses the envelope from the shaper to modulate
+the tone from the oscillator and mixes in the noise from the noise 
+generator to produce the final audio output.
+- A "Speaker" which controls the audio output to the user.
+- A "Display" which shows the generated text and allows the user 
+to enter what they heard for comparison.
+
+*/

@@ -1,0 +1,162 @@
+/** \page generation Morse Code Generation
+
+Morse Code generation is controlled by the main user interface - shown
+below.
+
+\image html user_if.png "Generation controls"
+\image latex user_if.png "Generation controls" width=8cm
+
+\section text_gen Text Generation
+
+The controls in the panel marked "Content" affect the text generation. 
+
+The "Mode" drop down allows the user to select the type of text that is generated:
+- <B>5-letter groups</B> generates random groups of 5 letters, with a space between each group.
+- <B>5-number groups</B> generates random groups of 5 numbers, with a space between each group.
+- <B>5-mixed groups</B> generates random groups of 5 characters, which can be letters or numbers, with a space between each group.
+- <B>Word List</B> selects words at random from a built-in word list.
+- <B>Text Only</B> selects text from a built-in text file. Only letters and numbers are used.
+- <B>Text + Punctuation</B> selects text from a built-in text file. Letters, numbers and punctuation are used.
+- <B>QSOs</B> generates random "QSOs" using a built-in QSO generator.
+- <B>Callsigns</B> generates random callsigns (letters and numbers in a specific format)using a built-in callsign generator.
+- <B>User Text</B> allows the user to enter their own text for generation.
+- <B>Test Mode "A"</B> generates a series of "VVV" groups, added for initial testing of the app.
+
+The "Block Size" control allows the user to specify how many groups or words
+to send in a single play.
+
+The "User Text" control allows the user to enter their own text for generation. 
+This is only enabled when the "Mode" is set to "User Text".
+
+\todo QSO generation is not yet implemented.
+
+\section speed Speed and Spacing
+
+The controls in the panel marked "Speed" affect the speed and spacing of
+the generated Morse code.
+
+The "Type" drop down allows the user to select the spacing model:
+- <B>Normal</B> uses the standard Morse code spacing, where the 
+length of a dot is 1 unit, a dash is 3 units, the space between 
+symbols (dots and dashes) is 1 unit, the space between letters is 
+3 units and the space between words is 7 units.
+- <B>Farnsworth</B> allows the user to set a dot speed and 
+an overall speed. The dot speed controls the length of the 
+dots, dashes and spaces between dots and dashes, while the overall 
+speed controls the length of the spaces between letters and words. 
+This allows the user to practice at a slower overall speed
+while still hearing the individual characters at a faster speed.
+- <B>Wordsworth</B> allows the user to set a dot speed and an
+overall speed. The dot speed controls the length of dots, dashes and 
+the spaces between letters. The overall speed lengthens spaces
+between words.. This allows the user to practice 
+at a slower overall speed while still hearing the words at a faster speed.
+
+The "Dot Speed" control allows the user to set the dot speed. This
+is the speed at which characters are formed. A speed of 12 WPM
+corresponds to a dot unit of 50 ms. 
+
+The "Overall WPM" controls allows the user to set the overall
+WPM. As describe above this adds spaces either between letters and words or 
+just words to achieve the overall speed.
+
+\section tone Tone controls
+
+The "Volume" control sets the applitude of the audio samples produced
+by the oscillator. Setting the volume control here allows noise that
+has larger amplitude than the tone to be mixed in.
+
+The "Pitch" control sets the nominal frequency for the oscillator.
+This may be varied by the setting either of the drift forms
+of disturbance.
+
+\section disturbance Signal disturbances
+
+The panel marked "Disturbers" allows one of a number of means
+of disturbing the users reception of the Morse code.
+
+\subsection timing Variation of timing
+
+Enabling "Timing" will alter the time at which a transition from
+a space to a mark or a mark to a space. This simulates the effect
+of hand-sent Morse code.
+
+There is a nominal time at which 
+the transition would be scheduled:
+- <B>Dot Mark</B> The mark of a dot set by the "Dot Timing" (a dot unit: 50 ms for 12 WPM).
+- <B>Dash Mark</B> The mark of a dash (3 dot units).
+- <B>Internal Space</B> The space between two consecutive marks (dot or dash)
+  within a single character (1 dot unit).
+- <B>Character Space</B> The space between two consecutive characters
+  within a single word (3 dot units unless extended by the Farnsworth algorithm).
+- <B>Word Space</B> The space beytween two consecutie words (7 dot units 
+  unless extended by the Farnsworth or Wordsworth algorithms).
+
+There are 6 levels of variation:
+- <B>0</B> - No change from the nominal.
+- <B>1</B> - Upto 0.05 dot unit early or 0.10 dot unit late.
+- <B>2</B> - Upto 0.10 dot unit early or 0.20 dot unit late.
+- <B>3</B> - Upto 0.15 dot unit early or 0.30 dot unit late.
+- <B>4</B> - Upto 0.20 dot unit early or 0.40 dot unit late.
+- <B>5</B> - Upto 0.25 dot unit early or 0.50 dot unit late.
+
+\subsection softness Softness
+
+Enabling "Softness" allows the user to change the durations
+of the transitions from mark to space (fall time) and space to mark (rise
+time). This allows the simulation of key-clicks.
+
+The "Softness" control can adjust the value from -5 to 15. Positive 
+numbers set the rise and fall times to that number of milliseconds.
+Negative numbers simulate the addition of "ringing" to the transition. 
+That number of milliseconds of overrun is applied to the keying envelope.
+
+\subsection white-noise White Noise
+
+Enabling "White Noise" adds white noise to the audio stream. The "Volume (dB)"
+sets the amplitude of the noise separately from the amplitude of the
+tone generated by the oscillator.
+
+\subsection impact-noise Impact Noise
+
+Enabling "Impact Noise" simulates the effect of lightning QRN by inserting
+a short burst (100 ms) of white noise. The "Volume (dB)" control sets
+the initial amplitude of the noise and it gradually decays over the
+period. The "Severity" control sets how often the noise burst are generated.
+The time between bursts is randomly generated and the higher the
+severity level the more frequently, on average, the burst are generated.
+
+\subsection plink-plonk Tones (Plinks)
+
+Enabling "Tones (Plinks)" simulates the effect of interfering signals by inserting short bursts (100 ms) of single tones.
+The frequency of each burst is randomly generated between 300 Hz and 3 kHz.
+The "Volume (dB)" and "Severity" controls work in the same as for Impact
+Noise.
+
+\todo Consider a more realistic model of interfering signals.
+
+\subsection drift Frequency Drift
+
+Enabling "Frequency Drift" causes the oscillator pitch to slowly change 
+in value by the value set in the "Drift (Hz/s)" control. 
+
+\todo Consider changing this to percent/s.
+
+\subsection cyclic_drift Cyclic Drift
+
+Enabling "Cycling Drift" causes the oscillator pitch to vary cyclicly
+around the nominal pitch. The range of the pitch is set by the "Drift Ampl(itude)"
+control, and the rate at which it changes is set by the "Drift Period"
+control.
+
+\section control Controls
+
+The "Control" panel contains buttons to start and stop generation of
+text sequences.
+
+- <B>New</B> Generates a fresh random sequence of the selected content type.
+- <B>Clear</B> Stops the sending of the current sequence.
+- <B>Repeat</B> Repeats the previously generated sequence.
+
+
+*/

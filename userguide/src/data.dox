@@ -1,0 +1,21 @@
+/** \page data Data Files
+
+\section word-list Word list
+
+A file containing 1000 commonly used words is supplied.
+
+\section text-file Text File
+
+A file containing plain language text is supplied to allow sensical 
+text to be sent and copied.
+
+\todo There is currently a place-holder text. More relevant text is to
+be source.
+
+\section qso-proforma QSO proformas
+
+\todo A text file containing typical QSO transmissions and lists of words
+to use.
+
+*/
+
