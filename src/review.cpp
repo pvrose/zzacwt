@@ -43,18 +43,14 @@ static Fl_Text_Display::Style_Table_Entry STYLE_TABLE[] = {
 	// {Text colour, Font, Font size, Attribute flags, Background colour}
 	{ FL_FOREGROUND_COLOR, FL_HELVETICA, FL_NORMAL_SIZE, 0, FL_BACKGROUND_COLOR },  // Normal shown text.
 	{ FL_FOREGROUND_COLOR, FL_HELVETICA, FL_NORMAL_SIZE, Fl_Text_Display::ATTR_BGCOLOR, FL_FOREGROUND_COLOR }, // Hidden text.
-	{ FL_RED, FL_HELVETICA, FL_NORMAL_SIZE, 0, FL_BACKGROUND_COLOR }, // "Missing" text - red underline.
-	{ FL_BLUE, FL_HELVETICA, FL_NORMAL_SIZE, Fl_Text_Display::ATTR_STRIKE_THROUGH, FL_BACKGROUND_COLOR }, // "Extra" text - blue strike-through
-	{ FL_BLACK, FL_HELVETICA, FL_NORMAL_SIZE, Fl_Text_Display::ATTR_STRIKE_THROUGH, FL_BACKGROUND_COLOR }, // "Wrong" text - black strike-through.
-	{ FL_BLACK, FL_HELVETICA, FL_NORMAL_SIZE, 0, FL_BACKGROUND_COLOR }, // "Match" text - black underline.
+	{ FL_RED, FL_HELVETICA, FL_NORMAL_SIZE, 0, FL_BACKGROUND_COLOR }, // "Error" text - red.
+	{ FL_BLACK, FL_HELVETICA, FL_NORMAL_SIZE, 0, FL_BACKGROUND_COLOR }, // "Match" text - black.
 };
 static int STYLE_TABLE_SIZE = sizeof(STYLE_TABLE) / sizeof(STYLE_TABLE[0]);
 static char STYLE_NORMAL = 'A';
 static char STYLE_HIDDEN = 'B';
-static char STYLE_MISSING = 'C';
-static char STYLE_EXTRA = 'D';
-static char STYLE_WRONG = 'E';
-static char STYLE_MATCH = 'F';
+static char STYLE_ERROR = 'C';
+static char STYLE_MATCH = 'D';
 
 extern zc_ticker* ticker_;
 
@@ -114,42 +110,6 @@ void review::create_widgets() {
 
 	btn_compare_typed_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Compare");
 	btn_compare_typed_->callback(cb_compare_typed, this);
-
-	cy += HBUTTON;
-	td_correct_ = new Fl_Text_Display(cx, cy, WBUTTON, HBUTTON);
-	td_correct_->highlight_data(new Fl_Text_Buffer, STYLE_TABLE, STYLE_TABLE_SIZE, STYLE_MATCH, nullptr, nullptr);
-	td_correct_->buffer(new Fl_Text_Buffer);
-	td_correct_->wrap_mode(Fl_Text_Display::WRAP_AT_BOUNDS, 0);
-	td_correct_->buffer()->text("Correct");
-	td_correct_->style_buffer()->text("FFFFFFF");
-	td_correct_->scrollbar_size(1);
-
-	cy += HBUTTON;
-	td_missing_ = new Fl_Text_Display(cx, cy, WBUTTON, HBUTTON);
-	td_missing_->highlight_data(new Fl_Text_Buffer, STYLE_TABLE, STYLE_TABLE_SIZE, STYLE_MISSING, nullptr, nullptr);
-	td_missing_->buffer(new Fl_Text_Buffer);
-	td_missing_->wrap_mode(Fl_Text_Display::WRAP_AT_BOUNDS, 0);
-	td_missing_->buffer()->text("Missing");
-	td_missing_->style_buffer()->text("CCCCCCC");
-	td_missing_->scrollbar_size(1);
-
-	cy += HBUTTON;
-	td_extra_ = new Fl_Text_Display(cx, cy, WBUTTON, HBUTTON);
-	td_extra_->highlight_data(new Fl_Text_Buffer, STYLE_TABLE, STYLE_TABLE_SIZE, STYLE_EXTRA, nullptr, nullptr);
-	td_extra_->buffer(new Fl_Text_Buffer);
-	td_extra_->wrap_mode(Fl_Text_Display::WRAP_AT_BOUNDS, 0);
-	td_extra_->buffer()->text("Extra");
-	td_extra_->style_buffer()->text("DDDDDDD");
-	td_extra_->scrollbar_size(1);
-
-	cy += HBUTTON;
-	td_wrong_ = new Fl_Text_Display(cx, cy, WBUTTON, HBUTTON);
-	td_wrong_->highlight_data(new Fl_Text_Buffer, STYLE_TABLE, STYLE_TABLE_SIZE, STYLE_WRONG, nullptr, nullptr);
-	td_wrong_->buffer(new Fl_Text_Buffer);
-	td_wrong_->wrap_mode(Fl_Text_Display::WRAP_AT_BOUNDS, 0);
-	td_wrong_->buffer()->text("Wrong");
-	td_wrong_->style_buffer()->text("EEEEEEE");
-	td_wrong_->scrollbar_size(1);
 
 	cx = g_typed_->x() + GAP + WBUTTON;
 	cy = g_typed_->y() + HTEXT;
@@ -353,88 +313,92 @@ void review::compare_displays(Fl_Text_Display* user, Fl_Text_Display* sent) {
 
 	size_t user_len = std::strlen(user_text);
 	size_t sent_len = std::strlen(sent_text);
-	char* new_user = new char[2 * (user_len + sent_len) + 1];
-	char* new_style = new char[2 * (user_len + sent_len) + 1];
+	char* user_style = new char[user_len + 1];
+	char* sent_style = new char[sent_len + 1];
 
 	char* user_ix = user_text;
 	char* sent_ix = sent_text;
-	char* style_ix = new_style;
-	char* new_user_ix = new_user;
+	char* user_style_ix = user_style;
+	char* sent_style_ix = sent_style;
 	int number_matched = 0;
 	while (*user_ix != '\0' && *sent_ix != '\0') {
-		// Get number of matching characters from the current position.	
+		// If we are on a matching streak, check individual characters
 		if (number_matched) {
 			if (*user_ix == *sent_ix) {
-				*new_user_ix++ = *user_ix++;
-				*style_ix++ = STYLE_MATCH;
+				*user_style_ix++ = STYLE_MATCH;
+				*sent_style_ix++ = STYLE_MATCH;
+				user_ix++;
 				sent_ix++;
 				number_matched++;
 				continue;
 			}
 		}
+		// Check that we are about to start a matching streak.
 		number_matched = 0;
 		if (strncmp(user_ix, sent_ix, M) == 0) {
-			strncpy(new_user_ix, user_ix, M);
-			strncpy(new_user_ix, user_ix, M);
-			memset(style_ix, STYLE_MATCH, M);
+			memset(user_style_ix, STYLE_MATCH, M);
+			memset(sent_style_ix, STYLE_MATCH, M);
 			user_ix += M;
 			sent_ix += M;
-			new_user_ix += M;
-			style_ix += M;
+			user_style_ix += M;
+			sent_style_ix += M;
+			number_matched = M;
 		}
 		else {
 			bool match_found = false;
 			for (int i = 1; i <= N; i++) {
 				if (strncmp(user_ix, sent_ix + i, M) == 0) {
-					// Copy sent to new user and mark the mismatched character as "Missing".
-					strncpy(new_user_ix, sent_ix, i);
-					memset(style_ix, STYLE_MISSING, i);
-					new_user_ix += i;
-					style_ix += i;
-					match_found = true;
+					// Mark the skipped characters in sent as "Error" and 
+					// step the sent data by the number of skipped characters.
+					memset(sent_style_ix, STYLE_ERROR, i);
 					sent_ix += i;
+					sent_style_ix += i;
+					match_found = true;
 					break;
 				}
 				else if (strncmp(user_ix + i, sent_ix, M) == 0) {
-					// Mark the mismatched characters as "Extra" and step the user data by one character.
-					strncpy(new_user_ix, user_ix, i);
-					memset(style_ix, STYLE_EXTRA, i);
-					new_user_ix += i;
-					style_ix += i;
+					// Mark the skipped characters in user as "Error" and step
+					// the user data by the number of skipped characters.
+					memset(user_style_ix, STYLE_ERROR, i);
+					user_ix += i;
+					user_style_ix += i;
 					match_found = true;
 					user_ix += i;
 					break;
 				}
 			}
 			if (!match_found) {
-				// Mark the mismatched character in user as "Wrong" and step both data by one character.
-				*new_user_ix++ = *user_ix++;
-				*style_ix++ = STYLE_WRONG;
-				// Copy sent character to new user and mark as "Missing".
-				*new_user_ix++ = *sent_ix++;
-				*style_ix++ = STYLE_MISSING;
+				// Mark the mismatched character in both as "Error" and step both data by one character.
+				*user_style_ix++ = STYLE_ERROR;
+				*sent_style_ix++ = STYLE_ERROR;
+				user_ix++;
+				sent_ix++;
 			}
 		}
 	}
 	// If there is remaining text in user, mark it as "Extra".	
 	while (*user_ix != '\0') {
-		*new_user_ix++ = *user_ix++;
-		*style_ix++ = STYLE_EXTRA;
+		user_ix++;
+		*user_style_ix++ = STYLE_ERROR;
 	}
 	// If there is remaining text in sent, copy it to user and mark it as "Missing".
 	while (*sent_ix != '\0') {
-		*new_user_ix++ = *sent_ix++;
-		*style_ix++ = STYLE_MISSING;
+		sent_ix++;
+		*sent_style_ix++ = STYLE_ERROR;
 	}
 	// Null-terminate the new user and style strings.
-	*new_user_ix = '\0';
-	*style_ix = '\0';
+	*user_style_ix = '\0';
+	*sent_style_ix = '\0';
 	// Update the user display with the new user string and style string.
-	user->buffer()->text(new_user);
-	user->style_buffer()->text(new_style);
+	user->style_buffer()->text(user_style);
+	// Update the sent display with the new style string.
+	sent->style_buffer()->text(sent_style);
+	user->redraw();
+	sent->redraw();
+	Fl::check();
 
-	delete[] new_user;
-	delete[] new_style;
+	delete[] user_style;
+	delete[] sent_style;
 }
 
 // Callback if text_editor is modified

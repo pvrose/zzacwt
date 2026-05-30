@@ -128,10 +128,6 @@ private:
 	Fl_Group* g_typed_;    //<! Group for typed text.
 	Fl_Text_Editor* td_typed_;  //<! Text display for typed text.
 	Fl_Button* btn_compare_typed_;  //<! Button to compare sent text with typed text.
-	Fl_Text_Display* td_correct_; //<! Shows how correct characters are displayed.
-	Fl_Text_Display* td_missing_; //<! Shows how missing characters are displayed.
-	Fl_Text_Display* td_wrong_; //<! Shows how wrong characters are displayed.
-	Fl_Text_Display* td_extra_; //<! Shows how extra characters are displayed.
 
 	Fl_Group* g_decoded_;  //<! Group for decoded text.
 	Fl_Text_Display* td_decoded_;  //<! Text display for decoded text.
