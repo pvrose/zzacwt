@@ -368,3 +368,4 @@ FodyWeavers.xsd
 /ZZACWT-SetupFiles/ZZACWT-0.2.1.msi
 *.cab
 *.ini
+*.msi
