@@ -19,6 +19,7 @@
 #include "params.hpp"
 
 #include "zc_drawing.h"
+#include "zc_fltk.h"
 #include "zc_settings.h"
 #include "zc_ticker.h"
 
@@ -308,16 +309,21 @@ void review::cb_compare_decoded(Fl_Widget* w, void* data) {
 const int M = 2; // Number of characters to check for a match.
 const int N = 3; // Maximum number of characters to step when looking for a match.
 void review::compare_displays(Fl_Text_Display* user, Fl_Text_Display* sent) {
-	char* user_text = user->buffer()->text();
-	char* sent_text = sent->buffer()->text();
+	// Convert the text from the user and sent displays as upper case 
+	// into new strings for processing, 
+	// and create new style strings for the user and sent displays.
+	std::string user_upper(zc::to_upper(user->buffer()->text()));
+	std::string sent_upper(zc::to_upper(sent->buffer()->text()));
+	const char* user_text = user_upper.c_str();
+	const char* sent_text = sent_upper.c_str();
 
 	size_t user_len = std::strlen(user_text);
 	size_t sent_len = std::strlen(sent_text);
 	char* user_style = new char[user_len + 1];
 	char* sent_style = new char[sent_len + 1];
 
-	char* user_ix = user_text;
-	char* sent_ix = sent_text;
+	const char* user_ix = user_text;
+	const char* sent_ix = sent_text;
 	char* user_style_ix = user_style;
 	char* sent_style_ix = sent_style;
 	int number_matched = 0;
