@@ -1,7 +1,7 @@
 $A $CALL de $call
-$B1 [tnx|tks] call 
-$B2 [tnx|tks] rprt
-$B3 [tnx|tks] info
+$B1 [tnx|tks] [:5|fer|for] call 
+$B2 [tnx|tks] [:5|fer|for] rprt
+$B3 [tnx|tks] [:5|fer|for] info
 $C dr [op:9|om:1] $NAME
 $D in $QTH
 $E ur [rprt|rst] [|is] [$rst:1|{$rst}2:4|{$rst}3]

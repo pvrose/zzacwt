@@ -65,7 +65,7 @@ shaper::~shaper()
 void shaper::apply_settings() {
 	// Read settings and update internal state as they may have changed.
 	zc_settings settings;
-	settings.get("WPM", character_speed_, 12.0F);
+	settings.get("Dot Speed", character_speed_, 12.0F);
 	disturber_type disturber;
 	settings.get("Disturber Type", disturber, disturber_type::NONE);
 	if (disturber == disturber_type::TIMING) {

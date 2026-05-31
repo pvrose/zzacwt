@@ -646,7 +646,7 @@ void user_if::cb_wpm(Fl_Widget* w, void* data)
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
 	int wpm = static_cast<int>(sl->value());
-	settings.set("WPM", wpm);
+	settings.set("Dot Speed", wpm);
 	ui->update_speed_widgets();
 	ui->apply_shaper_settings(); // Apply shaper settings immediately to reflect WPM changes
 }
