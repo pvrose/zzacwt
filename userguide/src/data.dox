@@ -2,11 +2,11 @@
 
 \section word-list Word list
 
-A file containing 1000 commonly used words is supplied.
+A file "word_list.txt" containing 1000 commonly used words is supplied.
 
 \section text-file Text File
 
-A file containing plain language text is supplied to allow sensical 
+A file "text.txt" containing plain language text is supplied to allow sensical 
 text to be sent and copied.
 
 \todo There is currently a place-holder text. More relevant text is to
@@ -14,8 +14,26 @@ be source.
 
 \section qso-proforma QSO proformas
 
-\todo A text file containing typical QSO transmissions and lists of words
-to use.
+A file "qso_data.txt" containing a description of typical QSO exchanges is supplied.
+The BNR format of this file is as follows:
+
+\code
+"$" macro-name token-list
+"@" exchange
+
+exchange ::= token-list
+token-list ::= token [" " token...]
+token ::= macro | option-list | repeated-token | unordered-list | regex | word
+macro ::= "$" macro-name
+macro-name ::= word
+option-list ::= "[" option ["|" option...] "]"
+option ::= token-list [ ":" weight ]
+repeated-token ::= "{" token-list "}" repeat-count
+unordered-list ::= "(" token-list ["|" token-list...] ")"
+repeat-count ::= integer
+regex ::= "~" regex-pattern "~"
+word ::= sequence of characters (letters, digits, punctuation) with no spaces
+\endcode
 
 */
 

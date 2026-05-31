@@ -28,7 +28,9 @@ to send in a single play.
 The "User Text" control allows the user to enter their own text for generation. 
 This is only enabled when the "Mode" is set to "User Text".
 
-\todo QSO generation is not yet implemented.
+The "Customise" control opens a dialog to allow the user to enter their own credentials
+such as name and location so that the generated QSO messages can be customised 
+towards them.
 
 \section speed Speed and Spacing
 
@@ -59,6 +61,30 @@ corresponds to a dot unit of 50 ms.
 The "Overall WPM" controls allows the user to set the overall
 WPM. As describe above this adds spaces either between letters and words or 
 just words to achieve the overall speed.
+
+\note In Farnsworth mode the time allocated to the character and word spaces 
+is increased to:
+\f$(60/50) * (50/S - 31/C)\f$
+dot-times, while
+the time allocated to the marks and internal spaces remains at 31 dot-times.
+This increase is distributed between the character and word spaces 
+in the same ratio as in normal Morse code, i.e. 3:7. 
+In the standard word "PARIS", there are 4 character spaces and 1 word space, 
+so the character space is \f$3/19\f$ of the total space time, and the word space is \f$7/19\f$ of the total space time.
+The character space is increased to:
+\f$(60/50) * (50/S - 31/C) * 3/19\f$ 
+dot-times, and
+the word space is increased to:
+\f$(60/50) * (50/S - 31/C) * 7/19\f$ 
+dot-times.
+
+\note In Wordsworth the additional time is added only to the word space which
+represents \f$7/50\f$ of the total time for the word "PARIS". The word space is
+increased to:
+\f$(60/50) * (50/S - 43/C)\f$ 
+dot-times, while the character space 
+remains unaltered.
+
 
 \section tone Tone controls
 
@@ -94,11 +120,11 @@ the transition would be scheduled:
 
 There are 6 levels of variation:
 - <B>0</B> - No change from the nominal.
-- <B>1</B> - Upto 0.05 dot unit early or 0.10 dot unit late.
-- <B>2</B> - Upto 0.10 dot unit early or 0.20 dot unit late.
-- <B>3</B> - Upto 0.15 dot unit early or 0.30 dot unit late.
-- <B>4</B> - Upto 0.20 dot unit early or 0.40 dot unit late.
-- <B>5</B> - Upto 0.25 dot unit early or 0.50 dot unit late.
+- <B>1</B> - Between 0.05 dot unit early and 0.10 dot unit late.
+- <B>2</B> - Between 0.10 dot unit early and 0.20 dot unit late.
+- <B>3</B> - Between 0.15 dot unit early and 0.30 dot unit late.
+- <B>4</B> - Between 0.20 dot unit early and 0.40 dot unit late.
+- <B>5</B> - Between 0.25 dot unit early and 0.50 dot unit late.
 
 \subsection softness Softness
 
@@ -138,9 +164,7 @@ Noise.
 \subsection drift Frequency Drift
 
 Enabling "Frequency Drift" causes the oscillator pitch to slowly change 
-in value by the value set in the "Drift (Hz/s)" control. 
-
-\todo Consider changing this to percent/s.
+in value by the value set in the "Drift (%/s)" control. 
 
 \subsection cyclic_drift Cyclic Drift
 
@@ -148,6 +172,12 @@ Enabling "Cycling Drift" causes the oscillator pitch to vary cyclicly
 around the nominal pitch. The range of the pitch is set by the "Drift Ampl(itude)"
 control, and the rate at which it changes is set by the "Drift Period"
 control.
+
+\subsection fading Fading (QSB)
+
+Enabling "Fading (QSB)" causes the oscillator amplitude to vary periodically.
+The depth of fading is adjusted by the "QSB Depth" control and the period
+by the "QSB Period" control.
 
 \section control Controls
 

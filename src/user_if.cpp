@@ -293,9 +293,9 @@ void user_if::create_widgets() {
 	sl_noise_severity_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
-	sl_drift_rate_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift (Hz/s):");
+	sl_drift_rate_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift (%/s):");
 	sl_drift_rate_->type(FL_HOR_SLIDER);
-	sl_drift_rate_->bounds(-10, 10);
+	sl_drift_rate_->bounds(-5, 5);
 	sl_drift_rate_->step(0.2);
 	sl_drift_rate_->callback(cb_drift_rate, this);
 	sl_drift_rate_->tooltip("Adjusts the rate at which the tone drifts (Hz/s)");

@@ -2,7 +2,7 @@
 
 ZZACWT is a Morse Code (aka CW) training application for amateur radio operators.
 It provides the following functionality:
-- Generate random Morse code sequences for practice.
+- Generates random Morse code sequences for practice.
 - Allows the speed and spacing model (eg Farnsworth) to be configured.
 - Allows the pitch of the generated Morse code to be configured.
 - Adds "disturbances" to the generated Morse code to simulate real-world conditions.

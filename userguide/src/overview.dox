@@ -5,7 +5,8 @@ It comprises the following components:
 - An "Oscillator" which generates a continuous audio stream comprising
 a single uninterrupted tone. The pitch of this tone can be set by the
 user. In addition, the tone can be set to vary in pitch over time
-to simulate a "bad" transmission.
+to simulate a "bad" transmission. The amplitude can be set to vary over time 
+to simulate fading or flutter on a received signal.
 - A "Text Generator" which generates random text sequences.
 This can be configured to produce random text of differing natures:
 random 5-letter groups, random words etc.
@@ -24,5 +25,8 @@ generator to produce the final audio output.
 - A "Speaker" which controls the audio output to the user.
 - A "Display" which shows the generated text and allows the user 
 to enter what they heard for comparison.
+
+\todo Adding a "Decoder" module to convert audio signals back into the
+Morse signals and then into text.
 
 */
