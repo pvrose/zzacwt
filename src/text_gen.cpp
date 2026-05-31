@@ -304,6 +304,31 @@ std::string text_gen::parse_token(const std::string& input, size_t& pos) {
     }
 }
 
+// Parse a token-list string into a list of tokens
+text_gen::token_list text_gen::parse_token_list(const std::string& input) {
+	token_list tokens;
+	size_t pos = 0;
+	while (pos < input.length()) {
+		std::string token = parse_token(input, pos);
+		if (!token.empty()) {
+			tokens.push_back(token);
+		}
+	}
+	return tokens;
+}
+
+// Convert a token-list back into a string (for debugging)
+std::string text_gen::unparse_token_list(const token_list& tokens) const {
+	std::string result;
+	for (const auto& token : tokens) {
+		if (!result.empty()) {
+			result += " ";
+		}
+		result += token;
+	}
+	return result;
+}
+	
 // Generate text from a token-list string
 std::string text_gen::generate_from_token_list(const token_list& tokens) {
     std::string result;
@@ -418,14 +443,7 @@ std::string text_gen::generate_from_option_list(const std::string& token) {
             }
 
             // Parse option content into token list
-            token_list opt_tokens;
-            size_t opt_pos = 0;
-            while (opt_pos < option_content.length()) {
-                std::string t = parse_token(option_content, opt_pos);
-//                if (!t.empty()) {
-                    opt_tokens.push_back(t);
-//                }
-            }
+			token_list opt_tokens = parse_token_list(option_content);
 
             options.push_back({ opt_tokens, weight });
             start = pos + 1;
@@ -483,14 +501,7 @@ std::string text_gen::generate_from_repeated_token(const std::string& token) {
     }
 
     // Parse content into token list
-    token_list tokens;
-    size_t pos = 0;
-    while (pos < content.length()) {
-        std::string t = parse_token(content, pos);
-        if (!t.empty()) {
-            tokens.push_back(t);
-        }
-    }
+	token_list tokens = parse_token_list(content);
 
     // Generate and repeat
     std::string result;
@@ -520,14 +531,7 @@ std::string text_gen::generate_from_unordered_list(const std::string& token) {
             std::string list_str = content.substr(start, pos - start);
 
             // Parse into token list
-            token_list tokens;
-            size_t list_pos = 0;
-            while (list_pos < list_str.length()) {
-                std::string t = parse_token(list_str, list_pos);
-                if (!t.empty()) {
-                    tokens.push_back(t);
-                }
-            }
+			token_list tokens = parse_token_list(list_str);
 
             lists.push_back(tokens);
             start = pos + 1;
@@ -667,6 +671,9 @@ void text_gen::load_qso_data() {
 			}
 		}
 	}
+	// Get the user credentials from settings and add them as macros (e.g. $CALL, $NAME, etc.)
+	load_user_settings();
+
 }
 
 // Get the existing user's QSO macros as a map of macro names to their token lists (single token).
@@ -677,7 +684,8 @@ std::map<std::string, std::string> text_gen::get_qso_user_macros() const {
 		if (!pair.first.empty() && std::isupper(pair.first[0])) {
 			// For simplicity, we only return the first token of the macro's token list as the user macro value
 			if (!pair.second.empty()) {
-				user_macros[pair.first] = pair.second[0];
+				token_list& tokens = const_cast<token_list&>(pair.second); // Get non-const reference to token list
+				user_macros[pair.first] = unparse_token_list(tokens); // Convert first token back to string
 			}
 			else {
 				user_macros[pair.first] = ""; // Empty string if macro has no tokens
@@ -693,7 +701,53 @@ void text_gen::set_qso_user_macros(const std::map<std::string, std::string>& mac
 		// Only allow macros that are in upper case (assuming user macros are defined in uppercase)
 		if (!pair.first.empty() && std::isupper(pair.first[0])) {
 			// Update the macro definition with the new token list (single token in this case)
-			qso_macros_[pair.first] = { pair.second };
+			qso_macros_[pair.first] = parse_token_list(pair.second);
 		}
+	}
+	save_user_settings();
+}
+
+// Load user settings (e.g. user-defined text)
+void text_gen::load_user_settings() {
+	// Get the user credentials from settings and add them as macros (e.g. $CALL, $NAME, etc.)
+	zc_settings settings;
+	zc_settings user_settings(&settings, "User");
+	std::string call, name, qth, rig, antenna, power;
+	user_settings.get<std::string>("CALL", call, "");
+	if (!call.empty()) qso_macros_["CALL"] = parse_token_list(call);
+	user_settings.get<std::string>("NAME", name, "");
+	if (!name.empty()) qso_macros_["NAME"] = parse_token_list(name);
+	user_settings.get<std::string>("QTH", qth, "");
+	if (!qth.empty()) qso_macros_["QTH"] = parse_token_list(qth);
+	user_settings.get<std::string>("RIG", rig, "");
+	if (!rig.empty()) qso_macros_["RIG"] = parse_token_list(rig);
+	user_settings.get<std::string>("ANT", antenna, "");
+	if (!antenna.empty()) qso_macros_["ANT"] = parse_token_list(antenna);
+	user_settings.get<std::string>("PWR", power, "");
+	if (!power.empty()) qso_macros_["PWR"] = parse_token_list(power);
+}
+
+// Save user settings (e.g. user-defined text)
+void text_gen::save_user_settings() {
+	// Save the user credentials from macros back to settings
+	zc_settings settings;
+	zc_settings user_settings(&settings, "User");
+	if (qso_macros_.find("CALL") != qso_macros_.end()) {
+		user_settings.set("CALL", unparse_token_list(qso_macros_["CALL"]));
+	}
+	if (qso_macros_.find("NAME") != qso_macros_.end()) {
+		user_settings.set("NAME", unparse_token_list(qso_macros_["NAME"]));
+	}
+	if (qso_macros_.find("QTH") != qso_macros_.end()) {
+		user_settings.set("QTH", unparse_token_list(qso_macros_["QTH"]));
+	}
+	if (qso_macros_.find("RIG") != qso_macros_.end()) {
+		user_settings.set("RIG", unparse_token_list(qso_macros_["RIG"]));
+	}
+	if (qso_macros_.find("ANT") != qso_macros_.end()) {
+		user_settings.set("ANT", unparse_token_list(qso_macros_["ANT"]));
+	}
+	if (qso_macros_.find("PWR") != qso_macros_.end()) {
+		user_settings.set("PWR", unparse_token_list(qso_macros_["PWR"]));
 	}
 }

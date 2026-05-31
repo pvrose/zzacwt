@@ -125,6 +125,10 @@ private:
 	void load_word_list();
 	//! Read QSO exchange definitions from file and store in internal state.
 	void load_qso_data();
+	//! Load user settings
+	void load_user_settings();
+	//! Save user settings
+	void save_user_settings();
 	//! Generate a word from the text file.
 	std::vector<std::string> generate_text_sentence(bool include_punctuation);
 	//! Generate a word from the word list file.
@@ -142,6 +146,8 @@ private:
 private:
 	typedef std::vector<std::string> token_list;
 	std::string parse_token(const std::string& input, size_t& pos);
+	token_list parse_token_list(const std::string& input);
+	std::string unparse_token_list(const token_list& tokens) const;
 	std::string generate_from_token_list(const token_list& tokens);
 	std::string generate_from_token(const std::string& token);
 	std::string generate_from_regex(const std::string& pattern);
