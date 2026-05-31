@@ -320,10 +320,22 @@ void user_if::create_widgets() {
 	sl_drift_period_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
-	cx = g_disturber_->x() + g_disturber_->w() - WBUTTON - GAP;
-	bt_default_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Reset");
-	bt_default_->callback(cb_default, this);
-	bt_default_->tooltip("Reset disturber values to default");
+	sl_fading_depth_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "QSB Depth:");	
+	sl_fading_depth_->type(FL_HOR_SLIDER);
+	sl_fading_depth_->bounds(0, 1.0);
+	sl_fading_depth_->step(0.01);
+	sl_fading_depth_->callback(cb_fading_depth, this);
+	sl_fading_depth_->tooltip("Adjusts the depth of fading (0 = no fading, 1 = full fade out)");
+	sl_fading_depth_->align(FL_ALIGN_LEFT);
+
+	cy += HBUTTON;
+	sl_fading_period_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "QSB Period:");
+	sl_fading_period_->type(FL_HOR_SLIDER);
+	sl_fading_period_->bounds(0.1, 10.0);
+	sl_fading_period_->step(0.1);
+	sl_fading_period_->callback(cb_fading_period, this);
+	sl_fading_period_->tooltip("Adjusts the period of fading (in seconds)");
+	sl_fading_period_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON + GAP;
 
@@ -448,8 +460,8 @@ void user_if::update_disturber_widgets() {
 	sl_noise_severity_->value(noise_severity);
 
 	// Get drift rate setting
-	int drift_rate;
-	settings.get("Drift Rate", drift_rate, 0);
+	float drift_rate;
+	settings.get("Drift Rate", drift_rate, 0.0F);
 	sl_drift_rate_->value(drift_rate);
 
 	// Get drift amplitude setting
@@ -468,6 +480,22 @@ void user_if::update_disturber_widgets() {
 	sl_drift_period_->value(drift_period);
 	settings.set("Drift Period", drift_period);
 
+	// Get fading depth setting
+	float fading_depth;
+	settings.get("Fading Depth", fading_depth, 0.0F);
+	if (fading_depth < 0.0F) fading_depth = 0.0F;
+	else if (fading_depth > 1.0F) fading_depth = 1.0F;
+	sl_fading_depth_->value(fading_depth);
+	settings.set("Fading Depth", fading_depth);
+
+	// Get fading period setting
+	float fading_period;
+	settings.get("Fading Period", fading_period, 1.0F);
+	if (fading_period < 0.1F) fading_period = 0.1F;
+	else if (fading_period > 10.0F) fading_period = 10.0F;
+	sl_fading_period_->value(fading_period);
+	settings.set("Fading Period", fading_period);
+
 	// Depending on the disturber type, enable/disable the relevant sliders
 	switch (current_disturber_type) {
 	case disturber_type::NONE:
@@ -478,6 +506,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::TIMING:
 		sl_timing_dist_->activate();
@@ -487,6 +517,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::SOFTNESS:
 		sl_timing_dist_->deactivate();
@@ -496,6 +528,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::NOISE_WHITE:
 		sl_timing_dist_->deactivate();
@@ -505,6 +539,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::NOISE_IMPACT:
 		sl_timing_dist_->deactivate();
@@ -514,6 +550,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::NOISE_TONES:
 		sl_timing_dist_->deactivate();
@@ -523,6 +561,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::DRIFT_STEADY:
 		sl_timing_dist_->deactivate();
@@ -532,6 +572,8 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->activate();
 		sl_drift_amplitude_->deactivate();
 		sl_drift_period_->deactivate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
 		break;
 	case disturber_type::DRIFT_CYCLIC:
 		sl_timing_dist_->deactivate();
@@ -541,6 +583,19 @@ void user_if::update_disturber_widgets() {
 		sl_drift_rate_->deactivate();
 		sl_drift_amplitude_->activate();
 		sl_drift_period_->activate();
+		sl_fading_depth_->deactivate();
+		sl_fading_period_->deactivate();
+		break;
+	case disturber_type::FADING:
+		sl_timing_dist_->deactivate();
+		sl_softness_->deactivate();
+		sl_noise_vol_->deactivate();
+		sl_noise_severity_->deactivate();
+		sl_drift_rate_->deactivate();
+		sl_drift_amplitude_->deactivate();
+		sl_drift_period_->deactivate();
+		sl_fading_depth_->activate();
+		sl_fading_period_->activate();
 		break;
 	}
 }
@@ -746,7 +801,7 @@ void user_if::cb_drift_rate(Fl_Widget* w, void* data)
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	int drift_rate = static_cast<int>(sl->value());
+	float drift_rate = sl->value();
 	settings.set("Drift Rate", drift_rate);
 	ui->update_disturber_widgets();
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect drift rate changes
@@ -770,10 +825,34 @@ void user_if::cb_drift_period(Fl_Widget* w, void* data)
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	int drift_period = static_cast<int>(sl->value());
+	float drift_period = sl->value();
 	settings.set("Drift Period", drift_period);
 	ui->update_disturber_widgets();
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect drift period changes
+}
+
+void user_if::cb_fading_depth(Fl_Widget* w, void* data)
+{
+	// Save the fading depth value to settings
+	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
+	user_if* ui = static_cast<user_if*>(data);
+	zc_settings settings;
+	float fading_depth = sl->value();
+	settings.set("Fading Depth", fading_depth);
+	ui->update_disturber_widgets();
+	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect fading depth changes
+}
+
+void user_if::cb_fading_period(Fl_Widget* w, void* data)
+{
+	// Save the fading period value to settings
+	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
+	user_if* ui = static_cast<user_if*>(data);
+	zc_settings settings;
+	float fading_period = sl->value();
+	settings.set("Fading Period", fading_period);
+	ui->update_disturber_widgets();
+	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect fading period changes
 }
 
 void user_if::cb_default(Fl_Widget* w, void* data)

@@ -72,8 +72,13 @@ to achieve the desired overall WPM.
   - "plinks" - random short bursts (0.5~4xdit-time) of tones.
 
 - Apply drift to the Morse code signal to simulate a less-than-ideal signal.
-  - Constant drift - vary the drift rate in Hz/s.
-  - Cyclic drift - vary the drift rate in Hz/s and the cycle time in seconds.
+  - Constant drift - vary the drift rate in compound percent/s.
+  - Cyclic drift - vary the drift amplitude (+/- percent) and the cycle time in seconds.
+
+- Add "flutter" or "fading" to the Morse code signal to simulate a less-than-ideal signal.
+  - Flutter is a rapid variation in amplitude.
+  - Fading is a slower variation in amplitude.
+  - Vary the flutter rate in Hz and depth in dB.
 
 4. Volume Control.
   - Control the volume of the Morse code signal.

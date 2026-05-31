@@ -110,6 +110,15 @@ private:
 	//! (base pitch plus drift) for the current sample.
 	float update_drift_and_get_frequency();
 
+	//! Fading parameters - period  in seconds.
+	float fading_period = 0.0F; 
+	//! Current fading phase accumulator (in radians).
+	float fading_phase_accumulator_ = 0.0F;
+	//! fading amplitude (0 to 1).
+	float fading_amplitude_ = 0.0F;
+	//! Update the current fading level based on the fading settings and return the current fading multiplier (0 to 1) to apply to the output sample.
+	float update_fading_and_get_multiplier();
+
 	//! Thread for generating audio samples.
 	std::thread generation_thread_;
 	//! Flag to signal the generation thread to stop.

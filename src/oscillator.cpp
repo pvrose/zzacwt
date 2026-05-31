@@ -57,9 +57,12 @@ void oscillator::apply_settings() {
 	settings.get("Drift Rate", drift_rate_, 0.0F);
 	settings.get("Drift Amplitude", drift_amplitude_, 0.0F);
 	settings.get("Drift Period", drift_period_, 1.0F);
+	settings.get("Fading Period", fading_period, 0.0F);
+	settings.get("Fading Depth", fading_amplitude_, 0.0F);
 	// Reset drift state when settings are applied
 	current_drift_offset_ = 0.0F;
 	drift_phase_accumulator_ = 0.0F;
+	fading_phase_accumulator_ = 0.0F;
 }
 
 //! \brief Generation loop for the oscillator thread
@@ -97,8 +100,10 @@ float oscillator::next_sample() {
 	if (phase_accumulator_ >= 2.0F * PI) {
 		phase_accumulator_ -= 2.0F * PI;
 	}
+	// Apply fading multiplier to the output sample
+	float fading_multiplier = update_fading_and_get_multiplier();
 	// Return the sine of the phase accumulator as the output sample value
-	return std::sin(phase_accumulator_) * output_level_;
+	return std::sin(phase_accumulator_) * output_level_ * fading_multiplier;
 }
 
 //! \brief Update the current drift offset based on the selected 
@@ -106,7 +111,8 @@ float oscillator::next_sample() {
 float oscillator::update_drift_and_get_frequency() {
 	switch (current_disturber_) {
 	case disturber_type::DRIFT_STEADY:
-		current_drift_offset_ += drift_rate_ * sample_delta_time_;
+		// drift rate is in % current frequency (pitch + offset) per second.
+		current_drift_offset_ += (drift_rate_ * 0.01 * (base_pitch_ + current_drift_offset_) * sample_delta_time_);
 		break;
 	case disturber_type::DRIFT_CYCLIC:
 		drift_phase_accumulator_ += 2.0F * PI * sample_delta_time_ / drift_period_;
@@ -120,4 +126,16 @@ float oscillator::update_drift_and_get_frequency() {
 		break;
 	}
 	return base_pitch_ + current_drift_offset_;
+}
+
+//! \brief Update the current fading level based on the fading settings and return the current fading multiplier (0 to 1) to apply to the output sample.
+float oscillator::update_fading_and_get_multiplier() {
+	if (current_disturber_ != disturber_type::FADING) {
+		return 1.0F; // No fading, so multiplier is 1
+	}
+	fading_phase_accumulator_ += 2.0F * PI * sample_delta_time_ / fading_period;
+	if (fading_phase_accumulator_ >= 2.0F * PI) {
+		fading_phase_accumulator_ -= 2.0F * PI;
+	}
+	return 1.0F - (fading_amplitude_ * (0.5F * (1 - std::cos(fading_phase_accumulator_)))); // Fading multiplier based on a cosine wave
 }

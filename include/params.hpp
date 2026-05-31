@@ -89,6 +89,7 @@ enum class disturber_type
 	NOISE_TONES,  //!< Tones noise disturbance ("plinks")
 	DRIFT_STEADY,        //!< Frequency drift disturbance
 	DRIFT_CYCLIC,        //!< Cyclic frequency drift disturbance
+	FADING,               //!< Fading disturbance (signal strength varies over time)
 	COUNT         //!< Number of disturber types
 };
 //! Map disturber type enum to displayed strings
@@ -100,7 +101,8 @@ static inline const std::map<disturber_type, std::string> disturber_type_strings
 	{disturber_type::NOISE_IMPACT, "Impact Noise"},
 	{disturber_type::NOISE_TONES, "Tones (Plinks)"},
 	{disturber_type::DRIFT_STEADY, "Frequency Drift"},
-	{disturber_type::DRIFT_CYCLIC, "Cyclic Drift"}
+	{disturber_type::DRIFT_CYCLIC, "Cyclic Drift"},
+	{disturber_type::FADING, "Fading (QSB)"},
 };
 
 

@@ -54,6 +54,8 @@ public:
 	static void cb_drift_rate(Fl_Widget* w, void* data);
 	static void cb_drift_amplitude(Fl_Widget* w, void* data);
 	static void cb_drift_period(Fl_Widget* w, void* data);
+	static void cb_fading_period(Fl_Widget* w, void* data);
+	static void cb_fading_depth(Fl_Widget* w, void* data);
 	static void cb_default(Fl_Widget* w, void* data);
 	static void cb_volume(Fl_Widget* w, void* data);
 	static void cb_pitch(Fl_Widget* w, void* data);
@@ -86,6 +88,8 @@ private:
 	Fl_Value_Slider* sl_drift_rate_;    //!< Frequency drift rate slider
 	Fl_Value_Slider* sl_drift_amplitude_;   //!< Frequency drift amplitude slider
 	Fl_Value_Slider* sl_drift_period_;  //!< Frequency drift period slider
+	Fl_Value_Slider* sl_fading_period_;  //!< Fading period slider
+	Fl_Value_Slider* sl_fading_depth_;   //!< Fading depth slider
 	Fl_Button* bt_default_;             //!< Reset default values
 
 	Fl_Group* g_tone_;                  //!< Group for volume and pitch of tone
