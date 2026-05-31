@@ -109,6 +109,53 @@ void codec::encode(const std::string& input, std::vector<std::vector<symbol_t>>&
 			}
 			continue;
 		}
+		// Check for a prosign - if so concatenate the Morse code representations of the individual characters
+		// in the prosign without adding character spaces, and add a word space at the end if needed.
+		if (c == '<') {
+			size_t end_pos = input.find('>', i);
+			if (end_pos != std::string::npos) {
+				std::string prosign = input.substr(i + 1, end_pos - i - 1);
+				for (char pc : prosign) {
+					pc = toupper(pc);
+					auto it = TO_MORSE.find(pc);
+					if (it != TO_MORSE.end()) {
+						const std::string& morse = it->second;
+						for (size_t j = 0; j < morse.size(); ++j) {
+							char symbol = morse[j];
+							if (symbol == '.') {
+								char_symbols.push_back(symbol_t::DOT_MARK);
+							}
+							else if (symbol == '-') {
+								char_symbols.push_back(symbol_t::DASH_MARK);
+							}
+							if (j < morse.size() - 1) {
+								char_symbols.push_back(symbol_t::INTERNAL_SPACE);
+							}
+						}
+						// Not at the end of the input string nor the current word.
+						if (i < input.size() - 1 && input[i + 1] != ' ') {
+							char_symbols.push_back(symbol_t::INTERNAL_SPACE);
+						}
+					}
+					else {
+						std::cerr << "Warning: Unsupported character '" << pc << "' in prosign ignored in encoding." << std::endl;
+					}
+				}
+				
+				i = end_pos; // Move index to the end of the prosign
+				current_morse.clear();
+				// Not at the end of the input string nor the current word.
+				if (i < input.size() - 1 && input[i + 1] != ' ') {
+					char_symbols.push_back(symbol_t::CHARACTER_SPACE);
+				}
+				else {
+					char_symbols.push_back(symbol_t::WORD_SPACE);
+					current_morse.clear();
+				}
+				symbols.push_back(char_symbols);
+				continue;
+			}
+		}
 		auto it = TO_MORSE.find(c);
 		if (it != TO_MORSE.end()) {
 			// Look up the Morse code representation for the character and

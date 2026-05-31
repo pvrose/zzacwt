@@ -12,8 +12,8 @@ $I [my|] rig [|is] $rig
 $J [running|pwr] [|is] $pwr
 $K [my|] ant [|is] $ant
 $N key [|is] $key
-$L [hw cpy?|hw?] [|btu] $CALL de $call + k
-$M [|mni [tnx|tks] qso] [|bcnu] [|hope cuagn [|sn]] [|$NAME] [73] [gdx]  $CALL de $call sk
+$L [hw cpy?|hw?] [|btu] $CALL de $call <ar> k
+$M [|mni [tnx|tks] qso] [|bcnu] [|hope cuagn [|sn]] [|$NAME] [73] [gdx]  $CALL de $call <sk>
 
 @ $A $B1 = $E = ($F|$G) = $L
 @ $A ($B2|$B3) [|$C [|$D]] = $E = ($F|$G) = $L
@@ -22,8 +22,8 @@ $M [|mni [tnx|tks] qso] [|bcnu] [|hope cuagn [|sn]] [|$NAME] [73] [gdx]  $CALL d
 @ $A ($B2|$B3) [|$C [|$D]] = ($I $J) $K [|$N] = $L
 @ $A $B2 $M
 
-$rst [339|349|439|449|559|569|579|589|599|5NN]
-$name [John|Jane|Joe|Jill|Jack|Jenny|Jim|Jessica|James|Julia]
+$rst [339|349|439|449|559|569|579|589|599|5NN:7]
+$name [andy|bill|chaz|dave|ed|fred|geoff|harry|iain|jim|kevin|len|mike|nick|oliver|paul|quentin|rachel|susan|tom|uma|victor|wendy|xander|yvonne|zach]
 $qth [$qth1|$qth2|$qth3]
 $qth1 [new york|ontario|sao paolo|melbourne|sydney|hong kong|cape town|ouagadougou]
 $qth2 [london|paris|berlin|rome|madrid|amsterdam|brussels|vienna|prague|budapest]

@@ -168,7 +168,13 @@ void shaper::generation_loop(shaper* that) {
 
 						if (!meta_data_set) {
 							if (index < word.size() - 1) {
-								audio_data.metadata = word[index]; // Set metadata to the word for the first symbol of the word
+								// Check if the character was a prosign (starts with < and ends with >) and set metadata accordingly
+								if (word[index] == '<' && word.back() == '>') {
+									audio_data.metadata = word; // Set metadata to the whole word for prosigns
+								}
+								else {
+									audio_data.metadata = word[index]; // Set metadata to the word for the first symbol of the word
+								}
 							}
 							else {
 								audio_data.metadata = std::string(1, word[index]) + " ";
