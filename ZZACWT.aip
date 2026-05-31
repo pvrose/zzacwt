@@ -11,7 +11,7 @@
     <ROW Property="ProductCode" Value="2057:{43BCA13B-AEF6-4DEC-B8A5-644B242DCAB4} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="ZZACWT"/>
-    <ROW Property="ProductVersion" Value="0.2.1" Options="32"/>
+    <ROW Property="ProductVersion" Value="0.3" Options="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{6DD6E898-1217-461D-8428-0E916A13133F}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -908,6 +908,7 @@
     <ROW File="todo.html_1" Component_="ack.html" FileName="TODO~1.HTM|todo.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\todo.html" SelfReg="false"/>
     <ROW File="user_if.png" Component_="ack.html" FileName="user_if.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\user_if.png" SelfReg="false"/>
     <ROW File="ZZACWT.pdf" Component_="ZZACWT.pdf" FileName="ZZACWT.pdf" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\ZZACWT.pdf" SelfReg="false"/>
+    <ROW File="qso_data.txt" Component_="rose.png" FileName="qso_data.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\qso_data.txt" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiPersistentPropComponent">
     <ROW Property="AI_INSTALLPERUSER" Registry="AI_INSTALLPERUSER" HklmSearch="AI_INSTALLPERUSER" HkcuSearch="AI_INSTALLPERUSER_1" Hklm64Search="AI_INSTALLPERUSER_2" Hkcu64Search="AI_INSTALLPERUSER_3"/>
@@ -916,7 +917,7 @@
     <ROW Action="AI_DetectSoftware" Sequence="151"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="ZZACWT-0.2.2" Languages="en_GB" InstallationType="4" SummInfoMetadata="Page Count:450" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="ZZACWT-0.3" Languages="en_GB" InstallationType="4" SummInfoMetadata="Page Count:450" UseLargeSchema="true" MsiPackageType="x64"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
     <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
