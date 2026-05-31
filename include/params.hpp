@@ -31,6 +31,7 @@ using json = nlohmann::json;
 enum file_types : uint8_t {
 	FILE_TEXT_FILE = FILE_USER, //!< Text file for option 4 in text generation
 	FILE_WORD_LIST,                 //!< Word list for option 5 in text generation
+	FILE_QSO_DATA,				 //!< Data for generating QSO exchanges in option 6 in text generation
 };
 
 //! Enumerated type for the different content modes

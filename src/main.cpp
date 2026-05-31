@@ -57,7 +57,8 @@ const std::map < uint8_t, file_control_t > FILE_CONTROL = {
 	{ FILE_STATUS, { "status.txt", false, false, 0}},
 	{ FILE_ICON_ZZA, { "rose.png", true, true, 0}},
 	{ FILE_TEXT_FILE, { "text.txt", true, true, 0 }},
-	{ FILE_WORD_LIST, { "word_list.txt", true, true, 0 }}
+	{ FILE_WORD_LIST, { "word_list.txt", true, true, 0 }},
+	{ FILE_QSO_DATA, { "qso_data.txt", true, true, 0 }}
 };
 
 float DEFAULT_SAMPLE_RATE = 22050.0F; //!< Default sample rate for audio generation

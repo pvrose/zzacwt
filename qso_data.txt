@@ -1,0 +1,40 @@
+$A $CALL de $call
+$B1 [tnx|tks] call 
+$B2 [tnx|tks] rprt
+$B3 [tnx|tks] info
+$C dr [op:9|om:1] $NAME
+$D in $QTH
+$E ur [rprt|rst] [|is] [$rst:1|{$rst}2:4|{$rst}3]
+$F [my name|op] [|is] [$name:1|{$name}2:4|{$name}3]
+$G [qth|in] [$qth:1|{$qth}2:4|{$qth}3]
+$H wx [hr|] [|is] $wx temp $temp
+$I [my|] rig [|is] $rig
+$J [running|pwr] [|is] $pwr
+$K [my|] ant [|is] $ant
+$N key [|is] $key
+$L [hw cpy?|hw?] [|btu] $CALL de $call + k
+$M [|mni [tnx|tks] qso] [|bcnu] [|hope cuagn [|sn]] [|$NAME] [73] [gdx]  $CALL de $call sk
+
+@ $A $B1 = $E = ($F|$G) = $L
+@ $A ($B2|$B3) [|$C [|$D]] = $E = ($F|$G) = $L
+@ $A ($B2|$B3) [|$C [|$D]] = ($F|$G) = $L
+@ $A ($B2|$B3) [|$C [|$D]] = $H = $L
+@ $A ($B2|$B3) [|$C [|$D]] = ($I $J) $K [|$N] = $L
+@ $A $B2 $M
+
+$rst [339|349|439|449|559|569|579|589|599|5NN]
+$name [John|Jane|Joe|Jill|Jack|Jenny|Jim|Jessica|James|Julia]
+$qth [$qth1|$qth2|$qth3]
+$qth1 [new york|ontario|sao paolo|melbourne|sydney|hong kong|cape town|ouagadougou]
+$qth2 [london|paris|berlin|rome|madrid|amsterdam|brussels|vienna|prague|budapest]
+$qth3 [edinburgh|glasgow|manchester|liverpool|leeds|bristol|cardiff|birmingham|sheffield|newcastle]
+$wx [sunny|cloudy|rainy|snowy|windy|foggy|stormy|clear]
+$rig [ft817|ic7300|ts590s|k3s|ftdx3000|ic7610|ts480sat|k2|ftdx5000|homebrew]
+$pwr [5w|10w|50w|100w|500w|1kw]
+$ant [dipole|vertical|yagi|loop|quad|delta loop|inverted vee|long wire|vertical array|beam]
+$key [sk|bug|paddle|]
+$call ~([2-9][A-Z]|[A-Z]|[A-Z][0-9])([0-9][A-Z]{1,3})~
+
+$NAME Phil
+$QTH Livingston
+$CALL GM3ZZA
