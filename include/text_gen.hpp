@@ -115,6 +115,11 @@ public:
 	//! if the sequence is finished.
 	std::string get_next_word();
 
+	//! Get the existing user's QSO macros as a map of macro names to their token lists (single token).
+	std::map<std::string, std::string> get_qso_user_macros() const;
+	//! Overwrite the existing user's QSO macros with the provided map of macro names to their token lists (single token).
+	void set_qso_user_macros(const std::map<std::string, std::string>& macros);
+
 private:
 	//! Read word-list file and store words in internal state.
 	void load_word_list();

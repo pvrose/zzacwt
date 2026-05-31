@@ -15,6 +15,8 @@
 	If not, see <https://www.gnu.org/licenses/>.
 */
 #include "user_if.hpp"
+
+#include "cred_dialog.hpp"
 #include "oscillator.hpp"
 #include "mod_mixer.hpp"
 #include "noise_gen.hpp"
@@ -38,6 +40,7 @@
 #include <FL/Fl_Widget.H>
 
 #include <algorithm>
+#include <map>
 #include <string>
 
 extern oscillator* oscillator_;
@@ -99,6 +102,13 @@ void user_if::create_widgets() {
 	in_text_->callback(cb_text, this);
 	in_text_->tooltip("Enter custom text for practice");
 	in_text_->align(FL_ALIGN_LEFT);
+
+	cy += HBUTTON;
+	// Create the customise button for QSO generation (only active in QSO mode)
+	bt_customise_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Customise");
+	bt_customise_->callback(cb_customise, this);
+	bt_customise_->tooltip("Customise QSO generation - enter your callsign and location");
+
 
 	cy += HBUTTON + GAP;
 
@@ -857,4 +867,21 @@ void user_if::cb_close(Fl_Widget* w, void* data)
 	}
 	// Call default close behavior to close the main window and exit the application
 	Fl_Window::default_callback((Fl_Window*)w, data);
+}
+
+// Callback for the customise button in QSO mode - opens a dialog to enter callsign and location
+void user_if::cb_customise(Fl_Widget* w, void* data)
+{
+	(void)w;
+	user_if* ui = static_cast<user_if*>(data);
+	cred_dialog* dialog = new cred_dialog(400, 300, "Customise QSO");
+	dialog->show();
+	// Create existing callsign and location variables to pass to the dialog
+	std::map<std::string, std::string> existing_credentials = text_gen_->get_qso_user_macros();
+	dialog->set_credentials(existing_credentials);
+	while (dialog->visible()) {
+		Fl::wait();
+	}
+	text_gen_->set_qso_user_macros(dialog->get_credentials());
+	delete dialog;
 }

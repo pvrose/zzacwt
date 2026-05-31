@@ -668,3 +668,32 @@ void text_gen::load_qso_data() {
 		}
 	}
 }
+
+// Get the existing user's QSO macros as a map of macro names to their token lists (single token).
+std::map<std::string, std::string> text_gen::get_qso_user_macros() const {
+	std::map<std::string, std::string> user_macros;
+	for (const auto& pair : qso_macros_) {
+		// Only include macros that are in upper case (assuming user macros are defined in uppercase)
+		if (!pair.first.empty() && std::isupper(pair.first[0])) {
+			// For simplicity, we only return the first token of the macro's token list as the user macro value
+			if (!pair.second.empty()) {
+				user_macros[pair.first] = pair.second[0];
+			}
+			else {
+				user_macros[pair.first] = ""; // Empty string if macro has no tokens
+			}
+		}
+	}
+	return user_macros;
+}
+
+// Overwrite the existing user's QSO macros with the provided map of macro names to their token lists (single token).
+void text_gen::set_qso_user_macros(const std::map<std::string, std::string>& macros) {
+	for (const auto& pair : macros) {
+		// Only allow macros that are in upper case (assuming user macros are defined in uppercase)
+		if (!pair.first.empty() && std::isupper(pair.first[0])) {
+			// Update the macro definition with the new token list (single token in this case)
+			qso_macros_[pair.first] = { pair.second };
+		}
+	}
+}

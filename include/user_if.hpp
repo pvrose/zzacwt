@@ -60,6 +60,7 @@ public:
 	static void cb_new(Fl_Widget* w, void* data);
 	static void cb_stop(Fl_Widget* w, void* data);
 	static void cb_repeat(Fl_Widget* w, void* data);
+	static void cb_customise(Fl_Widget* w, void* data);
 	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
 
@@ -69,6 +70,7 @@ private:
 	Fl_Choice* ch_mode_;                //!< Mode choice
 	Fl_Value_Slider* sl_tx_size_;       //!< Transmission size slider
 	Fl_Input* in_text_;                 //!< User input for text mode
+	Fl_Button* bt_customise_;             //!< Customise button for QSO generation - gets user's credentials
 
 	Fl_Group* g_speed_;                 //!< Group for speed controls
 	Fl_Choice* ch_speed_type_;          //!< Speed type choice

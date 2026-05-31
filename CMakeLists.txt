@@ -52,6 +52,7 @@ set(APP_VERSION "${ZZACWT_VERSION}${APP_RC_VALUE}")
 ## Set source files (excluding app.cpp which is generated)
 set(CPPFILES 
   ${ZZACWT_SOURCE_DIR}/src/codec.cpp
+  ${ZZACWT_SOURCE_DIR}/src/cred_dialog.cpp
   ${ZZACWT_SOURCE_DIR}/src/main.cpp
   ${ZZACWT_SOURCE_DIR}/src/mod_mixer.cpp
   ${ZZACWT_SOURCE_DIR}/src/noise_gen.cpp
