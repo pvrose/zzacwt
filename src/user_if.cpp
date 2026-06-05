@@ -26,10 +26,12 @@
 #include "text_gen.hpp"
 
 #include "zc_drawing.h"
+#include "zc_fltk.h"
 #include "zc_settings.h"
 #include "zc_speaker.h"
 
 #include <FL/Enumerations.H>
+#include <FL/fl_ask.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Double_Window.H>
@@ -38,6 +40,7 @@
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Widget.H>
+#include <FL/Fl_Window.H>
 
 #include <algorithm>
 #include <map>
@@ -52,6 +55,7 @@ extern text_gen* text_gen_;
 extern review* review_;
 
 extern float DEFAULT_RISE_FALL;
+extern void restart_application();
 
 user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)
 {
@@ -963,4 +967,38 @@ void user_if::cb_customise(Fl_Widget* w, void* data)
 	}
 	text_gen_->set_qso_user_macros(dialog->get_credentials());
 	delete dialog;
+}
+
+// Override the handle method to catch the CTRL/+ and CTRL/-.
+int user_if::handle(int event) {
+	switch (event) {
+	case FL_KEYDOWN:
+	{
+		int key = Fl::event_key();
+		if (Fl::event_state(FL_CTRL)) {
+			bool changed = false;
+			if (key == '+' || key == '=') { // CTRL + '+' or CTRL + '=' to increase font size.
+				changed = zc::change_base_size(true, false);
+			}
+			else if (key == '-') { // CTRL + '-' to decrease font size.
+				changed = zc::change_base_size(false, false);
+			}
+			else if (key == '0') { // CTRL + '0' to reset font size to default.
+				changed = zc::set_base_size(DEFAULT_DEFAULT_SIZE, false);
+			}
+			if (changed) {
+				{
+					zc_settings settings;
+					settings.set("Base Size", DEFAULT_SIZE); // Reset base size to default to ensure the change takes effect with the new font size.
+				}
+				if (fl_choice("Changing the font size requires a restart. Do you want to restart now?", "No", "Yes", nullptr) == 1) {
+					restart_application();
+				}
+			}
+			return 1; // Return true to indicate the event has been handled
+		}
+		break;
+	}
+	}
+	return Fl_Window::handle(event); // Call base class handler for unhandled events
 }

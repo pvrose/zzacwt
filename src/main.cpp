@@ -19,6 +19,7 @@
 #include "codec.hpp"
 #include "mod_mixer.hpp"
 #include "noise_gen.hpp"
+#include "params.hpp"
 #include "review.hpp"
 #include "shaper.hpp"
 #include "text_gen.hpp"
@@ -26,13 +27,16 @@
 
 #include "zc_async_queue.h"
 #include "zc_audio_data.h"
+#include "zc_drawing.h"
 #include "zc_file_holder.h"
 #include "zc_fltk.h"
+#include "zc_settings.h"
 #include "zc_speaker.h"
 #include "zc_status.h"
 #include "zc_ticker.h"
 
 #include <FL/Fl.H>
+#include <FL/Fl_Window.H>
 
 #include <cstdint>
 #include <map>
@@ -79,6 +83,8 @@ mod_mixer* mod_mixer_ = nullptr; //!< Pointer to the modulator/mixer instance
 zc_speaker* speaker_ = nullptr; //!< Pointer to the speaker instance
 review* review_ = nullptr; //!< Pointer to the review window instance
 
+bool restart_ = false; //!< Flag to indicate that the app should be restarted - when the user changes a setting that requires a restart
+
 // In-fill logic. Take the metadata as it's sent by speaker and send it to review.
 static void audio_metadata_callback(const std::string& metadata)
 {
@@ -99,7 +105,10 @@ int main(int argc, char** argv)
 	}
 #endif
 	file_holder_ = new zc_file_holder(argv[0], FILE_CONTROL);
-	zc::customise_fltk();
+	zc_settings settings;
+	int base_size;
+	settings.get("Base Size", base_size, 12);
+	zc::customise_fltk(base_size);
 	status_ = new zc_status(zc_status::HAS_CONSOLE, {});
 	ticker_ = new zc_ticker();
 
@@ -146,5 +155,41 @@ int main(int argc, char** argv)
 	review_->show();
 
 	// Run the FLTK event loop
-	return Fl::run();
+	bool result = Fl::run();
+
+	// Clean up resources - this will not be reached until the application is closed, but it's good practice to include it here for completeness and in case of future changes that might allow for a cleaner shutdown process.
+	delete speaker_;
+	speaker_ = nullptr;
+	delete mod_mixer_;
+	mod_mixer_ = nullptr;
+	delete noise_gen_;
+	noise_gen_ = nullptr;
+	delete shaper_;
+	shaper_ = nullptr;
+	delete text_gen_;
+	text_gen_ = nullptr;
+	delete window;
+	window = nullptr;
+	delete review_;
+	review_ = nullptr;
+
+	if (restart_) {
+		restart_ = false;
+		// If the restart flag is set, restart the application by re-executing the main function.
+		// This is a simple way to apply settings that require a restart without needing to implement a more complex state management system.
+		result = main(argc, argv);
+	}
+	return result;
+}
+
+//! Restart the application - sets the restart flag and closes all windows to trigger a restart in main()
+void restart_application()
+{
+	restart_ = true;
+	// Hide all the open windows - this will allow Fl to close the app.
+	Fl_Window* wx = Fl::first_window();
+	for (; wx; wx = Fl::first_window()) {
+		// Keep the banner showing if we need to see a severe or fatal error.
+		wx->hide();
+	}
 }

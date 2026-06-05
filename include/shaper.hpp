@@ -23,6 +23,7 @@
 #include "zc_async_queue.h"
 #include "zc_audio_data.h"
 
+#include <atomic>
 #include <map>
 #include <queue>
 #include <random>
@@ -157,9 +158,9 @@ private:
 	//! Thread for generating audio samples.
 	std::thread generation_thread_;
 	//! Flag to signal the generation thread to stop.
-	bool stop_generation_ = false;
+	std::atomic<bool> stop_generation_ = false;
 	//! Flag to suspend and clear down the existing generated samples.
-	bool clear_requested_ = false;
+	std::atomic<bool> clear_requested_ = false;
 	//! Method for the generation thread to continuously generate audio samples based on the symbol sequence and push them onto the audio data queue.
 	static void generation_loop(shaper* shaper_instance);
 

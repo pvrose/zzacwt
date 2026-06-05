@@ -18,6 +18,7 @@
 #pragma once
 
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Group.H>
 
 #include <nlohmann/json.hpp>
 #include <map>
@@ -65,6 +66,9 @@ public:
 	static void cb_customise(Fl_Widget* w, void* data);
 	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
+
+	//! Override the handle method to catch CTRL/+ and CTRL/- for adjusting font size.
+	int handle(int event) override;
 
 private:
 
