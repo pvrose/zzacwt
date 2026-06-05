@@ -99,6 +99,7 @@ void user_if::create_widgets() {
 	sl_tx_size_->callback(cb_tx_size, this);
 	sl_tx_size_->tooltip("Adjust the block size - number of groups or words");
 	sl_tx_size_->align(FL_ALIGN_LEFT);
+	sl_tx_size_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	// Create the user text input (only active in USER_TEXT mode)
@@ -149,6 +150,7 @@ void user_if::create_widgets() {
 	sl_dot_speed_->callback(cb_wpm, this);
 	sl_dot_speed_->tooltip("Adjust the dot speed");
 	sl_dot_speed_->align(FL_ALIGN_LEFT);
+	sl_dot_speed_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	// Create Farnsworth slider
@@ -159,6 +161,7 @@ void user_if::create_widgets() {
 	sl_overall_speed_->callback(cb_farnsworth, this);
 	sl_overall_speed_->tooltip("Overall: adds spacing between letters or words to achieve target WPM");
 	sl_overall_speed_->align(FL_ALIGN_LEFT);
+	sl_overall_speed_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON + GAP;
 	// End the speed group
@@ -186,6 +189,7 @@ void user_if::create_widgets() {
 	sl_volume_->callback(cb_volume, this);
 	sl_volume_->tooltip("Adjust the tone volume");
 	sl_volume_->align(FL_ALIGN_LEFT);
+	sl_volume_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	// Create pitch slider
@@ -196,6 +200,7 @@ void user_if::create_widgets() {
 	sl_pitch_->callback(cb_pitch, this);
 	sl_pitch_->tooltip("Adjust the tone pitch");
 	sl_pitch_->align(FL_ALIGN_LEFT);
+	sl_pitch_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON + GAP;
 	// End the tone group
@@ -268,6 +273,7 @@ void user_if::create_widgets() {
 	sl_timing_dist_->callback(cb_timing_dist, this);
 	sl_timing_dist_->tooltip("Adds variation to the dit-timing: 0 - none, 5 - -10%~+25%");
 	sl_timing_dist_->align(FL_ALIGN_LEFT);
+	sl_timing_dist_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_softness_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Softness:");
@@ -277,6 +283,7 @@ void user_if::create_widgets() {
 	sl_softness_->callback(cb_softness, this);
 	sl_softness_->tooltip("Adjusts the rise and fall time (in ms) of the morse tone: normal = 5 ms");
 	sl_softness_->align(FL_ALIGN_LEFT);
+	sl_softness_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_noise_vol_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Volume (dB):");
@@ -286,6 +293,7 @@ void user_if::create_widgets() {
 	sl_noise_vol_->callback(cb_noise_vol, this);
 	sl_noise_vol_->tooltip("Adjusts the volume of introduced noise");
 	sl_noise_vol_->align(FL_ALIGN_LEFT);
+	sl_noise_vol_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_noise_severity_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Severity:");
@@ -295,6 +303,7 @@ void user_if::create_widgets() {
 	sl_noise_severity_->callback(cb_noise_severity, this);
 	sl_noise_severity_->tooltip("Adjusts the severity of impact noise or inserted tones");
 	sl_noise_severity_->align(FL_ALIGN_LEFT);
+	sl_noise_severity_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_drift_rate_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift (%/s):");
@@ -304,6 +313,7 @@ void user_if::create_widgets() {
 	sl_drift_rate_->callback(cb_drift_rate, this);
 	sl_drift_rate_->tooltip("Adjusts the rate at which the tone drifts (Hz/s)");
 	sl_drift_rate_->align(FL_ALIGN_LEFT);
+	sl_drift_rate_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_drift_amplitude_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Ampl:");
@@ -313,6 +323,7 @@ void user_if::create_widgets() {
 	sl_drift_amplitude_->callback(cb_drift_amplitude, this);
 	sl_drift_amplitude_->tooltip("Adjusts the amplitude of the frequency drift");
 	sl_drift_amplitude_->align(FL_ALIGN_LEFT);
+	sl_drift_amplitude_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_drift_period_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Period:");
@@ -322,6 +333,7 @@ void user_if::create_widgets() {
 	sl_drift_period_->callback(cb_drift_period, this);
 	sl_drift_period_->tooltip("Adjusts the period over which the tone drifts");
 	sl_drift_period_->align(FL_ALIGN_LEFT);
+	sl_drift_period_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_fading_depth_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "QSB Depth:");	
@@ -331,6 +343,7 @@ void user_if::create_widgets() {
 	sl_fading_depth_->callback(cb_fading_depth, this);
 	sl_fading_depth_->tooltip("Adjusts the depth of fading (0 = no fading, 1 = full fade out)");
 	sl_fading_depth_->align(FL_ALIGN_LEFT);
+	sl_fading_depth_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
 	sl_fading_period_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "QSB Period:");
@@ -340,6 +353,7 @@ void user_if::create_widgets() {
 	sl_fading_period_->callback(cb_fading_period, this);
 	sl_fading_period_->tooltip("Adjusts the period of fading (in seconds)");
 	sl_fading_period_->align(FL_ALIGN_LEFT);
+	sl_fading_period_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON + GAP;
 
