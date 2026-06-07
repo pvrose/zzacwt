@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ZZACWT VERSION 0.3.1.0)
+project(ZZACWT VERSION 0.3.1)
 
 # Add shared CMake modules
 # Add shared CMake modules
@@ -17,7 +17,7 @@ else()
     FetchContent_Declare(
         zzacmake
         GIT_REPOSITORY https://github.com/pvrose/zzacmake.git
-        GIT_TAG v1.2.4
+        GIT_TAG main
     )
     FetchContent_MakeAvailable(zzacmake)
     message(STATUS "Fetched zzacmake from GitHub: ${zzacmake_SOURCE_DIR}")
@@ -101,7 +101,7 @@ set(ALL_CPPFILES ${GENERATED_APP_CPP} ${CPPFILES})
 
 ## Use shared zzacommon (includes zzaf, zzam, zzad, zzafb)
 ## TODO investigate why zzab is needed to install the runtime DLLs even though zzafb is added.
-gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzab zzafb zzap GIT_TAG master)
+gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzab zzafb zzap GIT_TAG v1.2.4)
 
 
 # Define the zzacwt executable

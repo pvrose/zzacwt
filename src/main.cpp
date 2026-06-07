@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 	file_holder_ = new zc_file_holder(argv[0], FILE_CONTROL);
 	zc_settings settings;
 	int base_size;
-	settings.get("Base Size", base_size, 12);
+	settings.get("Base Size", base_size, DEFAULT_DEFAULT_SIZE);
 	zc::customise_fltk(base_size);
 	status_ = new zc_status(zc_status::HAS_CONSOLE, {});
 	ticker_ = new zc_ticker();
