@@ -45,8 +45,7 @@ public:
 	static void cb_text(Fl_Widget* w, void* data);
 	static void cb_speed_type(Fl_Widget* w, void* data);
 	static void cb_wpm(Fl_Widget* w, void* data);
-	static void cb_farnsworth(Fl_Widget* w, void* data);
-	static void cb_wordsworth(Fl_Widget* w, void* data);
+	static void cb_overall(Fl_Widget* w, void* data);
 	static void cb_disturber_type(Fl_Widget* w, void* data);
 	static void cb_timing_dist(Fl_Widget* w, void* data);
 	static void cb_softness(Fl_Widget* w, void* data);

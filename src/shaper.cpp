@@ -65,7 +65,8 @@ shaper::~shaper()
 void shaper::apply_settings() {
 	// Read settings and update internal state as they may have changed.
 	zc_settings settings;
-	settings.get("Dot Speed", character_speed_, 12.0F);
+	settings.get("Dot Speed", dot_speed_, 12.0F);
+	settings.get("Overall WPM", overall_speed_, 12.0F);
 	disturber_type disturber;
 	settings.get("Disturber Type", disturber, disturber_type::NONE);
 	if (disturber == disturber_type::TIMING) {
@@ -84,12 +85,6 @@ void shaper::apply_settings() {
 		rise_fall_time_ = DEFAULT_RISE_FALL; // Default softness if disturber type is not softness
 	}
 	settings.get("Speed Type", speed_mode_, speed_type::NORMAL);
-	if (speed_mode_ == speed_type::FARNSWORTH) {
-		settings.get("Farnsworth", farnsworth_speed_, 12.0F);
-	}
-	if (speed_mode_ == speed_type::WORDSWORTH) {
-		settings.get("Wordsworth", wordsworth_speed_, 12.0F);
-	}
 	update_symbol_durations();
 	// Start the generation thread if not already running
 	if (!generation_thread_.joinable()) {
@@ -99,7 +94,7 @@ void shaper::apply_settings() {
 
 // Update symbol durations based on current speed settings
 void shaper::update_symbol_durations() {
-	dot_time_ = 1.2F / character_speed_; // Standard formula for dot time based on WPM
+	dot_time_ = 1.2F / dot_speed_; // Standard formula for dot time based on WPM
 	symbol_durations_[symbol_t::DOT_MARK] = dot_time_;
 	symbol_durations_[symbol_t::DASH_MARK] = 3 * dot_time_;
 	symbol_durations_[symbol_t::INTERNAL_SPACE] = dot_time_;
@@ -110,14 +105,14 @@ void shaper::update_symbol_durations() {
 		break;
 	case speed_type::FARNSWORTH:
 	{
-		float farnsworth_time = (60.0F / farnsworth_speed_) - (31.0F * 1.2F / character_speed_); // Total additional time needed for Farnsworth
+		float farnsworth_time = (60.0F / overall_speed_) - (31.0F * 1.2F / dot_speed_); // Total additional time needed for Farnsworth
 		symbol_durations_[symbol_t::CHARACTER_SPACE] = farnsworth_time * 3.0F / 19.0F; // Character space is 3/19 of total additional time
 		symbol_durations_[symbol_t::WORD_SPACE] = farnsworth_time * 7.0F / 19.0F; // Word space is 7/19 of total additional time
 		break;
 	}
 	case speed_type::WORDSWORTH:
 	{
-		float wordsworth_time = (60.0F / wordsworth_speed_) - (43.0F * 1.2F / character_speed_); // Total additional time needed for Wordsworth
+		float wordsworth_time = (60.0F / overall_speed_) - (43.0F * 1.2F / dot_speed_); // Total additional time needed for Wordsworth
 		symbol_durations_[symbol_t::CHARACTER_SPACE] = 3 * dot_time_; // Character space remains unchanged in Wordsworth
 		symbol_durations_[symbol_t::WORD_SPACE] = wordsworth_time; // Word space is increased by the total additional time
 		break;

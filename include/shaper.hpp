@@ -143,12 +143,10 @@ private:
 	float rise_fall_time_ = 0.01F;
 	//! Current speed mode (Farnsworth, Wordsworth, or normal).
 	speed_type speed_mode_ = speed_type::NORMAL;
-	//! Character speed in WPM.
-	float character_speed_ = 12.0F;
-	//! Farnsworth speed
-	float farnsworth_speed_ = 12.0F;
-	//! Wordsworth speed
-	float wordsworth_speed_ = 12.0F;
+	//! Dot speed in WPM.
+	float dot_speed_ = 12.0F;
+	//! Overall speed in WPM for Farnsworth and Wordsworth modes.
+	float overall_speed_ = 12.0F;
 	//! Nominal symbol durations in seconds for the effective speed.
 	std::map<symbol_t, float> symbol_durations_;
 

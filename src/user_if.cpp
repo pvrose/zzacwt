@@ -142,7 +142,7 @@ void user_if::create_widgets() {
 	ch_speed_type_->tooltip("Select the speed type for practice:");
 	
 	cy += HBUTTON;
-	// Create WPM slider
+	// Create dot speed WPM slider
 	sl_dot_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Dot Speed:");
 	sl_dot_speed_->type(FL_HOR_SLIDER);
 	sl_dot_speed_->bounds(6, 50);
@@ -153,12 +153,12 @@ void user_if::create_widgets() {
 	sl_dot_speed_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	// Create Farnsworth slider
+	// Create Overall WPM slider
 	sl_overall_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Overall WPM:");
 	sl_overall_speed_->type(FL_HOR_SLIDER);
-	sl_overall_speed_->bounds(0, 50);
+	sl_overall_speed_->bounds(6, 50);
 	sl_overall_speed_->step(1.0);
-	sl_overall_speed_->callback(cb_farnsworth, this);
+	sl_overall_speed_->callback(cb_overall, this);
 	sl_overall_speed_->tooltip("Overall: adds spacing between letters or words to achieve target WPM");
 	sl_overall_speed_->align(FL_ALIGN_LEFT);
 	sl_overall_speed_->textsize(DEFAULT_SIZE - 2);
@@ -415,13 +415,13 @@ void user_if::update_speed_widgets() {
 	settings.get("Dot Speed", dot_speed, 20);
 	sl_dot_speed_->value(dot_speed);
 
-	// Get the current Farnsworth setting
+	// Get the current Overall WPM setting
 	int overall_speed;
-	settings.get("Overall Speed", overall_speed, 6);
+	settings.get("Overall WPM", overall_speed, 6);
 	if (current_speed_type == speed_type::NORMAL) {
-		overall_speed = dot_speed; // If not in Farnsworth mode, set Overall Speed to dot speed
+		overall_speed = dot_speed; // If not in Farnsworth mode, set Overall WPM to dot speed
 	}
-	// Restrict the Overall Speed value to be between 6 and dot speed.
+	// Restrict the Overall WPM value to be between 6 and dot speed.
 	if (overall_speed < 6) {
 		overall_speed = 6;
 	}
@@ -429,7 +429,7 @@ void user_if::update_speed_widgets() {
 		overall_speed = dot_speed;
 	}
 	sl_overall_speed_->value(overall_speed);
-	settings.set("Overall Speed", overall_speed);
+	settings.set("Overall WPM", overall_speed);
 
 	// Depending on the speed type, enable/disable the Farnsworth and Wordsworth sliders
 	switch (current_speed_type) {
@@ -714,7 +714,7 @@ void user_if::cb_speed_type(Fl_Widget* w, void* data)
 
 void user_if::cb_wpm(Fl_Widget* w, void* data)
 {
-	// Save the WPM value to settings
+	// Save the dot speed WPM value to settings
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
@@ -724,28 +724,16 @@ void user_if::cb_wpm(Fl_Widget* w, void* data)
 	ui->apply_shaper_settings(); // Apply shaper settings immediately to reflect WPM changes
 }
 
-void user_if::cb_farnsworth(Fl_Widget* w, void* data)
+void user_if::cb_overall(Fl_Widget* w, void* data)
 {
-	// Save the Farnsworth value to settings
+	// Save the overall WPM value to settings
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	int farnsworth = static_cast<int>(sl->value());
-	settings.set("Farnsworth", farnsworth);
+	int overall = static_cast<int>(sl->value());
+	settings.set("Overall WPM", overall);
 	ui->update_speed_widgets();
 	ui->apply_shaper_settings(); // Apply shaper settings immediately to reflect Farnsworth changes
-}
-
-void user_if::cb_wordsworth(Fl_Widget* w, void* data)
-{
-	// Save the Wordsworth value to settings
-	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
-	user_if* ui = static_cast<user_if*>(data);
-	zc_settings settings;
-	int wordsworth = static_cast<int>(sl->value());
-	settings.set("Wordsworth", wordsworth);
-	ui->update_speed_widgets();
-	ui->apply_shaper_settings(); // Apply shaper settings immediately to reflect Wordsworth changes
 }
 
 void user_if::cb_disturber_type(Fl_Widget* w, void* data)
