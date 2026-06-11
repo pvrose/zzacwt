@@ -47,6 +47,7 @@ enum class content_mode
 	CALLSIGNS,  //!< Random callsigns mode
 	USER_TEXT, //!< User-specified text mode
 	TEST_MODE_A, //!< Test mode A - continually send the same word "VVV" for test purposes
+	TEST_MODE_B, //!< Test mode B - solid tone.
 	COUNT      //!< Number of content modes
 };
 //! Map content mode enum to displayed strings
@@ -61,6 +62,7 @@ static inline const std::map<content_mode, std::string> content_mode_strings_ = 
 	{content_mode::CALLSIGNS, "Callsigns"},
 	{content_mode::USER_TEXT, "User Text"},
 	{content_mode::TEST_MODE_A, "Test Mode A (VVV)"},
+	{content_mode::TEST_MODE_B, "Solid tone"},
 };
 
 //! Enumerated type for the different speed types

@@ -41,6 +41,7 @@
       "cacheVariables": {
         "VCPKG_ROOT": "C:/Users/pvros/source/repos/vcpkg",
         "PORTAUDIO_ROOT": "C:/Users/pvros/source/repos/portaudio",
+        "FFTW_ROOT": "C:/Users/pvros/Downloads/fftw-3.3.5-dll64",
         "ZZACWT_DOX": "ON",
         "ZZACWT_PDF": "OFF"
       },

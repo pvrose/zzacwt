@@ -169,4 +169,7 @@ private:
 	std::mt19937 rng_;
 	std::uniform_real_distribution<float> dist_;
 
+	//! Test mode B - Solid tone
+	bool test_mode_b_ = false;
+
 };

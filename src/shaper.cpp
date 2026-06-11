@@ -66,6 +66,9 @@ void shaper::apply_settings() {
 	// Read settings and update internal state as they may have changed.
 	zc_settings settings;
 	settings.get("Dot Speed", dot_speed_, 12.0F);
+	content_mode mode;
+	settings.get("Content Mode", mode, content_mode::LETTERS);
+	test_mode_b_ = mode == content_mode::TEST_MODE_B;
 	settings.get("Overall WPM", overall_speed_, 12.0F);
 	disturber_type disturber;
 	settings.get("Disturber Type", disturber, disturber_type::NONE);
@@ -144,7 +147,8 @@ void shaper::generation_loop(shaper* that) {
 				// Generate silence/zero envelope to keep pipeline flowing
 				// Push a small block of zeros (or appropriate envelope values)
 				for (int i = 0; i < SHAPER_CHUNK_SIZE; ++i) {  // Match a reasonable block size
-					audio_data.data.push(0.0F);
+					if (that->test_mode_b_) audio_data.data.push(1.0F);
+					else audio_data.data.push(0.0F);
 				}
 				audio_data.metadata = "";
 				that->audio_data_queue_->push(audio_data);

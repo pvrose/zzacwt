@@ -93,6 +93,15 @@ static void audio_metadata_callback(const std::string& metadata)
 	}
 }
 
+// In-fill logic. Take the audio sample as it's sent by speaker and send it to review for monitoring.
+static void audio_sample_callback(float sample)
+{
+//	return;
+	if (review_) {
+		review_->add_audio_sample(sample);
+	}
+}
+
 int main(int argc, char** argv)
 {
 #ifdef _WIN32
@@ -137,6 +146,7 @@ int main(int argc, char** argv)
 	// Create the speaker
 	speaker_ = new zc_speaker(audio_out_queue);
 	speaker_->set_text_callback(audio_metadata_callback);
+	speaker_->set_audio_callback(audio_sample_callback);
 
 	// Initialize and enable the speaker (uses default audio device)
 	if (!speaker_->use_port(0)) {

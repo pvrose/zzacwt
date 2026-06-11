@@ -18,8 +18,12 @@
 
 #include "params.hpp"
 
+#include "zc_graph_.h"
+
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Group.H>
 #include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Widget.H>
 
 #include <array>
 #include <cstdint>
@@ -32,6 +36,9 @@ class Fl_Group;
 class Fl_Text_Buffer;
 class Fl_Text_Display;
 class Fl_Text_Editor;
+class Fl_Value_Slider;
+class zc_graph_density;
+class monitor;
 
 
 //! \file review.hpp
@@ -82,6 +89,10 @@ public:
 	static void cb_compare_typed(Fl_Widget* w, void* data);
 	static void cb_decode_source(Fl_Widget* w, void* data);
 	static void cb_compare_decoded(Fl_Widget* w, void* data);
+	static void cb_sl_time_window(Fl_Widget* w, void* data);
+	static void cb_sl_fft_size(Fl_Widget* w, void* data);
+	static void cb_sl_dtime_sample(Fl_Widget* w, void* data);
+	static void cb_sl_time_sample(Fl_Widget* w, void* data);
 
 	//! Callback for unfinished styles - null function to prevent FLTK from crashing when it encounters a style that is not defined in the style table.
 	static void cb_unfinished_style(int pos, void* data) {
@@ -97,6 +108,16 @@ public:
 
 	//! Callback from zc_ticker to update the sent window
 	static void cb_ticker(void* data);
+
+	//! Update monitor with latest audio sample
+	void add_audio_sample(float sample);
+
+	//! Callback to update spectrogram with latest audio sample
+	static void cb_update_spectrogram(void* data);
+
+	//! Callback to redraw the review window with latest spectrogram data
+	//! Needs to run in main thread to avoid FLTK crashing when trying to draw from another thread.
+	static void cb_redraw(void* data);
 
 private:
 
@@ -119,24 +140,45 @@ private:
 	//! \brief Show the text in a text display by displaying it in foreground colour.
 	void show_text(Fl_Text_Display* td);
 
+	//! \brief Configure the spectogram graph widget
+	//! This must include validation and correction of the settings, and 
+	//! updating the spectrogram with the new settings.
+	void configure_spectrogram();
+
+	//! \brief Update spectrogram controls from settings
+	void update_spectrogram_controls();
+
 	// Widgets.
-	Fl_Group* g_sent_;     //<! Group for sent text.
-	Fl_Text_Display* td_sent_;  //<! Text display for sent text.
-	Fl_Check_Button* ck_as_sending_;  //<! Check button to show sent text while sending.
-	Fl_Button* btn_show_;  //<! Button to show sent text after sending.
+	Fl_Group* g_sent_;     //!< Group for sent text.
+	Fl_Text_Display* td_sent_;  //!< Text display for sent text.
+	Fl_Check_Button* ck_as_sending_;  //!< Check button to show sent text while sending.
+	Fl_Button* btn_show_;  //!< Button to show sent text after sending.
 
-	Fl_Group* g_typed_;    //<! Group for typed text.
-	Fl_Text_Editor* td_typed_;  //<! Text display for typed text.
-	Fl_Button* btn_compare_typed_;  //<! Button to compare sent text with typed text.
+	Fl_Group* g_typed_;    //!< Group for typed text.
+	Fl_Text_Editor* td_typed_;  //!< Text display for typed text.
+	Fl_Button* btn_compare_typed_;  //!< Button to compare sent text with typed text.
 
-	Fl_Group* g_decoded_;  //<! Group for decoded text.
-	Fl_Text_Display* td_decoded_;  //<! Text display for decoded text.
-	Fl_Choice* ch_decode_source_;  //<! Choice to select source of audio for decoding.
-	Fl_Button* btn_compare_decoded_;  //<! Button to compare sent text with decoded text.
-
+	Fl_Group* g_decoded_;  //!< Group for decoded text.
+	Fl_Text_Display* td_decoded_;  //!< Text display for decoded text.
+	Fl_Choice* ch_decode_source_;  //!< Choice to select source of audio for decoding.
+	Fl_Button* btn_compare_decoded_;  //!< Button to compare sent text with decoded text.
+	
+	Fl_Group* g_sgram_;              //!< Group for spectogram and controls
+	zc_graph_density* spectrogram_;  //!< Spectrogram (sideways waterfall) graph.
+	Fl_Value_Slider* sl_time_window_;  //!< Slider to adjust time window for spectrogram.
+	Fl_Value_Slider* sl_fft_size_;  //!< Slider to adjust FFT size for spectrogram.
+	Fl_Value_Slider* sl_dtime_sample_;  //!< Slider to adjust how often data is sampled for spectrogram.
+	Fl_Value_Slider* sl_time_sample_;  //!< Slider to adjust how much data is sampled for spectrogram.
 
 	// Settings.
-	bool show_as_sending_;  //<! Whether to show sent text while sending.
-	text_source_t decode_source_;  //<! Source of audio for decoding.
+	bool show_as_sending_;  //!< Whether to show sent text while sending.
+	text_source_t decode_source_;  //!< Source of audio for decoding.
+
+	//! Monitor instance
+	monitor* monitor_ = nullptr;
+
+	//! Spectrogram data.
+	zc_graph_::data_set_dens_t* spectrogram_data_capture_;
+	zc_graph_::data_set_dens_t* spectrogram_data_display_;
 
 };

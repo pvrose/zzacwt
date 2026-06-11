@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ZZACWT VERSION 0.3.2)
+project(ZZACWT VERSION 0.3.3)
 
 # Add shared CMake modules
 # Add shared CMake modules
@@ -32,6 +32,7 @@ include(Gm3zzaResources)
 include(Gm3zzaWindowsRuntime)
 include(Gm3zzaDocs)
 include(deps/portaudio_helper)
+include(deps/fftw_helper OPTIONAL)
 
 ## Set target executable and program metadata
 set(TARGET zzacwt)
@@ -55,6 +56,7 @@ set(CPPFILES
   ${ZZACWT_SOURCE_DIR}/src/cred_dialog.cpp
   ${ZZACWT_SOURCE_DIR}/src/main.cpp
   ${ZZACWT_SOURCE_DIR}/src/mod_mixer.cpp
+  ${ZZACWT_SOURCE_DIR}/src/monitor.cpp
   ${ZZACWT_SOURCE_DIR}/src/noise_gen.cpp
   ${ZZACWT_SOURCE_DIR}/src/oscillator.cpp
   ${ZZACWT_SOURCE_DIR}/src/review.cpp
@@ -91,6 +93,11 @@ gm3zza_find_portaudio()
 message(STATUS "PortAudio include dir: ${PORTAUDIO_INCLUDE_DIR}")
 message(STATUS "PortAudio library: ${PORTAUDIOLIB}")
 
+## FFTW library integration
+gm3zza_find_fftw()
+message(STATUS "FFTW include dir: ${FFTW3_INCLUDE_DIRS}")   
+message(STATUS "FFTW libraries: ${FFTW3_LIBRARIES}")
+
 ## Source file generation in binary tree
 gm3zza_generate_app_source(
   INPUT "${ZZACWT_SOURCE_DIR}/src/app.cpp.in"
@@ -126,6 +133,7 @@ target_include_directories(${TARGET} PRIVATE
   ${ZZACOMMON_INCLUDE_DIR}
   ${FLTK_INCLUDE_DIR}
   ${PORTAUDIO_INCLUDE_DIR}
+  ${FFTW3_INCLUDE_DIRS}
 )
 
 if(MSVC)
@@ -144,6 +152,7 @@ target_link_libraries(${TARGET} PRIVATE
   zzacommon::zzafb
   zzacommon::zzap
   ${FLTK_LIBRARIES}
+  ${FFTW3_LIBRARIES}
 )
 
 ## Stage runtime assets for development
