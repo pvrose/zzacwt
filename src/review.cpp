@@ -606,7 +606,7 @@ void review::configure_spectrogram() {
 	double t = 0.0;
 	for (size_t ix = 0; ix < num_time_samples; ix++) {
 		spectrogram_data_display_->x_values[ix] = t;
-		t += 1.0 / dtime_sample;
+		t += dtime_sample / 1000.0;
 	}
 	// Set the Y-values - these are the frequencies corresponding to each FFT bin.
 	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size);
