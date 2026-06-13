@@ -20,6 +20,7 @@
 
 //! \file monitor.hpp
 //! 
+#include "zc_async_deque.h"
 #include "zc_async_queue.h"
 #include "zc_graph_.h"
 
@@ -72,7 +73,7 @@ public:
 	~monitor();
 
 	//! Add a new audio sample to the monitor. This will be called by the audio output module.
-	void add_audio_sample(float sample);
+	void add_sample(float s);
 
 	//! Set display buffer for plotting the frequency domain images. 
 	//! Add a callback function to update the display when new images are available.
@@ -88,9 +89,11 @@ public:
 		}
 	}
 
-	//! Reset monitor after changing parameters. 
-	//! This will reset the FFT buffers and plan. Stop and restart the processing thread to apply the new parameters.
-	void reset_parameters();
+	//! \brief Stop processing. Tidy up FFT etc.
+	void stop_monitor();
+
+	//! \brief Start processing. Configure FFT and start proeccsing thread.
+	void start_monitor();
 
 private:
 
@@ -110,6 +113,7 @@ private:
 	static void processing_thread_function(monitor* self);
 
 	//! Load the parameters from the settings and update the internal variables accordingly.
+	//! \return True if enabled.
 	void load_parameters();
 
 	//! Store the parameters from the settings.
@@ -129,7 +133,7 @@ private:
 	float get_bin_frequency(int bin) const;
 
 	//! Thread for processing the audio samples and recovering the symbols.
-	std::thread* processing_thread_;
+	std::thread* processing_thread_ = nullptr;
 	//! Flag to signal the processing thread to stop.
 	std::atomic<bool> stop_processing_ = false;
 
@@ -168,6 +172,7 @@ private:
 	unsigned int samples_per_image_ = 256; // Minimum number of samples per image (M).
 	unsigned int display_depth_ = 100; // Number of images to display in the frequency domain plot.
 
-
+	//! Monitor enabled
+	bool enabled_ = false;
 
 };

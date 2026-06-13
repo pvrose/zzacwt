@@ -18,6 +18,8 @@
 
 #include "params.hpp"
 
+#include "zc_async_deque.h"
+#include "zc_async_queue.h"
 #include "zc_graph_.h"
 
 #include <FL/Fl_Double_Window.H>
@@ -77,8 +79,8 @@ public:
 	review(int W, int H, const char* L = nullptr);
 	//! \brief Destructor for review class.
 	~review();
-	//! \brief Add sent text to the review.
-	void add_sent_text(const std::string& text, text_source_t source = text_source_t::SENT_TEXT);
+	//! \brief Add sent text queue
+	void add_sent_text_queue(zc_async_queue<std::string>* queue);
 	//! \brief Clear a display of text.
 	void clear_display(text_source_t source);
 	//! \brief Clear all displays of text.
@@ -109,15 +111,15 @@ public:
 	//! Callback from zc_ticker to update the sent window
 	static void cb_ticker(void* data);
 
-	//! Update monitor with latest audio sample
-	void add_audio_sample(float sample);
-
 	//! Callback to update spectrogram with latest audio sample
 	static void cb_update_spectrogram(void* data);
 
 	//! Callback to redraw the review window with latest spectrogram data
 	//! Needs to run in main thread to avoid FLTK crashing when trying to draw from another thread.
 	static void cb_redraw(void* data);
+
+	//! Return pointer to monitor
+	monitor* my_monitor() { return monitor_; }
 
 private:
 
@@ -145,8 +147,14 @@ private:
 	//! updating the spectrogram with the new settings.
 	void configure_spectrogram();
 
-	//! \brief Update spectrogram controls from settings
-	void update_spectrogram_controls();
+	//! \brief Update decoder and spectrogram controls from settings
+	void update_decoder_controls();
+
+	//! \brief Add sent text to the review.
+	void add_sent_text(const std::string& text, text_source_t source = text_source_t::SENT_TEXT);
+
+	//! \brief Check and display from text queue. Called every 100 ms.
+	void poll_text_queue();
 
 	// Widgets.
 	Fl_Group* g_sent_;     //!< Group for sent text.
@@ -172,10 +180,13 @@ private:
 
 	// Settings.
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
-	text_source_t decode_source_;  //!< Source of audio for decoding.
+	audio_source_t decode_source_;  //!< Source of audio for decoding.
 
 	//! Monitor instance
 	monitor* monitor_ = nullptr;
+
+	//! Queue of sent text
+	zc_async_queue<std::string>* text_queue_;
 
 	//! Spectrogram data.
 	zc_graph_::data_set_dens_t* spectrogram_data_capture_;

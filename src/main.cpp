@@ -18,6 +18,7 @@
 #include "oscillator.hpp"
 #include "codec.hpp"
 #include "mod_mixer.hpp"
+#include "monitor.hpp"
 #include "noise_gen.hpp"
 #include "params.hpp"
 #include "review.hpp"
@@ -39,6 +40,7 @@
 #include <FL/Fl_Window.H>
 
 #include <cstdint>
+#include <deque>
 #include <map>
 #include <queue>
 #include <string>
@@ -57,7 +59,7 @@ extern std::string APP_VERSION;
 //! File holder customisation - control data
 const std::map < uint8_t, file_control_t > FILE_CONTROL = {
 	// ID, { filename, reference, read-only
-	{ FILE_SETTINGS, { "ZZAVNAD.json", false, false, 0 }},
+	{ FILE_SETTINGS, { "ZZACWT.json", false, false, 0 }},
 	{ FILE_STATUS, { "status.txt", false, false, 0}},
 	{ FILE_ICON_ZZA, { "rose.png", true, true, 0}},
 	{ FILE_TEXT_FILE, { "text.txt", true, true, 0 }},
@@ -82,28 +84,30 @@ noise_gen* noise_gen_ = nullptr; //!< Pointer to the noise generator instance
 mod_mixer* mod_mixer_ = nullptr; //!< Pointer to the modulator/mixer instance
 zc_speaker* speaker_ = nullptr; //!< Pointer to the speaker instance
 review* review_ = nullptr; //!< Pointer to the review window instance
+zc_async_queue<std::string>* mon_text_q_ = nullptr; //!< Pointer to monitored text interface
 
 bool restart_ = false; //!< Flag to indicate that the app should be restarted - when the user changes a setting that requires a restart
 
-// In-fill logic. Take the metadata as it's sent by speaker and send it to review.
+// In-fill logic. Take the metadata as it's sent by speaker and enqueue it for review.
 static void audio_metadata_callback(const std::string& metadata)
 {
-	if (review_ && !metadata.empty()) {
-		review_->add_sent_text(metadata, text_source_t::SENT_TEXT);
+	if (mon_text_q_ && !metadata.empty()) {
+		mon_text_q_->push(metadata);
 	}
 }
 
-// In-fill logic. Take the audio sample as it's sent by speaker and send it to review for monitoring.
+// In-fill logic. Take the audio sample as it's sent by speaker and enqueue it for monitoring.
 static void audio_sample_callback(float sample)
 {
-//	return;
-	if (review_) {
-		review_->add_audio_sample(sample);
-	}
+	if (review_ && review_->my_monitor())
+	review_->my_monitor()->add_sample(sample);
+	
 }
 
 int main(int argc, char** argv)
 {
+	// Allow multi-threading involvement with FLTK locking mechanidm
+	Fl::lock();
 #ifdef _WIN32
 	// Enable Windows console colour support (ANSI escape sequences)
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -120,6 +124,9 @@ int main(int argc, char** argv)
 	zc::customise_fltk(base_size);
 	status_ = new zc_status(zc_status::HAS_CONSOLE, {});
 	ticker_ = new zc_ticker();
+
+	// Create the monitor queue
+	mon_text_q_ = new zc_async_queue<std::string>;
 
 	// Create the main user interface window
 	user_if* window = new user_if(600, 800);
@@ -162,6 +169,7 @@ int main(int argc, char** argv)
 	review_ = new review(600, 800);
 	label = APP_NAME + " v" + APP_VERSION + " - Review";
 	review_->copy_label(label.c_str());
+	review_->add_sent_text_queue(mon_text_q_);
 	review_->show();
 
 	// Run the FLTK event loop

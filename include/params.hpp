@@ -113,26 +113,29 @@ enum class text_source_t : uint8_t {
 	NO_TEXT,
 	SENT_TEXT,
 	TYPED_TEXT,
-	DECODED_FIRST,
-	DECODED_NONE = DECODED_FIRST,
-	DECODED_SENT_AUDIO,
-	DECODED_MIC_AUDIO,
-	DECODED_LAST,
-	COUNT = DECODED_LAST
+	DECODED_TEXT,
+	COUNT
 };
 //! Map text source enum to displayed strings
-//! Note that the text sources that are used for decoding results 
-//! are grouped together in the middle of the enum, so that they 
-//! can be easily checked for in the code.
 static inline const std::map<text_source_t, std::string> text_source_strings_ = {
 	{text_source_t::NO_TEXT, "No Text"},
 	{text_source_t::SENT_TEXT, "Sent Text"},
 	{text_source_t::TYPED_TEXT, "Typed Text"},
-	{text_source_t::DECODED_NONE, "No Audio"},
-	{text_source_t::DECODED_SENT_AUDIO, "Sent Audio"},
-	{text_source_t::DECODED_MIC_AUDIO, "Microphone"},
 };
 
+//! Enumeration for different audio source
+enum class audio_source_t : uint8_t {
+	NO_AUDIO,
+	SENT_AUDIO,
+	MIC_AUDIO,
+	COUNT
+};
+//! Map audio source to displayed strings
+static inline const std::map<audio_source_t, std::string> audio_source_strings_ = {
+	{audio_source_t::NO_AUDIO, "No Audio"},
+	{audio_source_t::SENT_AUDIO, "Sent Audio"},
+	{audio_source_t::MIC_AUDIO, "Microphone"},
+};
 
 // JSON serialization for enums using the shared maps
 namespace nlohmann {
@@ -186,5 +189,41 @@ namespace nlohmann {
 			throw std::invalid_argument("Invalid disturber_type: " + str);
 		}
 	};
+
+	template <>
+	struct adl_serializer<text_source_t> {
+		static void to_json(json& j, const text_source_t& type) {
+			j = text_source_strings_.at(type);
+		}
+		static void from_json(const json& j, text_source_t& type) {
+			auto str = j.get<std::string>();
+			for (const auto& [val, name] : text_source_strings_) {
+				if (name == str) {
+					type = val;
+					return;
+				}
+			}
+			throw std::invalid_argument("Invalid text source: " + str);
+		}
+	};
+
+	template <>
+	struct adl_serializer<audio_source_t> {
+		static void to_json(json& j, const audio_source_t& type) {
+			j = audio_source_strings_.at(type);
+		}
+		static void from_json(const json& j, audio_source_t& type) {
+			auto str = j.get<std::string>();
+			for (const auto& [val, name] : audio_source_strings_) {
+				if (name == str) {
+					type = val;
+					return;
+				}
+			}
+			throw std::invalid_argument("Invalid audio source: " + str);
+		}
+	};
+
+
 }
 

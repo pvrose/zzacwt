@@ -16,12 +16,16 @@
 */
 #include "monitor.hpp"
 
+#include "params.hpp"
+
 #include "zc_graph_.h"
 #include "zc_settings.h"
 
 #include <chrono>
 #include <cmath>
 #include <functional>
+#include <mutex>
+#include <stdexcept>
 #include <thread>
 #include <vector>
 
@@ -32,19 +36,12 @@ extern float DEFAULT_SAMPLE_RATE;
 
 monitor::monitor()
 {
-	// Load the parameters from the settings and update the internal variables accordingly.
-	load_parameters();
-	// Allocate the FFT input and output buffers and create the FFT plan.
-	create_fft_buffers_and_plan();
-	// Start the processing thread to process the audio samples and recover the symbols.
-	start_processing_thread();
+	start_monitor();
 }
 
 monitor::~monitor()
 {
-	stop_processing_thread();
-	// Free the FFT input and output buffers and destroy the FFT plan.
-	reset_fft_buffers_and_plan();
+	stop_monitor();
 }
 
 // Load the parameters from the settings and update the internal variables accordingly.
@@ -52,8 +49,25 @@ void monitor::load_parameters()
 {
 	zc_settings settings;
 	settings.get("FFT Size", fft_size_, fft_size_);
-	settings.get("Image Interval", image_interval_, image_interval_);
-	settings.get("Samples Per Image", samples_per_image_, samples_per_image_);
+	double image_int_ms;
+	settings.get("Image Interval", image_int_ms, 10.0);
+	double image_length_ms;
+	settings.get("Image Length", image_length_ms, image_length_ms);
+	if (image_length_ms < image_int_ms) {
+		image_length_ms = image_int_ms;
+		settings.set("Image Length", image_length_ms);
+	}
+	samples_per_image_ = static_cast<int>(image_length_ms * DEFAULT_SAMPLE_RATE / 1000.0);
+	image_interval_ = static_cast<int>(image_int_ms * DEFAULT_SAMPLE_RATE / 1000.0);
+	// Overall time to display
+	double time_window;
+	settings.get("Time Window", time_window, 5.0);
+	// Calculate the number of images
+	display_depth_ = static_cast<int>(time_window * 1000.0 / image_int_ms);
+	audio_source_t source = audio_source_t::NO_AUDIO;
+	settings.get("Decode Source", source, source);
+	if (source != audio_source_t::NO_AUDIO) enabled_ = true;
+	else enabled_ = false;
 }
 
 // Store the parameters from the settings.
@@ -62,16 +76,8 @@ void monitor::store_parameters() const
 	zc_settings settings;
 	settings.set("FFT Size", fft_size_);
 	settings.set("Image Interval", image_interval_);
-	settings.set("Samples Per Image", samples_per_image_);
-}
+	settings.set("Image Length", samples_per_image_);
 
-// Add a new audio sample to the monitor. This will be called by the audio output module.
-void monitor::add_audio_sample(float sample)
-{
-	// Add the new audio sample to the queue and update the head index.
-	// Protected by mutex to ensure thread safety between audio callback and processing thread.
-	std::lock_guard<std::mutex> lock(audio_queue_mutex_);
-	audio_queue_.push_back(sample);
 }
 
 // Set display buffer for plotting the frequency domain images. Add a callback function to update the display when new images are available.
@@ -85,6 +91,7 @@ void monitor::set_display_buffer(zc_graph_::data_set_dens_t* buffer, std::functi
 // Start the processing thread to process the audio samples and recover the symbols.
 void monitor::start_processing_thread()
 {
+	if (processing_thread_) return;
 	stop_processing_ = false;
 	processing_thread_ = new std::thread(processing_thread_function, this);
 }
@@ -126,13 +133,19 @@ void monitor::create_fft_buffers_and_plan() {
 	fft_plan_ = fftw_plan_dft_1d(fft_size_, fft_input_buffer_, fft_output_buffer_, FFTW_FORWARD, FFTW_MEASURE);
 }
 
-// Restart the processing thread to apply the new parameters after resetting the FFT buffers and plan.
-void monitor::reset_parameters() {
+// stop processing and tidy up FFT. 
+void monitor::stop_monitor() {
 	stop_processing_thread();
 	reset_fft_buffers_and_plan();
+};
+
+// (Re-)configure, initialise FFT and start proeccsing.
+void monitor::start_monitor() {
 	load_parameters();
-	create_fft_buffers_and_plan();
-	start_processing_thread();
+	if (enabled_) {
+		create_fft_buffers_and_plan();
+		start_processing_thread();
+	}
 }
 
 // Processing thread function to continuously process the audio samples and recover the symbols until signalled to stop.
@@ -149,8 +162,6 @@ void monitor::processing_thread_function(monitor* self)
 			self->process_audio_samples();
 		}
 		std::this_thread::yield();
-		// TODO 10 ms is too long. This needs to be a smallish fraction (10%?) of the image_interval_.
-//		std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Sleep for a short time to avoid busy waiting.
 	}
 }
 
@@ -171,7 +182,7 @@ void monitor::process_audio_samples() {
 			}
 		}
 		// Remove the first N samples from the audio queue
-		for (size_t i = 0; i < image_interval_; i++) {
+		for (size_t i = 0; i < image_interval_ && !audio_queue_.empty(); i++) {
 			audio_queue_.pop_front();
 		}
 	}
@@ -259,4 +270,10 @@ void monitor::identify_signal_bin() {
 // Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
 float monitor::get_bin_frequency(int bin) const {
 	return static_cast<float>(bin) * DEFAULT_SAMPLE_RATE / fft_size_;
+}
+
+// Add a sample
+void monitor::add_sample(float s) {
+	std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+	audio_queue_.push_back(static_cast<double>(s));
 }

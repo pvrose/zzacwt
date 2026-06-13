@@ -19,7 +19,7 @@
 #include "monitor.hpp"
 #include "params.hpp"
 
-#include "zc_drawing.h"
+#include "zc_async_queue.h"
 #include "zc_fltk.h"
 #include "zc_graph_.h"
 #include "zc_settings.h"
@@ -64,10 +64,10 @@ extern float DEFAULT_SAMPLE_RATE;
 
 // Constructor
 review::review(int W, int H, const char* L) : Fl_Double_Window(W, H, L) {
-	monitor_ = new monitor;
+	monitor_ = new ::monitor;
 	create_widgets();
 	load_settings();
-	ticker_->add_ticker(this, cb_ticker, 5, false);
+	ticker_->add_ticker(this, cb_ticker, 1, false);
 }
 
 // Destructor
@@ -147,10 +147,8 @@ void review::create_widgets() {
 
 	ch_decode_source_ = new Fl_Choice(cx, cy, WBUTTON, HBUTTON, "Source");
 	// Add options to the choice menu - only audio decodes
-	for (const auto& [source, label] : text_source_strings_) {
-		if (source >= text_source_t::DECODED_NONE && source < text_source_t::DECODED_LAST) {
-			ch_decode_source_->add(label.c_str());
-		}
+	for (const auto& [source, label] : audio_source_strings_) {
+		ch_decode_source_->add(label.c_str());
 	}
 	ch_decode_source_->align(FL_ALIGN_BOTTOM);
 	ch_decode_source_->callback(cb_decode_source, this);
@@ -239,9 +237,9 @@ void review::create_widgets() {
 void review::load_settings() {
 	zc_settings settings;
 	settings.get("Display While Sending", show_as_sending_, false);
-	settings.get("Decode Source", decode_source_, text_source_t::DECODED_NONE);
+	settings.get("Decode Source", decode_source_, audio_source_t::NO_AUDIO);
 	ck_as_sending_->value(show_as_sending_);
-	ch_decode_source_->value(static_cast<int>(decode_source_) - static_cast<int>(text_source_t::DECODED_NONE));
+	ch_decode_source_->value(static_cast<int>(decode_source_));
 	if (ck_as_sending_->value()) {
 		show_text(td_sent_);
 	}
@@ -276,8 +274,6 @@ void review::add_sent_text(const std::string& text, text_source_t source) {
 		td_sent_->scroll(last_line, 0);
 		// Mark the display for redraw to show the new text.
 		td_sent_->redraw();
-		Fl::awake();
-//		Fl::awake(cb_sent_text_updated, this); // Schedule an update of the sent text display in the main thread.
 	}
 	else {
 		// TODO - handle other sources of text if needed.
@@ -320,7 +316,7 @@ void review::clear_display(text_source_t source) {
 //		td_typed_->take_focus();
 		td_typed_->redraw();
 	}
-	else if (source == decode_source_) {
+	else if (source == text_source_t::DECODED_TEXT) {
 		td_decoded_->buffer()->text("");
 		td_decoded_->style_buffer()->text("");
 		td_decoded_->redraw();
@@ -333,7 +329,7 @@ void review::clear_display(text_source_t source) {
 // Clear all displays of text.
 void review::clear_all_displays() {
 	clear_display(text_source_t::SENT_TEXT);
-	clear_display(decode_source_);
+	clear_display(text_source_t::DECODED_TEXT);
 	clear_display(text_source_t::TYPED_TEXT);
 }
 
@@ -356,11 +352,24 @@ void review::cb_compare_typed(Fl_Widget* w, void* data) {
 	review* r = static_cast<review*>(data);
 	r->compare_displays(r->td_typed_, r->td_sent_);
 }
+
 void review::cb_decode_source(Fl_Widget* w, void* data) {
-	// Placeholder for callback function to select source of audio for decoding.
+	review* r = static_cast<review*>(data);
+	r->decode_source_ = static_cast<audio_source_t>(((Fl_Choice*)w)->value());
+	zc_settings settings;
+	settings.set("Decode Source", r->decode_source_);
+	r->update_decoder_controls();
+	if (r->decode_source_ == audio_source_t::NO_AUDIO) {
+		r->monitor_->stop_monitor();
+	}
+	else {
+		r->monitor_->start_monitor();
+	}
 }
+
 void review::cb_compare_decoded(Fl_Widget* w, void* data) {
-	// Placeholder for callback function to compare sent text with decoded text.
+	review* r = static_cast<review*>(data);
+	r->compare_displays(r->td_decoded_, r->td_sent_);
 }
 
 // Callback for spectrogram control - FFT size
@@ -537,10 +546,11 @@ void review::cb_modify(
 	}
 }
 
-// Callback to refresh sent text display every 500 ms.
+// Callback to refresh display every 100 ms.
 void review::cb_ticker(void* data) {
 	review* r = static_cast<review*>(data);
-	Fl::check();
+	r->poll_text_queue();
+	r->spectrogram_->redraw();
 }
 
 // Callback to redraw the review window with latest spectrogram data
@@ -565,13 +575,13 @@ void review::configure_spectrogram() {
 	// Validate settings and correct if necessary.
 	if (time_sample > fft_length) {
 		time_sample = fft_length;
-		settings.set("Samples Per Image", time_sample);
+		settings.set("Image Length", time_sample);
 	}
-	if (dtime_sample > time_sample) {
-		dtime_sample = time_sample;
-		settings.set("Image Interval", dtime_sample);
+	if (time_sample < dtime_sample) {
+		time_sample = dtime_sample;
+		settings.set("Image Length", time_sample);
 	}
-	update_spectrogram_controls();
+	update_decoder_controls();
 	spectrogram_->start_config();
 	// Axis 0 - time
 	spectrogram_->set_axis_params(0, zc_graph_::SI_PREFIX, "s", "Time");
@@ -583,11 +593,15 @@ void review::configure_spectrogram() {
 	spectrogram_->set_axis_ranges(1, freq_range, freq_range, freq_range);
 	// Axis 2 - magnitude
 	spectrogram_->set_axis_params(2, zc_graph_::NO_MODIFIER);
+	// Although theoretically the maximum magnitude of 1 bin is fft_size, in practice 
+	// this will be spread across the same number of bins. Taking the square root
+	// feels a reasonable compromise.
+	//zc_graph_::range_t mag_range = { 0.0, std::sqrt(static_cast<double>(fft_size)) };
 	zc_graph_::range_t mag_range = { 0.0, static_cast<double>(fft_size) };
 	spectrogram_->set_axis_ranges(2, mag_range, mag_range, mag_range);
 	spectrogram_data_display_ = new zc_graph_::data_set_dens_t;
 	// Set the X-values 
-	size_t num_time_samples = static_cast<int>(time_window * 1000.0 / dtime_sample);
+	size_t num_time_samples = static_cast<size_t>(time_window * 1000.0 / dtime_sample);
 	spectrogram_data_display_->x_values.resize(num_time_samples);
 	double t = 0.0;
 	for (size_t ix = 0; ix < num_time_samples; ix++) {
@@ -609,13 +623,13 @@ void review::configure_spectrogram() {
 	std::vector<Fl_Color> map = { FL_BLACK, FL_RED, FL_YELLOW, FL_GREEN, FL_CYAN, FL_BLUE, FL_MAGENTA, FL_WHITE };
 	spectrogram_->add_data_set(2, spectrogram_data_display_, map);
 	spectrogram_->end_config();
-	monitor_->reset_parameters();
+	monitor_->start_monitor();
 	monitor_->set_display_buffer(spectrogram_data_display_, cb_update_spectrogram, this);
 
 }
 
 // Update the spectrogram controls to reflect the current settings.
-void review::update_spectrogram_controls() {
+void review::update_decoder_controls() {
 	zc_settings settings;
 	int fft_size = 512;
 	settings.get("FFT Size", fft_size, 512);
@@ -629,6 +643,28 @@ void review::update_spectrogram_controls() {
 	sl_time_window_->value(time_window);
 	sl_dtime_sample_->value(dtime_sample);
 	sl_time_sample_->value(time_sample);
+
+	settings.get("Decode Source", decode_source_, audio_source_t::NO_AUDIO);
+	if (decode_source_ == audio_source_t::NO_AUDIO) {
+		sl_fft_size_->activate();
+		sl_time_window_->activate();
+		sl_dtime_sample_->activate();
+		sl_time_sample_->activate();
+		spectrogram_->deactivate();
+		btn_compare_decoded_->deactivate();
+		td_decoded_->deactivate();
+	}
+	else {
+		sl_fft_size_->deactivate();
+		sl_time_window_->deactivate();
+		sl_dtime_sample_->deactivate();
+		sl_time_sample_->deactivate();
+		spectrogram_->activate();
+		btn_compare_decoded_->activate();
+		td_decoded_->activate();
+	}
+	ch_decode_source_->value(static_cast<int>(decode_source_));
+
 }
 
 // Callback to update the spectrogram with new data.
@@ -637,9 +673,16 @@ void review::cb_update_spectrogram(void* data) {
 	r->spectrogram_->redraw();
 }
 
-// Add audio data to the spectrogram.
-void review::add_audio_sample(float sample) {
-	if (monitor_) {
-		monitor_->add_audio_sample(sample);
+// Add output text to display
+void review::poll_text_queue() {
+	std::string text;
+	while (text_queue_->try_pop(text)) {
+		add_sent_text(text, text_source_t::SENT_TEXT);
 	}
 }
+
+// Set the text queue
+void review::add_sent_text_queue(zc_async_queue<std::string>* queue) {
+	text_queue_ = queue;
+}
+
