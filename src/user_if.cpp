@@ -54,7 +54,7 @@ extern zc_speaker* speaker_;
 extern text_gen* text_gen_;
 extern review* review_;
 
-extern float DEFAULT_RISE_FALL;
+extern double DEFAULT_RISE_FALL;
 extern void restart_application();
 
 user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)

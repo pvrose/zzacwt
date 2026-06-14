@@ -28,7 +28,7 @@
 #include <thread>
 #include <vector>
 
-extern float DEFAULT_SAMPLE_RATE; //!< Default audio sample rate
+extern double DEFAULT_SAMPLE_RATE; //!< Default audio sample rate
 extern int UPPER_QUEUE_THRESHOLD; //!< Threshold for when the oscillator should generate more audio samples (in samples)
 extern int LOWER_QUEUE_THRESHOLD; //!< Threshold for when the oscillator should stop generating audio samples (in samples)
 extern int NOISE_CHUNK_SIZE; //!< Number of samples to generate in each chunk when generating noise

@@ -204,6 +204,7 @@ void codec::decode(const std::vector<symbol_t>& symbols, std::string& output)
 		}
 		else if (symbol == symbol_t::CHARACTER_SPACE || symbol == symbol_t::WORD_SPACE) {
 			if (!current_morse.empty()) {
+				//printf("Decoding Morse code: '%s'\n", current_morse.c_str());
 				auto it = FROM_MORSE.find(current_morse);
 				if (it != FROM_MORSE.end()) {
 					output += it->second;

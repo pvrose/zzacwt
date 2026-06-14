@@ -16,6 +16,7 @@
 */
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -23,12 +24,29 @@
 //! \file codec.hpp
 
 //! Morse code symbols representing the various states of the audio envelope.
-enum class symbol_t {
+enum class symbol_t : uint8_t {
 	DOT_MARK,          //!< Mark value for the length of a dot
 	DASH_MARK,         //!< Mark value for the length of a dash 
 	INTERNAL_SPACE,    //!< Space value between dots and dashes of a character.
 	CHARACTER_SPACE,   //!< Space value between characters.
-	WORD_SPACE         //!< Space value between words
+	WORD_SPACE,        //!< Space value between words
+	// Invalid symbols
+	NOISE,             //!< A mark or space less than a minimum duration (say 20% dit-time).
+	STUCK_MARK,        //!< A mark greater than a maximum duration
+	STUCK_SPACE,       //!< A space greater than a maximum duration.
+	UNFINISHED,        //!< The symbol has not yet finished (or timed out)
+};
+
+static inline const std::map<symbol_t, std::string> symbol_strings_ = {
+	{symbol_t::DOT_MARK, "DOT_MARK"},
+	{symbol_t::DASH_MARK, "DASH_MARK"},
+	{symbol_t::INTERNAL_SPACE, "INTERNAL_SPACE"},
+	{symbol_t::CHARACTER_SPACE, "CHARACTER_SPACE"},
+	{symbol_t::WORD_SPACE, "WORD_SPACE"},
+	{symbol_t::NOISE, "NOISE"},
+	{symbol_t::STUCK_MARK, "STUCK_MARK"},
+	{symbol_t::STUCK_SPACE, "STUCK_SPACE"},
+	{symbol_t::UNFINISHED, "UNFINISHED"}
 };
 
 //! \brief Class codec 

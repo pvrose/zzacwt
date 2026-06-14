@@ -17,6 +17,7 @@
 #pragma once
 
 #include "params.hpp"
+#include "codec.hpp"
 
 //! \file monitor.hpp
 //! 
@@ -28,6 +29,7 @@
 #include <deque>
 #include <functional>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -64,6 +66,13 @@
 //! time to provide a visual representation of the received signal and to help with the 
 //! development of the symbol detection algorithm.
 //! 
+//! The image queue will be continually scanned to look for the strongest signal in
+//! each image. The strongest signal will be analysed to 
+//! recover the Morse code symbols. When enough
+//! recovered are presen to form a character the symbols will be presented to
+//! the codec block and decoded into that character and fed to the review block to
+//! display to the user.
+//! 
 class monitor
 {
 public:
@@ -93,7 +102,11 @@ public:
 	void stop_monitor();
 
 	//! \brief Start processing. Configure FFT and start proeccsing thread.
-	void start_monitor();
+	void start_monitor(double max_value);
+
+	//! Set the decoded string callback
+	void set_decode_callback(std::function<void(void*, const std::string&)> callback, void* user_data);
+
 
 private:
 
@@ -132,6 +145,24 @@ private:
 	//! Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
 	float get_bin_frequency(int bin) const;
 
+	//! Decode the current monitored signal.
+	symbol_t decode_signal(bool signal);
+
+	//! Convert signal level to boolean. Involve hysteresis.
+	bool get_signal(double f);
+
+	//! Accumulate symbols
+	void accumulate_symbol();
+
+	//! Update monitored speed
+	void update_speed();
+
+	//! Update derived times
+	void update_derived_times();
+
+	//! Update detected signal levels
+	void update_detected_signal_levels(double signal);
+
 	//! Thread for processing the audio samples and recovering the symbols.
 	std::thread* processing_thread_ = nullptr;
 	//! Flag to signal the processing thread to stop.
@@ -153,24 +184,58 @@ private:
 	//! Z is the magnitude of the frequency component at that time and frequency.
 	zc_graph_::data_set_dens_t* display_buffer_ = nullptr;
 	//! Callback function to update the display when new images are available.
-	std::function<void(void*)> display_callback_;
+	std::function<void(void*)> display_callback_ = nullptr;
 	//! User data to pass to the display callback function.
 	void* display_user_data_ = nullptr;
+
+	//! Decoded string callback
+	std::function<void(void*, const std::string&)> decode_callback_ = nullptr;
+	//! Decode callback suer data
+	void* decode_user_data_ = nullptr;
 
 	//! The queue of frequency images that have been processed and are waiting to be displayed.
 	std::deque<std::vector<float>> image_queue_;
 
-	//! Selected frequency bin for extracting signal
-	zc_async_queue<float> selected_signal_;
+	//! The current signal value
+	bool current_signal_ = false;
+	//! The previous signal value
+	bool previous_signal_ = false;
+	//! The current symbol
+	symbol_t current_symbol_ = symbol_t::UNFINISHED;
+	//! The current array of symbols
+	std::vector<symbol_t> recovered_symbols_;
+	//! Image count since last symbol change
+	unsigned int image_count_ = 0;
+	//! Current monitored dit time in images.
+	unsigned int dit_size_ = 0;
+	//! Minimum dit time in images
+	unsigned int min_dit_size_ = 0;
+	//! Maximum dit time in tmages
+	unsigned int max_dit_size_ = 0;
+	//! Maximum internal space in images
+	unsigned int max_int_size_ = 0;
+	//! Maximum character space in images
+	unsigned int max_char_size_ = 0;
+	//! Current dot time (in seconds)
+	double current_dot_time_;
+	//! Current dash time (in seconds)
+	double current_dash_time_;
+	//! Signal training level - highest signal found.
+	double max_detected_signal_ = 0.0;
+	//! Signal training level - lowest signal found.
+	double min_detected_signal_ = 1.0;
+	//! High signal trigger level - set to 2/3 between min and max detected signal levels.
+	double true_level_ = 0.7;
+	//! Low signal trigger level - set to 1/3 between min and max detected signal levels.
+	double false_level_ = 0.3;
 
 	//! Selected frequency bin number for extracting signal
 	int selected_signal_bin_ = -1;
 
 	//! Parameters for the monitor.
-	unsigned int fft_size_ = 1024; // Number of samples for the FFT (F).
-	unsigned int image_interval_ = 100; // Time interval between images in samples (N).
-	unsigned int samples_per_image_ = 256; // Minimum number of samples per image (M).
-	unsigned int display_depth_ = 100; // Number of images to display in the frequency domain plot.
+	unsigned int fft_size_ = 0; // Number of samples for the FFT (F).
+	unsigned int image_interval_ = 0; // Interval between images in samples (N).
+	unsigned int display_depth_ = 0; // Number of images to display in the frequency domain plot.
 
 	//! Monitor enabled
 	bool enabled_ = false;

@@ -32,6 +32,7 @@
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Group.H>
+#include <FL/Fl_Output.H>
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Display.H>
@@ -41,6 +42,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -60,7 +62,11 @@ static char STYLE_ERROR = 'C';
 static char STYLE_MATCH = 'D';
 
 extern zc_ticker* ticker_;
-extern float DEFAULT_SAMPLE_RATE;
+extern double DEFAULT_SAMPLE_RATE;
+extern int DEFAULT_FFT_SIZE;
+extern double DEFAULT_OVERLAP;
+extern double DEFAULT_MAX_PITCH;
+extern double DEFAULT_MAX_TIME;
 
 // Constructor
 review::review(int W, int H, const char* L) : Fl_Double_Window(W, H, L) {
@@ -169,51 +175,55 @@ void review::create_widgets() {
 	cy = g_decoded_->y() + g_decoded_->h() + GAP;
 	cx = g_decoded_->x();
 
-	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS, "Spectrogram");
+	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS + HBUTTON, "Spectrogram");
 	g_sgram_->box(FL_BORDER_BOX);
 	g_sgram_->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_TOP);
 
 	cx += GAP + WLABEL;
 	cy += HTEXT;
 
-	sl_fft_size_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "FFT Size");
-	sl_fft_size_->type(FL_HOR_SLIDER);
-	sl_fft_size_->bounds(64, 4096);
-	sl_fft_size_->step(16.0);
-	sl_fft_size_->callback(cb_sl_fft_size, this);
-	sl_fft_size_->tooltip("Adjust the FFT size");
-	sl_fft_size_->align(FL_ALIGN_LEFT);
-	sl_fft_size_->textsize(DEFAULT_SIZE - 2);
+	ch_fft_size_ = new Fl_Choice(cx, cy, WBUTTON, HBUTTON, "FFT Size");
+	ch_fft_size_->align(FL_ALIGN_LEFT);
+	ch_fft_size_->callback(cb_ch_fft_size, (void*)this);
+	ch_fft_size_->tooltip("Select the appropriate FFT size");
 
 	cy += HBUTTON;
-	sl_time_window_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Span (s)");
-	sl_time_window_->type(FL_HOR_SLIDER);
-	sl_time_window_->bounds(1.0, 10.0);
-	sl_time_window_->step(0.1);
-	sl_time_window_->callback(cb_sl_time_window, this);
-	sl_time_window_->tooltip("Adjust the span of the spectrogram in seconds");
-	sl_time_window_->align(FL_ALIGN_LEFT);
-	sl_time_window_->textsize(DEFAULT_SIZE - 2);
+	sl_overlap_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Overlap");
+	sl_overlap_->type(FL_HOR_SLIDER);
+	sl_overlap_->align(FL_ALIGN_LEFT);
+	sl_overlap_->callback(cb_slider_overlap, (void*)this);
+	sl_overlap_->tooltip("Select the sample overlap %");
+	sl_overlap_->range(0.0, 87.5);
+	sl_overlap_->step(12.5);
 
 	cy += HBUTTON;
-	sl_dtime_sample_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Sample (ms)");
-	sl_dtime_sample_->type(FL_HOR_SLIDER);
-	sl_dtime_sample_->bounds(1.0, 20.0);
-	sl_dtime_sample_->step(1.0);
-	sl_dtime_sample_->callback(cb_sl_dtime_sample, this);
-	sl_dtime_sample_->tooltip("Adjust the sample rate of the spectrogram in milliseconds");
-	sl_dtime_sample_->align(FL_ALIGN_LEFT);
-	sl_dtime_sample_->textsize(DEFAULT_SIZE - 2);
+	sl_max_freq_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Max Freq");
+	sl_max_freq_->type(FL_HOR_SLIDER);
+	sl_max_freq_->align(FL_ALIGN_LEFT);
+	sl_max_freq_->callback(cb_slider_max_pitch, (void*)this);
+	sl_max_freq_->tooltip("Select the maximum frequency displayed");
+	sl_max_freq_->range(100.0, DEFAULT_SAMPLE_RATE / 2.0);
+	sl_max_freq_->step(100.0);
 
 	cy += HBUTTON;
-	sl_time_sample_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "S.Size (ms)");
-	sl_time_sample_->type(FL_HOR_SLIDER);
-	sl_time_sample_->bounds(1.0, 20.0);
-	sl_time_sample_->step(1.0);
-	sl_time_sample_->callback(cb_sl_time_sample, this);
-	sl_time_sample_->tooltip("Adjust the sample size of the spectrogram in milliseconds");
-	sl_time_sample_->align(FL_ALIGN_LEFT);
-	sl_time_sample_->textsize(DEFAULT_SIZE - 2);
+	sl_max_time_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Max Time");
+	sl_max_time_->type(FL_HOR_SLIDER);
+	sl_max_time_->align(FL_ALIGN_LEFT);
+	sl_max_time_->callback(cb_slider_max_time, (void*)this);
+	sl_max_time_->tooltip("select the maximum time displayed");
+	sl_max_time_->range(0.1, 10);
+	sl_max_time_->step(0.05);
+
+	cy += HBUTTON;
+	op_freq_bin_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Step (Hz)");
+	op_freq_bin_->align(FL_ALIGN_LEFT);
+	op_freq_bin_->tooltip("Displays the frequency resolution in hertz");
+
+	cy += HBUTTON;
+	op_time_slice_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Step (ms)");
+	op_time_slice_->align(FL_ALIGN_LEFT);
+	op_time_slice_->tooltip("Displays ythetime resilution in milliseconds");
+
 
 	cy = g_sgram_->y() + HTEXT;
 	cx += WBUTTON;
@@ -257,7 +267,8 @@ void review::save_settings() const {
 
 // Add sent text to the review.
 void review::add_sent_text(const std::string& text, text_source_t source) {
-	if (source == text_source_t::SENT_TEXT) {
+	switch (source) {
+	case text_source_t::SENT_TEXT: {
 		Fl_Text_Buffer* buffer = td_sent_->buffer();
 		buffer->append(text.c_str());
 		Fl_Text_Buffer* highlight_buffer = td_sent_->style_buffer();
@@ -274,9 +285,27 @@ void review::add_sent_text(const std::string& text, text_source_t source) {
 		td_sent_->scroll(last_line, 0);
 		// Mark the display for redraw to show the new text.
 		td_sent_->redraw();
+		break;
 	}
-	else {
-		// TODO - handle other sources of text if needed.
+	case text_source_t::DECODED_TEXT: {
+		Fl_Text_Buffer* buffer = td_decoded_->buffer();
+		buffer->append(text.c_str());
+		Fl_Text_Buffer* highlight_buffer = td_decoded_->style_buffer();
+		// Highlight the new text as hidden if show_as_sending_ is false, otherwise highlight it as normal.
+		char style_char = STYLE_NORMAL;
+		char* style_str = new char[text.size() + 1];
+		// Fill the style string with the appropriate style character and null-terminate it.
+		*std::fill_n(style_str, text.size(), style_char) = '\0';
+		highlight_buffer->append(style_str);
+		delete[] style_str;
+		// Scroll to the end of the display to show the new text.
+		// Get the line number of the last line in the display and scroll to it.
+		int last_line = td_decoded_->line_start(buffer->length() - 1);
+		td_decoded_->scroll(last_line, 0);
+		// Mark the display for redraw to show the new text.
+		td_decoded_->redraw();
+		break;
+	}
 	}
 }
 
@@ -363,7 +392,7 @@ void review::cb_decode_source(Fl_Widget* w, void* data) {
 		r->monitor_->stop_monitor();
 	}
 	else {
-		r->monitor_->start_monitor();
+		r->configure_spectrogram();
 	}
 }
 
@@ -373,44 +402,43 @@ void review::cb_compare_decoded(Fl_Widget* w, void* data) {
 }
 
 // Callback for spectrogram control - FFT size
-void review::cb_sl_fft_size(Fl_Widget* w, void* data) {
+void review::cb_ch_fft_size(Fl_Widget* w, void* data) {
 	review* r = static_cast<review*>(data);
-	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
-	int fft_size = static_cast<int>(slider->value());
-	// Round to the nearest power of 2.
-	fft_size = 1 << static_cast<int>(std::round(std::log2(fft_size)));
+	Fl_Choice* choice = static_cast<Fl_Choice*>(w);
+	int value = choice->value();
+	int fft_size = 64 << (value);
 	zc_settings settings;
 	settings.set("FFT Size", fft_size);
-	slider->value(fft_size); // Update the slider to the rounded value.
 	r->configure_spectrogram();
 }
 
-// Callback for spectrogram control - time window
-void review::cb_sl_time_window(Fl_Widget* w, void* data) {
+// Callback to set the FFT overlap 
+void review::cb_slider_overlap(Fl_Widget* w, void* data) {
 	review* r = static_cast<review*>(data);
-	int time_window = static_cast<int>(r->sl_time_window_->value());
+	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
+	double pc_overlap = slider->value();
 	zc_settings settings;
-	settings.set("Time Window", time_window);
+	settings.set("FFT Overlap %", pc_overlap);
 	r->configure_spectrogram();
 }
 
-// Callback for spectrogram control - delta time sample
-void review::cb_sl_dtime_sample(Fl_Widget* w, void* data) {
+// Callback to set the display frequency range
+void review::cb_slider_max_pitch(Fl_Widget* w, void* data) {
 	review* r = static_cast<review*>(data);
-	int dtime_sample = static_cast<int>(r->sl_dtime_sample_->value());
+	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
+	double max_freq = slider->value();
 	zc_settings settings;
-	int num_samples = dtime_sample * DEFAULT_SAMPLE_RATE / 1000;
-	settings.set("Image Interval", dtime_sample);
+	settings.set("Spectrogram Frequency Span", max_freq);
 	r->configure_spectrogram();
 }
 
-// Callback for spectrogram control - time sample
-void review::cb_sl_time_sample(Fl_Widget* w, void* data) {
+// Callback to set the display time range
+void review::cb_slider_max_time(Fl_Widget* w, void* data) {
 	review* r = static_cast<review*>(data);
-	int time_sample = static_cast<int>(r->sl_time_sample_->value());
+	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
+	double max_time = slider->value();
 	zc_settings settings;
-	int num_samples = time_sample * DEFAULT_SAMPLE_RATE / 1000;
-	settings.set("Samples Per Image", time_sample);
+	settings.set("Spectrogram Time Span", max_time);
 	r->configure_spectrogram();
 }
 
@@ -561,57 +589,46 @@ void review::cb_redraw(void* data) {
 
 // Configure the spectrogram based on the current settings.
 void review::configure_spectrogram() {
-	const double MAX_PITCH = 3000.0;
 	zc_settings settings;
-	int fft_size = 512;
-	settings.get("FFT Size", fft_size, 512);
-	int fft_length = static_cast<double>(fft_size) / (DEFAULT_SAMPLE_RATE / 1000.0);
-	double time_window = 5.0;
-	settings.get("Time Window", time_window, 5.0);
-	double dtime_sample = 10.0;
-	settings.get("Image Interval", dtime_sample, 10.0);
-	double time_sample = 10.0;
-	settings.get("Image Length", time_sample, 10.0);
-	// Validate settings and correct if necessary.
-	if (time_sample > fft_length) {
-		time_sample = fft_length;
-		settings.set("Image Length", time_sample);
-	}
-	if (time_sample < dtime_sample) {
-		time_sample = dtime_sample;
-		settings.set("Image Length", time_sample);
-	}
+	int fft_size = DEFAULT_FFT_SIZE;
+	settings.get("FFT Size", fft_size, fft_size);
+	double overlap = DEFAULT_OVERLAP;
+	settings.get("FFT Overlap %", overlap, overlap);
+	double max_freq = DEFAULT_MAX_PITCH;
+	settings.get("Spectrogram Frequency Span", max_freq, max_freq);
+	double max_time = DEFAULT_MAX_TIME;
+	settings.get("Spectrogram Time Span", max_time, max_time);
+
 	update_decoder_controls();
 	spectrogram_->start_config();
 	// Axis 0 - time
 	spectrogram_->set_axis_params(0, zc_graph_::SI_PREFIX, "s", "Time");
-	zc_graph_::range_t time_range = { 0.0, static_cast<double>(time_window) };
+	zc_graph_::range_t time_range = { 0.0, max_time };
 	spectrogram_->set_axis_ranges(0, time_range, time_range, time_range);
 	// Axis 1 - frequency
 	spectrogram_->set_axis_params(1, zc_graph_::SI_PREFIX, "Hz", "Frequency");
-	zc_graph_::range_t freq_range = { 0, MAX_PITCH };
+	zc_graph_::range_t freq_range = { 0, max_freq };
 	spectrogram_->set_axis_ranges(1, freq_range, freq_range, freq_range);
 	// Axis 2 - magnitude
 	spectrogram_->set_axis_params(2, zc_graph_::NO_MODIFIER);
-	// Although theoretically the maximum magnitude of 1 bin is fft_size, in practice 
-	// this will be spread across the same number of bins. Taking the square root
-	// feels a reasonable compromise.
-	//zc_graph_::range_t mag_range = { 0.0, std::sqrt(static_cast<double>(fft_size)) };
+
+	double max_z = static_cast<double>(fft_size);
 	zc_graph_::range_t mag_range = { 0.0, static_cast<double>(fft_size) };
 	spectrogram_->set_axis_ranges(2, mag_range, mag_range, mag_range);
 	spectrogram_data_display_ = new zc_graph_::data_set_dens_t;
 	// Set the X-values 
-	size_t num_time_samples = static_cast<size_t>(time_window * 1000.0 / dtime_sample);
+	double time_per_sample = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / DEFAULT_SAMPLE_RATE;
+	size_t num_time_samples = static_cast<size_t>(max_time / time_per_sample);
 	spectrogram_data_display_->x_values.resize(num_time_samples);
 	double t = 0.0;
 	for (size_t ix = 0; ix < num_time_samples; ix++) {
 		spectrogram_data_display_->x_values[ix] = t;
-		t += dtime_sample / 1000.0;
+		t += time_per_sample;
 	}
 	// Set the Y-values - these are the frequencies corresponding to each FFT bin.
 	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size);
 	double f = 0.0;
-	size_t num_freq_bins = (MAX_PITCH / freq_bin) + 1;
+	size_t num_freq_bins = (max_freq / freq_bin) + 1;
 	spectrogram_data_display_->y_values.resize(num_freq_bins);
 	for (size_t iy = 0; iy < num_freq_bins; iy++) {
 		spectrogram_data_display_->y_values[iy] = f;
@@ -623,42 +640,63 @@ void review::configure_spectrogram() {
 	std::vector<Fl_Color> map = { FL_BLACK, FL_RED, FL_YELLOW, FL_GREEN, FL_CYAN, FL_BLUE, FL_MAGENTA, FL_WHITE };
 	spectrogram_->add_data_set(2, spectrogram_data_display_, map);
 	spectrogram_->end_config();
-	monitor_->start_monitor();
+	monitor_->start_monitor(max_z);
 	monitor_->set_display_buffer(spectrogram_data_display_, cb_update_spectrogram, this);
+	monitor_->set_decode_callback(cb_decoder_callback, this);
 
 }
 
 // Update the spectrogram controls to reflect the current settings.
 void review::update_decoder_controls() {
 	zc_settings settings;
-	int fft_size = 512;
-	settings.get("FFT Size", fft_size, 512);
-	double time_window = 5;
-	settings.get("Time Window", time_window, 5.0);
-	double dtime_sample = 10.0;
-	settings.get("Image Interval", dtime_sample, 10.0);
-	double time_sample = 10.0;
-	settings.get("Image Length", time_sample, 10.0);
-	sl_fft_size_->value(fft_size);
-	sl_time_window_->value(time_window);
-	sl_dtime_sample_->value(dtime_sample);
-	sl_time_sample_->value(time_sample);
+	int fft_size = DEFAULT_FFT_SIZE;
+	settings.get("FFT Size", fft_size, fft_size);
+	double overlap = DEFAULT_OVERLAP;
+	settings.get("FFT Overlap %", overlap, overlap);
+	double max_freq = DEFAULT_MAX_PITCH;
+	settings.get("Spectrogram Frequency Span", max_freq, max_freq);
+	double max_time = DEFAULT_MAX_TIME;
+	settings.get("Spectrogram Time Span", max_time, max_time);
+	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size);
+	double time_per_sample = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / DEFAULT_SAMPLE_RATE;
+
+	int fft_index = 0;
+	int temp = fft_size;
+	while (temp > 64) {
+		fft_index++;
+		temp >>= 1;
+	}
+	ch_fft_size_->add("64");
+	ch_fft_size_->add("128");
+	ch_fft_size_->add("256");
+	ch_fft_size_->add("512");
+	ch_fft_size_->add("1024");
+
+	ch_fft_size_->value(fft_index);
+	sl_overlap_->value(overlap);
+	sl_max_freq_->value(max_freq);
+	sl_max_time_->value(max_time);
+	char text[10];
+	std::snprintf(text, sizeof(text), "%.0f", freq_bin);
+	op_freq_bin_->value(text);
+	std::snprintf(text, sizeof(text), "%.1f", time_per_sample * 1000.0);
+	op_time_slice_->value(text);
 
 	settings.get("Decode Source", decode_source_, audio_source_t::NO_AUDIO);
 	if (decode_source_ == audio_source_t::NO_AUDIO) {
-		sl_fft_size_->activate();
-		sl_time_window_->activate();
-		sl_dtime_sample_->activate();
-		sl_time_sample_->activate();
+		ch_fft_size_->activate();
+		sl_overlap_->activate();
+		sl_max_freq_->activate();
+		sl_max_time_->activate();
 		spectrogram_->deactivate();
 		btn_compare_decoded_->deactivate();
 		td_decoded_->deactivate();
 	}
 	else {
-		sl_fft_size_->deactivate();
-		sl_time_window_->deactivate();
-		sl_dtime_sample_->deactivate();
-		sl_time_sample_->deactivate();
+		ch_fft_size_->deactivate();
+		sl_overlap_->deactivate();
+		sl_max_freq_->deactivate();
+		sl_max_time_->deactivate();
 		spectrogram_->activate();
 		btn_compare_decoded_->activate();
 		td_decoded_->activate();
@@ -671,6 +709,12 @@ void review::update_decoder_controls() {
 void review::cb_update_spectrogram(void* data) {
 	review* r = static_cast<review*>(data);
 	r->spectrogram_->redraw();
+}
+
+// Callback to update the decoded text with new data.
+void review::cb_decoder_callback(void* data, const std::string& text) {
+	review* r = static_cast<review*>(data);
+	r->add_sent_text(text, text_source_t::DECODED_TEXT);
 }
 
 // Add output text to display

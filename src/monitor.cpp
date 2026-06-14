@@ -16,6 +16,7 @@
 */
 #include "monitor.hpp"
 
+#include "codec.hpp"
 #include "params.hpp"
 
 #include "zc_graph_.h"
@@ -32,11 +33,14 @@
 #include <fftw3.h>
 
 // External sample rate variable defined in main.cpp. 
-extern float DEFAULT_SAMPLE_RATE;
+extern double DEFAULT_SAMPLE_RATE;
+extern int DEFAULT_FFT_SIZE;
+extern double DEFAULT_OVERLAP;
+extern double DEFAULT_MAX_PITCH;
+extern double DEFAULT_MAX_TIME;
 
 monitor::monitor()
 {
-	start_monitor();
 }
 
 monitor::~monitor()
@@ -49,35 +53,33 @@ void monitor::load_parameters()
 {
 	zc_settings settings;
 	settings.get("FFT Size", fft_size_, fft_size_);
-	double image_int_ms;
-	settings.get("Image Interval", image_int_ms, 10.0);
-	double image_length_ms;
-	settings.get("Image Length", image_length_ms, image_length_ms);
-	if (image_length_ms < image_int_ms) {
-		image_length_ms = image_int_ms;
-		settings.set("Image Length", image_length_ms);
-	}
-	samples_per_image_ = static_cast<int>(image_length_ms * DEFAULT_SAMPLE_RATE / 1000.0);
-	image_interval_ = static_cast<int>(image_int_ms * DEFAULT_SAMPLE_RATE / 1000.0);
-	// Overall time to display
-	double time_window;
-	settings.get("Time Window", time_window, 5.0);
+	double overlap = DEFAULT_OVERLAP;
+	settings.get("FFT Overlap %", overlap, overlap);
+	double max_freq = DEFAULT_MAX_PITCH;
+	settings.get("Spectrogram Frequency Span", max_freq, max_freq);
+	double max_time = DEFAULT_MAX_TIME;
+	settings.get("Spectrogram Time Span", max_time, max_time);
+	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size_);
+	double interval = static_cast<double>(fft_size_) * (1.0 - overlap * 0.01);
+	image_interval_ = static_cast<int>(interval);
+	double time_per_sample = interval / DEFAULT_SAMPLE_RATE;
 	// Calculate the number of images
-	display_depth_ = static_cast<int>(time_window * 1000.0 / image_int_ms);
+	display_depth_ = static_cast<int>(max_time / time_per_sample);
 	audio_source_t source = audio_source_t::NO_AUDIO;
 	settings.get("Decode Source", source, source);
 	if (source != audio_source_t::NO_AUDIO) enabled_ = true;
 	else enabled_ = false;
+	// Use set dot speed as a basis for setting decoding thresholds
+	double dot_speed;
+	settings.get("Dot Speed", dot_speed, 20.0);
+	current_dot_time_ = 1.2 / dot_speed;
+	current_dash_time_ = 3.0 * current_dot_time_;
+	update_derived_times();
 }
 
 // Store the parameters from the settings.
 void monitor::store_parameters() const
 {
-	zc_settings settings;
-	settings.set("FFT Size", fft_size_);
-	settings.set("Image Interval", image_interval_);
-	settings.set("Image Length", samples_per_image_);
-
 }
 
 // Set display buffer for plotting the frequency domain images. Add a callback function to update the display when new images are available.
@@ -140,8 +142,14 @@ void monitor::stop_monitor() {
 };
 
 // (Re-)configure, initialise FFT and start proeccsing.
-void monitor::start_monitor() {
+double HIGH_LEVEL = 0.25;
+double LOW_LEVEL = 0.1;
+void monitor::start_monitor(double max_value) {
 	load_parameters();
+	max_detected_signal_ = 0.0;
+	min_detected_signal_ = max_value;
+	true_level_ = 0.0;
+	false_level_ = max_value;
 	if (enabled_) {
 		create_fft_buffers_and_plan();
 		start_processing_thread();
@@ -156,7 +164,7 @@ void monitor::processing_thread_function(monitor* self)
 		bool should_process = false;
 		{
 			std::lock_guard<std::mutex> lock(self->audio_queue_mutex_);
-			should_process = (self->audio_queue_.size() >= self->samples_per_image_);
+			should_process = (self->audio_queue_.size() >= self->fft_size_);
 		}
 		if (should_process) {
 			self->process_audio_samples();
@@ -171,7 +179,7 @@ void monitor::process_audio_samples() {
 	// Protected by mutex to ensure thread safety with audio callback thread.
 	{
 		std::lock_guard<std::mutex> lock(audio_queue_mutex_);
-		for (size_t i = 0; i < samples_per_image_; i++) {
+		for (size_t i = 0; i < fft_size_; i++) {
 			if (i < audio_queue_.size()) {
 				fft_input_buffer_[i][0] = audio_queue_[i]; // Real part
 				fft_input_buffer_[i][1] = 0.0; // Imaginary part
@@ -185,11 +193,6 @@ void monitor::process_audio_samples() {
 		for (size_t i = 0; i < image_interval_ && !audio_queue_.empty(); i++) {
 			audio_queue_.pop_front();
 		}
-	}
-	// Pad the remaining samples with zeros if there are less than F samples in the queue.
-	for (size_t i = samples_per_image_; i < fft_size_; i++) {
-		fft_input_buffer_[i][0] = 0.0; // Real part
-		fft_input_buffer_[i][1] = 0.0; // Imaginary part
 	}
 	// Execute the FFT to get the frequency domain representation of the audio samples.
 	fftw_execute(fft_plan_);
@@ -263,7 +266,17 @@ void monitor::identify_signal_bin() {
 		}
 	}
 	// Update the selected_signal_ queue with the magnitude of the selected frequency bin over time.
-	selected_signal_.push(image_queue_.back()[bin_number]);
+	bool signal = get_signal(image_queue_.back()[bin_number]);
+	image_count_++;
+	symbol_t symbol = decode_signal(signal);
+	if (symbol != symbol_t::UNFINISHED) {
+//		printf("Decoded symbol: %s, Duration: %d, Dit size: %d\n", symbol_strings_.at(symbol).c_str(), image_count_, dit_size_);
+		current_symbol_ = symbol;
+		accumulate_symbol();
+//		update_speed();
+		image_count_ = 0;
+	}
+
 	selected_signal_bin_ = bin_number;
 }
 
@@ -276,4 +289,131 @@ float monitor::get_bin_frequency(int bin) const {
 void monitor::add_sample(float s) {
 	std::lock_guard<std::mutex> lock(audio_queue_mutex_);
 	audio_queue_.push_back(static_cast<double>(s));
+}
+
+// Set the decode callback and data
+void monitor::set_decode_callback(std::function<void(void*, const std::string&)> callback, void* user_data) {
+	decode_callback_ = callback;
+	decode_user_data_ = user_data;
+}
+
+// Convert the signal into a Boolean value
+bool monitor::get_signal(double signal) {
+	bool result = previous_signal_;
+	if (signal > true_level_) result = true;
+	else if (signal < false_level_) result = false;
+	update_detected_signal_levels(signal);
+	//if (result != previous_signal_) 
+	//	printf("Signal: %f, Result: %d, Duration: %d\n", signal, previous_signal_, image_count_);
+	return result;
+}
+
+// Update the detected signal levels and adjust the true and false levels accordingly.
+const double TRUE_THRESHOLD = 0.55;
+const double FALSE_THRESHOLD = 0.45;
+void monitor::update_detected_signal_levels(double signal) {
+	if (signal > max_detected_signal_) {
+		max_detected_signal_ = signal;
+	}
+	else if (signal < min_detected_signal_) {
+		min_detected_signal_ = signal;
+	}
+	true_level_ = min_detected_signal_ + (max_detected_signal_ - min_detected_signal_) * TRUE_THRESHOLD;
+	false_level_ = min_detected_signal_ + (max_detected_signal_ - min_detected_signal_) * FALSE_THRESHOLD;
+}
+
+// Decode signal. This code is cribbed off my arduino sketch doing the same job.
+// If the level has transited check the duration since the last one and
+// decode the symbol accordingly.
+symbol_t monitor::decode_signal(bool signal) {
+	symbol_t result = symbol_t::UNFINISHED;
+	if (signal && !previous_signal_) {
+		if (image_count_ < min_dit_size_) {
+			result = symbol_t::NOISE;
+		}
+		else if (image_count_ < max_int_size_) {
+			result = symbol_t::INTERNAL_SPACE;
+		}
+		else if (image_count_ < max_char_size_) {
+			result = symbol_t::CHARACTER_SPACE;
+		}
+		else {
+			result = symbol_t::WORD_SPACE;
+		}
+	} 
+	else if (signal && previous_signal_) {
+		// \todo handle stuck high
+	}
+	else if (!signal && !previous_signal_) {
+		if (image_count_ > max_char_size_) {
+			result = symbol_t::WORD_SPACE;
+		}
+	}
+	else {
+		if (image_count_ < min_dit_size_) {
+			result = symbol_t::NOISE;
+		}
+		else if (image_count_ < max_dit_size_) {
+			result = symbol_t::DOT_MARK;
+		} 
+		else {
+			result = symbol_t::DASH_MARK;
+		}
+	}
+	previous_signal_ = signal;
+	return result;
+}
+
+// Take the current symbol and append it to the current list.
+// If we have a character or word space translate the Morse code
+// symbols into one or more characters and call back.
+void monitor::accumulate_symbol() {
+	recovered_symbols_.push_back(current_symbol_);
+	if (current_symbol_ == symbol_t::WORD_SPACE ||
+		current_symbol_ == symbol_t::CHARACTER_SPACE) {
+		std::string word;
+		codec::decode(recovered_symbols_, word);
+		decode_callback_(decode_user_data_, word);
+		recovered_symbols_.clear();
+	}
+}
+
+// Update the speed 
+void monitor::update_speed() {
+	// Constants
+	double BIAS = 2.0 / 3.0;          // When averaging time, the amount of bias to give existing.
+	double MAX_DASH_DOT = 4.8;    // Maximum dash:dot ratio.
+	double MIN_DASH_DOT = 2.6;    // Minimum dash:dot ration.
+	double duration = static_cast<double>(image_count_ * image_interval_) / DEFAULT_SAMPLE_RATE;
+	switch (current_symbol_) {
+	case symbol_t::DOT_MARK:
+	case symbol_t::INTERNAL_SPACE:
+		current_dot_time_ = ((current_dot_time_ * BIAS) + ((1.0 - BIAS) * duration));
+		break;
+	case symbol_t::DASH_MARK: {
+		current_dash_time_ = ((current_dash_time_ * BIAS) + ((1.0 - BIAS) * duration));
+		double weight = current_dash_time_ / current_dot_time_;
+		if (weight < MIN_DASH_DOT) {
+			current_dot_time_ = current_dash_time_ / MIN_DASH_DOT;
+		}
+		else if (weight > MAX_DASH_DOT) {
+			current_dot_time_ = current_dash_time_ / MAX_DASH_DOT;
+		}
+	}
+		break;
+	default:
+		// Do nothin
+		break;
+	}
+	update_derived_times();
+}
+
+// Convert monitored dot time into the cvarious threshold times
+void monitor::update_derived_times() {
+	unsigned int dit_samples = static_cast<unsigned int>(current_dot_time_ * DEFAULT_SAMPLE_RATE);
+	dit_size_ = dit_samples / image_interval_;
+	min_dit_size_ = 0; 
+	max_dit_size_ = dit_size_ * 2;
+	max_int_size_ = dit_size_ * 2;
+	max_char_size_ = dit_size_ * 6;
 }

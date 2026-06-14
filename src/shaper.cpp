@@ -38,7 +38,8 @@ extern int UPPER_QUEUE_THRESHOLD;
 extern int LOWER_QUEUE_THRESHOLD;
 extern int GENERATION_CHUNK_SIZE;
 extern int SHAPER_CHUNK_SIZE;
-extern float DEFAULT_RISE_FALL;
+extern double DEFAULT_RISE_FALL;
+extern double DEFAULT_SAMPLE_RATE;
 
 extern text_gen* text_gen_; //!< Pointer to the text generator instance
 

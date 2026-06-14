@@ -67,16 +67,22 @@ const std::map < uint8_t, file_control_t > FILE_CONTROL = {
 	{ FILE_QSO_DATA, { "qso_data.txt", true, true, 0 }}
 };
 
-float DEFAULT_SAMPLE_RATE = 22050.0F; //!< Default sample rate for audio generation
-float DEFAULT_BASE_PITCH = 700.0F; //!< Default base pitch for the oscillator in Hz
-float DEFAULT_RISE_FALL = 0.005F; //!< Default rise time for the audio envelope in seconds
-float DEFAULT_WPM = 12.0F; //!< Default speed in words per minute
+double DEFAULT_SAMPLE_RATE = 22050.0; //!< Default sample rate for audio generation
+double DEFAULT_BASE_PITCH = 700.0; //!< Default base pitch for the oscillator in Hz
+double DEFAULT_RISE_FALL = 0.005; //!< Default rise time for the audio envelope in seconds
+double DEFAULT_WPM = 12.0; //!< Default speed in words per minute
 int UPPER_QUEUE_THRESHOLD = 64; //!< Threshold for when the oscillator should generate more audio samples (in samples)
 int LOWER_QUEUE_THRESHOLD = 16; //!< Threshold for when the oscillator should stop generating audio samples (in samples)
 int GENERATION_CHUNK_SIZE = 128; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
 int OSCILLATOR_CHUNK_SIZE = 64; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
 int NOISE_CHUNK_SIZE = 64; //!< Number of audio samples to generate in each batch when the noise generator is generating audio samples
 int SHAPER_CHUNK_SIZE = 128; //!< Number of audio samples to process in each batch when the shaper is processing audio samples
+
+int DEFAULT_FFT_SIZE = 256;  //!< Default FFT size.
+double DEFAULT_OVERLAP = 75.0;        //!< Default FFT sampling overlap
+double DEFAULT_MAX_PITCH = 3000.0;    //!< Default maximum frequency on display
+double DEFAULT_MAX_TIME = 5.0;        //!< Default maximum timeon display
+
 oscillator* oscillator_ = nullptr; //!< Pointer to the oscillator instance
 text_gen* text_gen_ = nullptr; //!< Pointer to the text generator instance
 shaper* shaper_ = nullptr; //!< Pointer to the shaper instance

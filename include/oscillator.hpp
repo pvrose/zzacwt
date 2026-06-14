@@ -27,7 +27,7 @@
 //! \file oscillator.hpp
 //! 
 
-extern float DEFAULT_SAMPLE_RATE;  //!< Default audio sample rate
+extern double DEFAULT_SAMPLE_RATE;  //!< Default audio sample rate
 
 //! \brief Class for the oscillator component of ZZACWT, 
 //! responsible for generating the audio signal based on user 
@@ -105,7 +105,7 @@ private:
 	//! Current drift frequency offset (in Hz).
 	float current_drift_offset_ = 0.0F;
 	//! Sample delta time (in seconds) for calculating drift changes.
-	const float sample_delta_time_ = 1.0F / DEFAULT_SAMPLE_RATE;
+	const float sample_delta_time_ = 1.0F / static_cast<float>(DEFAULT_SAMPLE_RATE);
 	//! Update the current drift offset and return the total frequency 
 	//! (base pitch plus drift) for the current sample.
 	float update_drift_and_get_frequency();

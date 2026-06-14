@@ -91,10 +91,10 @@ public:
 	static void cb_compare_typed(Fl_Widget* w, void* data);
 	static void cb_decode_source(Fl_Widget* w, void* data);
 	static void cb_compare_decoded(Fl_Widget* w, void* data);
-	static void cb_sl_time_window(Fl_Widget* w, void* data);
-	static void cb_sl_fft_size(Fl_Widget* w, void* data);
-	static void cb_sl_dtime_sample(Fl_Widget* w, void* data);
-	static void cb_sl_time_sample(Fl_Widget* w, void* data);
+	static void cb_ch_fft_size(Fl_Widget* w, void* data);
+	static void cb_slider_overlap(Fl_Widget* w, void* data);
+	static void cb_slider_max_pitch(Fl_Widget* w, void* data);
+	static void cb_slider_max_time(Fl_Widget* w, void* data);
 
 	//! Callback for unfinished styles - null function to prevent FLTK from crashing when it encounters a style that is not defined in the style table.
 	static void cb_unfinished_style(int pos, void* data) {
@@ -156,6 +156,9 @@ private:
 	//! \brief Check and display from text queue. Called every 100 ms.
 	void poll_text_queue();
 
+	//! \brief Callback from decoder in monitor.
+	static void cb_decoder_callback(void* data, const std::string& decoded_text);
+
 	// Widgets.
 	Fl_Group* g_sent_;     //!< Group for sent text.
 	Fl_Text_Display* td_sent_;  //!< Text display for sent text.
@@ -173,11 +176,13 @@ private:
 	
 	Fl_Group* g_sgram_;              //!< Group for spectogram and controls
 	zc_graph_density* spectrogram_;  //!< Spectrogram (sideways waterfall) graph.
-	Fl_Value_Slider* sl_time_window_;  //!< Slider to adjust time window for spectrogram.
-	Fl_Value_Slider* sl_fft_size_;  //!< Slider to adjust FFT size for spectrogram.
-	Fl_Value_Slider* sl_dtime_sample_;  //!< Slider to adjust how often data is sampled for spectrogram.
-	Fl_Value_Slider* sl_time_sample_;  //!< Slider to adjust how much data is sampled for spectrogram.
-
+	Fl_Choice* ch_fft_size_;         //!< Size of FFT input (number of samples in each chunk)
+	Fl_Value_Slider* sl_overlap_;    //!< Overlap between FFT chunks (in eigthth-chunks)
+	Fl_Value_Slider* sl_max_freq_;   //!< Maximum audio frequency in display (1 kHz to SAMPLE_RATE/2)
+	Fl_Value_Slider* sl_max_time_;   //!< Maximum time span in dispalay.
+	Fl_Output* op_freq_bin_;         //!< Frequency bin size (in Hz)
+	Fl_Output* op_time_slice_;       //!< Length of a time slice (in ms) - non overlapped part of a chunk. 
+	
 	// Settings.
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
 	audio_source_t decode_source_;  //!< Source of audio for decoding.
