@@ -175,7 +175,7 @@ void review::create_widgets() {
 	cy = g_decoded_->y() + g_decoded_->h() + GAP;
 	cx = g_decoded_->x();
 
-	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS + HBUTTON, "Spectrogram");
+	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS + HBUTTON + HBUTTON, "Spectrogram");
 	g_sgram_->box(FL_BORDER_BOX);
 	g_sgram_->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_TOP);
 
@@ -224,6 +224,10 @@ void review::create_widgets() {
 	op_time_slice_->align(FL_ALIGN_LEFT);
 	op_time_slice_->tooltip("Displays ythetime resilution in milliseconds");
 
+	cy += HBUTTON;
+	op_decoded_pitch_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Freq (Hz)");
+	op_decoded_pitch_->align(FL_ALIGN_LEFT);
+	op_decoded_pitch_->tooltip("Displays the frequency bin being decoded");
 
 	cy = g_sgram_->y() + HTEXT;
 	cx += WBUTTON;
@@ -578,7 +582,8 @@ void review::cb_modify(
 void review::cb_ticker(void* data) {
 	review* r = static_cast<review*>(data);
 	r->poll_text_queue();
-	r->spectrogram_->redraw();
+	r->g_sgram_->redraw();
+	r->td_decoded_->redraw();
 }
 
 // Callback to redraw the review window with latest spectrogram data
@@ -715,6 +720,10 @@ void review::cb_update_spectrogram(void* data) {
 void review::cb_decoder_callback(void* data, const std::string& text) {
 	review* r = static_cast<review*>(data);
 	r->add_sent_text(text, text_source_t::DECODED_TEXT);
+	double freq = r->monitor_->get_selected_bin_pitch();
+	char temp[10];
+	snprintf(temp, sizeof(temp), "%.0f", freq);
+	r->op_decoded_pitch_->value(temp);
 }
 
 // Add output text to display

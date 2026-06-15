@@ -21,6 +21,7 @@
 
 #include "zc_graph_.h"
 #include "zc_settings.h"
+#include "zc_utils.h"
 
 #include <chrono>
 #include <cmath>
@@ -133,6 +134,13 @@ void monitor::create_fft_buffers_and_plan() {
 	fft_input_buffer_ = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * fft_size_);
 	fft_output_buffer_ = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * fft_size_);
 	fft_plan_ = fftw_plan_dft_1d(fft_size_, fft_input_buffer_, fft_output_buffer_, FFTW_FORWARD, FFTW_MEASURE);
+	shaping_window_.resize(fft_size_);
+	double inv_fft_size = 1.0 / static_cast<double>(fft_size_);
+	// Create Hann window to shape the FFT input
+	for (size_t i = 0; i < fft_size_; i++) {
+		shaping_window_[i] = 0.5 * (1.0 - std::cos(2.0 * zc::PI * static_cast<double>(i) * inv_fft_size));
+	}
+
 }
 
 // stop processing and tidy up FFT. 
@@ -181,7 +189,7 @@ void monitor::process_audio_samples() {
 		std::lock_guard<std::mutex> lock(audio_queue_mutex_);
 		for (size_t i = 0; i < fft_size_; i++) {
 			if (i < audio_queue_.size()) {
-				fft_input_buffer_[i][0] = audio_queue_[i]; // Real part
+				fft_input_buffer_[i][0] = audio_queue_[i] * shaping_window_[i]; // Real part
 				fft_input_buffer_[i][1] = 0.0; // Imaginary part
 			}
 			else {
@@ -416,4 +424,10 @@ void monitor::update_derived_times() {
 	max_dit_size_ = dit_size_ * 2;
 	max_int_size_ = dit_size_ * 2;
 	max_char_size_ = dit_size_ * 6;
+}
+
+// Get the decoded WPM 
+// \todo Implement
+double monitor::get_wpm() const {
+	return 0.0;
 }

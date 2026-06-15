@@ -89,7 +89,7 @@ public:
 	void set_display_buffer(zc_graph_::data_set_dens_t* buffer, std::function<void(void*)> callback, void* user_data);
 
 	//! Get the pitch of the selected bin in Hz. This is the frequency of the transmitted signal that is being monitored.
-	float get_selected_bin_pitch() const {
+	double get_selected_bin_pitch() const {
 		if (selected_signal_bin_ >= 0) {
 			return get_bin_frequency(selected_signal_bin_);
 		}
@@ -97,6 +97,9 @@ public:
 			return 0.0f;
 		}
 	}
+
+	//! Get the decoded WPM
+	double get_wpm() const;
 
 	//! \brief Stop processing. Tidy up FFT etc.
 	void stop_monitor();
@@ -239,5 +242,8 @@ private:
 
 	//! Monitor enabled
 	bool enabled_ = false;
+
+	//! FFT shaping window
+	std::vector<double> shaping_window_;
 
 };

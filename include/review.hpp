@@ -182,7 +182,7 @@ private:
 	Fl_Value_Slider* sl_max_time_;   //!< Maximum time span in dispalay.
 	Fl_Output* op_freq_bin_;         //!< Frequency bin size (in Hz)
 	Fl_Output* op_time_slice_;       //!< Length of a time slice (in ms) - non overlapped part of a chunk. 
-	
+	Fl_Output* op_decoded_pitch_;    //!< Decoded pitch 
 	// Settings.
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
 	audio_source_t decode_source_;  //!< Source of audio for decoding.
