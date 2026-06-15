@@ -156,6 +156,9 @@ private:
 	//! \brief Check and display from text queue. Called every 100 ms.
 	void poll_text_queue();
 
+	//! \brief Check and display the decoded text from the monitor. Called every 100 ms.
+	void poll_decoded_text();
+
 	//! \brief Callback from decoder in monitor.
 	static void cb_decoder_callback(void* data, const std::string& decoded_text);
 
@@ -183,6 +186,7 @@ private:
 	Fl_Output* op_freq_bin_;         //!< Frequency bin size (in Hz)
 	Fl_Output* op_time_slice_;       //!< Length of a time slice (in ms) - non overlapped part of a chunk. 
 	Fl_Output* op_decoded_pitch_;    //!< Decoded pitch 
+	Fl_Output* op_decoded_wpm_;      //!< Decoded WPM
 	// Settings.
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
 	audio_source_t decode_source_;  //!< Source of audio for decoding.
@@ -192,6 +196,8 @@ private:
 
 	//! Queue of sent text
 	zc_async_queue<std::string>* text_queue_;
+	//! Queue of decoded text
+	zc_async_queue<std::string> decoded_text_queue_;
 
 	//! Spectrogram data.
 	zc_graph_::data_set_dens_t* spectrogram_data_capture_;

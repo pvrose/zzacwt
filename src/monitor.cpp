@@ -285,7 +285,7 @@ void monitor::identify_signal_bin() {
 //		printf("Decoded symbol: %s, Duration: %d, Dit size: %d\n", symbol_strings_.at(symbol).c_str(), image_count_, dit_size_);
 		current_symbol_ = symbol;
 		accumulate_symbol();
-//		update_speed();
+		update_speed();
 		image_count_ = 0;
 		// Only update the selected signal bin if we have a valid symbol. 
 		selected_signal_bin_ = bin_number;
@@ -434,5 +434,5 @@ void monitor::update_derived_times() {
 // Get the decoded WPM 
 // \todo Implement
 double monitor::get_wpm() const {
-	return 0.0;
+	return 1.2 / current_dot_time_;
 }

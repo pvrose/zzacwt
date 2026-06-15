@@ -175,7 +175,7 @@ void review::create_widgets() {
 	cy = g_decoded_->y() + g_decoded_->h() + GAP;
 	cx = g_decoded_->x();
 
-	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS + HBUTTON + HBUTTON, "Spectrogram");
+	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS + HBUTTON * 3, "Spectrogram");
 	g_sgram_->box(FL_BORDER_BOX);
 	g_sgram_->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_TOP);
 
@@ -228,6 +228,11 @@ void review::create_widgets() {
 	op_decoded_pitch_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Freq (Hz)");
 	op_decoded_pitch_->align(FL_ALIGN_LEFT);
 	op_decoded_pitch_->tooltip("Displays the frequency bin being decoded");
+
+	cy += HBUTTON;
+	op_decoded_wpm_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "WPM");
+	op_decoded_wpm_->align(FL_ALIGN_LEFT);
+	op_decoded_wpm_->tooltip("Displays the decoded WPM");
 
 	cy = g_sgram_->y() + HTEXT;
 	cx += WBUTTON;
@@ -582,6 +587,7 @@ void review::cb_modify(
 void review::cb_ticker(void* data) {
 	review* r = static_cast<review*>(data);
 	r->poll_text_queue();
+	r->poll_decoded_text();
 	r->g_sgram_->redraw();
 	r->td_decoded_->redraw();
 }
@@ -719,11 +725,14 @@ void review::cb_update_spectrogram(void* data) {
 // Callback to update the decoded text with new data.
 void review::cb_decoder_callback(void* data, const std::string& text) {
 	review* r = static_cast<review*>(data);
-	r->add_sent_text(text, text_source_t::DECODED_TEXT);
+	r->decoded_text_queue_.push(text);
 	double freq = r->monitor_->get_selected_bin_pitch();
 	char temp[10];
 	snprintf(temp, sizeof(temp), "%.0f", freq);
 	r->op_decoded_pitch_->value(temp);
+	double wpm = r->monitor_->get_wpm();
+	std::snprintf(temp, sizeof(temp), "%.1f", wpm);
+	r->op_decoded_wpm_->value(temp);
 }
 
 // Add output text to display
@@ -739,3 +748,10 @@ void review::add_sent_text_queue(zc_async_queue<std::string>* queue) {
 	text_queue_ = queue;
 }
 
+// Add decoded text to display
+void review::poll_decoded_text() {
+	std::string text;
+	while (decoded_text_queue_.try_pop(text)) {
+		add_sent_text(text, text_source_t::DECODED_TEXT);
+	}
+}
