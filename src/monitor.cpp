@@ -150,15 +150,19 @@ void monitor::stop_monitor() {
 };
 
 // (Re-)configure, initialise FFT and start proeccsing.
-double HIGH_LEVEL = 0.25;
-double LOW_LEVEL = 0.1;
+const double HIGH_LEVEL = 2.0 / 3.0;
+const double LOW_LEVEL = 1.0 / 3.0;
 void monitor::start_monitor(double max_value) {
 	load_parameters();
-	max_detected_signal_ = 0.0;
-	min_detected_signal_ = max_value;
-	true_level_ = 0.0;
-	false_level_ = max_value;
 	image_queue_.clear();
+	running_mean_high_.clear();
+	// The initial value of the running mean high is set to 25% 
+	// as the full max_value will be spread over several bins. 
+	// The running mean low is set to 0.0.
+	running_mean_high_.add(max_value * 0.25);
+	running_mean_low_.clear();
+	running_mean_low_.add(0.0);
+	update_detected_signal_levels();
 	selected_signal_bin_ = -1;
 	if (enabled_) {
 		create_fft_buffers_and_plan();
@@ -315,27 +319,30 @@ void monitor::set_decode_callback(std::function<void(void*, const std::string&)>
 // Convert the signal into a Boolean value
 bool monitor::get_signal(double signal) {
 	bool result = previous_signal_;
-	if (signal > true_level_) result = true;
-	else if (signal < false_level_) result = false;
-	update_detected_signal_levels(signal);
+	if (signal > high_trigger_level_) {
+		result = true;
+		running_mean_high_.add(signal);
+	}
+	else if (signal < low_trigger_level_) {
+		result = false;
+		running_mean_low_.add(signal);
+	}
+	update_detected_signal_levels();
+
 	//if (result != previous_signal_) 
 	//	printf("Signal: %f, Result: %d, Duration: %d\n", signal, previous_signal_, image_count_);
 	return result;
 }
 
-// Update the detected signal levels and adjust the true and false levels accordingly.
-const double TRUE_THRESHOLD = 0.55;
-const double FALSE_THRESHOLD = 0.45;
-void monitor::update_detected_signal_levels(double signal) {
-	if (signal > max_detected_signal_) {
-		max_detected_signal_ = signal;
-	}
-	else if (signal < min_detected_signal_) {
-		min_detected_signal_ = signal;
-	}
-	true_level_ = min_detected_signal_ + (max_detected_signal_ - min_detected_signal_) * TRUE_THRESHOLD;
-	false_level_ = min_detected_signal_ + (max_detected_signal_ - min_detected_signal_) * FALSE_THRESHOLD;
+//! Update detected signal levels
+void monitor::update_detected_signal_levels() {
+	// Update the trigger levels based on the running means
+	high_trigger_level_ = running_mean_high_.value() * HIGH_LEVEL + 
+		running_mean_low_.value() * (1.0 - HIGH_LEVEL);
+	low_trigger_level_ = running_mean_high_.value() * LOW_LEVEL + 
+		running_mean_low_.value() * (1.0 - LOW_LEVEL);
 }
+
 
 // Decode signal. This code is cribbed off my arduino sketch doing the same job.
 // If the level has transited check the duration since the last one and

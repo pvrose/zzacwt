@@ -38,7 +38,8 @@
 
 
 //! Used for running averages.
-const size_t HISTORY_LENGTH = 10;
+const size_t SPEED_HISTORY_LENGTH = 10;
+const size_t LEVEL_HISTORY_LENGTH = 20;
 
 
 //! \brief Class to monitor the generated audio samples and recover the transmitted symbols.
@@ -171,7 +172,7 @@ private:
 	void update_derived_times();
 
 	//! Update detected signal levels
-	void update_detected_signal_levels(double signal);
+	void update_detected_signal_levels();
 
 	//! Thread for processing the audio samples and recovering the symbols.
 	std::thread* processing_thread_ = nullptr;
@@ -227,17 +228,17 @@ private:
 	//! Maximum character space in images
 	unsigned int max_char_size_ = 0;
 	//! Running average of dot times
-	zc_running_average<double, HISTORY_LENGTH> dot_times_;
+	zc_running_average<double, SPEED_HISTORY_LENGTH> dot_times_;
 	//! Running average of dash times
-	zc_running_average<double, HISTORY_LENGTH> dash_times_;
-	//! Signal training level - highest signal found.
-	double max_detected_signal_ = 0.0;
-	//! Signal training level - lowest signal found.
-	double min_detected_signal_ = 1.0;
-	//! High signal trigger level - set to 2/3 between min and max detected signal levels.
-	double true_level_ = 0.7;
-	//! Low signal trigger level - set to 1/3 between min and max detected signal levels.
-	double false_level_ = 0.3;
+	zc_running_average<double, SPEED_HISTORY_LENGTH> dash_times_;
+	//! Signal training level - running mean: logic high.
+	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_high_;
+	//! Signal training level - running mean: logic low.
+	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_low_;
+	//! High signal trigger level - set to 2/3 between running mean high and low.
+	double high_trigger_level_ = 0.7;
+	//! Low signal trigger level - set to 1/3 between running mean high and low.
+	double low_trigger_level_ = 0.3;
 
 	//! Selected frequency bin number for extracting signal
 	int selected_signal_bin_ = -1;
