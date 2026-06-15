@@ -263,13 +263,17 @@ void monitor::identify_signal_bin() {
 				largest_bin = j;
 			}
 		}
-		largest_bin_count[largest_bin]++;
+		// If that magnitude is considered a logic high, increment the count for that bin.
+		if (get_signal(max_value)) {
+			largest_bin_count[largest_bin]++;
+		}
 	}
 	// Now get the number of the bin which is the largest bin in the most images.
 	// That is the bin number for which the count in largest_bin_count is the largest.
-	int bin_number = 0;
+	// Default to the previously selected bin.
+	int bin_number = selected_signal_bin_;
 	for (int i = 0; i < largest_bin_count.size(); i++) {
-		if (largest_bin_count[i] > largest_bin_count[bin_number]) {
+		if (bin_number < 0 || largest_bin_count[i] > largest_bin_count[bin_number]) {
 			bin_number = i;
 		}
 	}
@@ -283,9 +287,10 @@ void monitor::identify_signal_bin() {
 		accumulate_symbol();
 //		update_speed();
 		image_count_ = 0;
+		// Only update the selected signal bin if we have a valid symbol. 
+		selected_signal_bin_ = bin_number;
 	}
 
-	selected_signal_bin_ = bin_number;
 }
 
 // Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
