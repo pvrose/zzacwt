@@ -24,6 +24,7 @@
 #include "zc_async_deque.h"
 #include "zc_async_queue.h"
 #include "zc_graph_.h"
+#include "zc_running_average.h"
 
 #include <atomic>
 #include <deque>
@@ -34,6 +35,11 @@
 #include <vector>
 
 #include <fftw3.h>
+
+
+//! Used for running averages.
+const size_t HISTORY_LENGTH = 10;
+
 
 //! \brief Class to monitor the generated audio samples and recover the transmitted symbols.
 //! 
@@ -73,6 +79,7 @@
 //! the codec block and decoded into that character and fed to the review block to
 //! display to the user.
 //! 
+
 class monitor
 {
 public:
@@ -219,10 +226,10 @@ private:
 	unsigned int max_int_size_ = 0;
 	//! Maximum character space in images
 	unsigned int max_char_size_ = 0;
-	//! Current dot time (in seconds)
-	double current_dot_time_;
-	//! Current dash time (in seconds)
-	double current_dash_time_;
+	//! Running average of dot times
+	zc_running_average<double, HISTORY_LENGTH> dot_times_;
+	//! Running average of dash times
+	zc_running_average<double, HISTORY_LENGTH> dash_times_;
 	//! Signal training level - highest signal found.
 	double max_detected_signal_ = 0.0;
 	//! Signal training level - lowest signal found.

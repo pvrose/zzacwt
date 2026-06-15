@@ -73,8 +73,8 @@ void monitor::load_parameters()
 	// Use set dot speed as a basis for setting decoding thresholds
 	double dot_speed;
 	settings.get("Dot Speed", dot_speed, 20.0);
-	current_dot_time_ = 1.2 / dot_speed;
-	current_dash_time_ = 3.0 * current_dot_time_;
+	if (dot_times_.empty()) dot_times_.add(1.2 / dot_speed);
+	if (dash_times_.empty()) dash_times_.add(3.0 * dot_times_.value());
 	update_derived_times();
 }
 
@@ -158,6 +158,8 @@ void monitor::start_monitor(double max_value) {
 	min_detected_signal_ = max_value;
 	true_level_ = 0.0;
 	false_level_ = max_value;
+	image_queue_.clear();
+	selected_signal_bin_ = -1;
 	if (enabled_) {
 		create_fft_buffers_and_plan();
 		start_processing_thread();
@@ -394,23 +396,28 @@ void monitor::accumulate_symbol() {
 // Update the speed 
 void monitor::update_speed() {
 	// Constants
-	double BIAS = 2.0 / 3.0;          // When averaging time, the amount of bias to give existing.
 	double MAX_DASH_DOT = 4.8;    // Maximum dash:dot ratio.
 	double MIN_DASH_DOT = 2.6;    // Minimum dash:dot ration.
 	double duration = static_cast<double>(image_count_ * image_interval_) / DEFAULT_SAMPLE_RATE;
 	switch (current_symbol_) {
 	case symbol_t::DOT_MARK:
 	case symbol_t::INTERNAL_SPACE:
-		current_dot_time_ = ((current_dot_time_ * BIAS) + ((1.0 - BIAS) * duration));
+		dot_times_.add(duration);
+		printf("Adding dot: value %f mean %f\n", duration, dot_times_.value());
 		break;
 	case symbol_t::DASH_MARK: {
-		current_dash_time_ = ((current_dash_time_ * BIAS) + ((1.0 - BIAS) * duration));
-		double weight = current_dash_time_ / current_dot_time_;
+		dash_times_.add(duration);
+		printf("Adding dash: value %f mean %f\n", duration, dash_times_.value());
+		double weight = dash_times_.value() / dot_times_.value();
 		if (weight < MIN_DASH_DOT) {
-			current_dot_time_ = current_dash_time_ / MIN_DASH_DOT;
+			dot_times_.clear();
+			dot_times_.add(dash_times_.value() / MIN_DASH_DOT);
+			printf("Reducing dot: value %f\n", dot_times_.value());
 		}
 		else if (weight > MAX_DASH_DOT) {
-			current_dot_time_ = current_dash_time_ / MAX_DASH_DOT;
+			dot_times_.clear();
+			dot_times_.add(dash_times_.value() / MAX_DASH_DOT);
+			printf("Increasing dot: value %f\n", dot_times_.value());
 		}
 	}
 		break;
@@ -423,7 +430,7 @@ void monitor::update_speed() {
 
 // Convert monitored dot time into the cvarious threshold times
 void monitor::update_derived_times() {
-	unsigned int dit_samples = static_cast<unsigned int>(current_dot_time_ * DEFAULT_SAMPLE_RATE);
+	unsigned int dit_samples = static_cast<unsigned int>(dot_times_.value() * DEFAULT_SAMPLE_RATE);
 	dit_size_ = dit_samples / image_interval_;
 	min_dit_size_ = 0; 
 	max_dit_size_ = dit_size_ * 2;
@@ -432,7 +439,7 @@ void monitor::update_derived_times() {
 }
 
 // Get the decoded WPM 
-// \todo Implement
 double monitor::get_wpm() const {
-	return 1.2 / current_dot_time_;
+	if (dot_times_.empty()) return 0.0;
+	return 1.2 / dot_times_.value();
 }
