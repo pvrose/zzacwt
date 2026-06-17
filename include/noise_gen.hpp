@@ -20,6 +20,8 @@
 
 #include "zc_async_queue.h"
 
+#include <condition_variable>
+#include <mutex>
 #include <queue>
 #include <random>
 #include <string>
@@ -67,7 +69,7 @@ class noise_gen
 {
 public:
 	//! Constructor. Takes the audio data queue as arguments.
-	noise_gen(zc_async_queue<float>* audio_data_queue);
+	noise_gen(zc_async_queue<double>* audio_data_queue);
 	//! Destructor.
 	~noise_gen();
 
@@ -81,11 +83,11 @@ private:
 	//! Generate a single burst of impact noise. 
 	//! This will consist of a short burst of white noise.
 	//! \param noise An array of audio samples to which the generated noise samples will be pushed.
-	void generate_impact_noise(std::vector<float>& noise);
+	void generate_impact_noise();
 
 	//! Generate a single plink or plonk event. This will consist of a short burst of tone at a random frequency.
 	//! \param noise An array of audio samples to which the generated noise samples will be pushed.
-	void generate_plink_plonk(std::vector<float>& noise);
+	void generate_plink_plonk();
 
 	//! Thread function that continuously generates noise samples according to the current settings and pushes them onto the audio data queue.
 	static void generation_loop(noise_gen* instance);
@@ -97,27 +99,38 @@ private:
 	std::thread generation_thread_;
 
 	//! Pointer to the audio data queue where generated noise samples will be pushed.
-	zc_async_queue<float>* audio_data_queue_;
+	zc_async_queue<double>* audio_data_queue_;
 
 	//! Random number generator for generating noise samples and determining when noise events occur.
 	std::mt19937 rng_;
 	//! Distribution for generating white noise samples.
-	std::normal_distribution<float> white_noise_dist_;
+	std::normal_distribution<double> white_noise_dist_;
 
 	//! Distribution for determining when the next impact/plink noise event should occur based on the severity setting.
-	std::exponential_distribution<float> noise_event_dist_;
+	std::exponential_distribution<double> noise_event_dist_;
 
 	//! Disturber type for noise generation (none, impact, plink/plonk).
 	disturber_type current_disturber_;
 	//! Current noise volume level (0-100).
-	float noise_volume_ = 0.0F;
+	double noise_volume_ = 0.0F;
 	//! Current noise severity level (0-100).
-	float noise_severity_ = 0.0F;
+	double noise_severity_ = 0.0F;
 
 	//! Time for the next noise event to occur, in samples. 
 	//! This will be updated after each noise event is generated and
 	//! decremented as samples are generated to determine 
 	//! when the next noise event should occur.
 	int next_noise_event_time_ = 0;
+
+	//! Condition variable for waking up the generation thread when more samples are needed.
+	std::condition_variable wake_condition_;
+	//! Mutex for the wake condition variable.
+	std::mutex wake_mutex_;
+
+public:
+	//! Wake up the generation thread to produce more samples.
+	void wake();
+
+private:
 };
 

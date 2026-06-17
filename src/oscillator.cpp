@@ -21,16 +21,15 @@
 
 // Local constant for pi (GCC-compatible)
 namespace {
-	constexpr float PI = 3.14159265358979323846f;
+	constexpr double PI = 3.14159265358979323846;
 }
-extern int UPPER_QUEUE_THRESHOLD; //!< Threshold for when the oscillator should generate more audio samples (in samples)
-extern int LOWER_QUEUE_THRESHOLD; //!< Threshold for when the oscillator should stop generating audio samples (in samples)
+extern int LOWER_CHUNK_SIZE; //!< Threshold for when the oscillator should stop generating audio samples (in samples)
 extern int OSCILLATOR_CHUNK_SIZE; //!< Number of samples to generate in each chunk when generating oscillator samples
 
 //! \brief Constructor for the oscillator class
 //! \param output_queue Pointer to the queue where generated audio samples will be pushed
 //! 
-oscillator::oscillator(zc_async_queue<float>* output_queue) {
+oscillator::oscillator(zc_async_queue<double>* output_queue) {
 	apply_settings();
 	output_queue_ = output_queue;
 	// Start the generation thread
@@ -41,101 +40,119 @@ oscillator::oscillator(zc_async_queue<float>* output_queue) {
 oscillator::~oscillator() {
 	// Signal the generation thread to stop and wait for it to finish
 	stop_generation_ = true;
+	wake(); // Wake up the thread so it can exit
 	if (generation_thread_.joinable()) {
 		generation_thread_.join();
 	}
 }
 
+//! \brief Wake up the generation thread to produce more samples
+void oscillator::wake() {
+	std::lock_guard<std::mutex> lock(wake_mutex_);
+	wake_condition_.notify_one();
+}
+
 //! \brief Apply the current settings to the oscillator
 void oscillator::apply_settings() {
 	zc_settings settings;
-	settings.get("Pitch (Hz)", base_pitch_, 700.0F);
-	float volume_dB;
-	settings.get("Volume (dB)", volume_dB, 0.0F);
-	output_level_ = std::pow(10.0F, volume_dB / 20.0F);
+	settings.get("Pitch (Hz)", base_pitch_, 700.0);
+	double volume_dB;
+	settings.get("Volume (dB)", volume_dB, 0.0);
+	output_level_ = std::pow(10.0F, volume_dB / 20.0);
 	settings.get("Disturber Type", current_disturber_, disturber_type::NONE);
-	settings.get("Drift Rate", drift_rate_, 0.0F);
-	settings.get("Drift Amplitude", drift_amplitude_, 0.0F);
-	settings.get("Drift Period", drift_period_, 1.0F);
-	settings.get("Fading Period", fading_period, 0.0F);
-	settings.get("Fading Depth", fading_amplitude_, 0.0F);
+	settings.get("Drift Rate", drift_rate_, 0.0);
+	settings.get("Drift Amplitude", drift_amplitude_, 0.0);
+	settings.get("Drift Period", drift_period_, 1.0);
+	settings.get("Fading Period", fading_period, 0.0);
+	settings.get("Fading Depth", fading_amplitude_, 0.0);
 	// Reset drift state when settings are applied
-	current_drift_offset_ = 0.0F;
-	drift_phase_accumulator_ = 0.0F;
-	fading_phase_accumulator_ = 0.0F;
+	current_drift_offset_ = 0.0;
+	drift_phase_accumulator_ = 0.0;
+	fading_phase_accumulator_ = 0.0;
 }
 
 //! \brief Generation loop for the oscillator thread
 void oscillator::generation_loop(oscillator* osc) {
-	// Set first phase accumulator value to 0 and set first output value to 0.
-	osc->phase_accumulator_ = 0.0F;
-	osc->output_queue_->push(0.0F);
-	while (!osc->stop_generation_) {
+	fprintf(stderr, "[THREAD] Oscillator thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+	try {
+		// Set first phase accumulator value to 0 and set first output value to 0.
+		osc->phase_accumulator_ = 0.0;
+		osc->output_queue_->push(0.0);
+		while (!osc->stop_generation_) {
 		// If the output queue is nearly empty, generate more samples
-		if (osc->output_queue_ && osc->output_queue_->size() < LOWER_QUEUE_THRESHOLD) {
+		if (osc->output_queue_ && osc->output_queue_->size() < LOWER_CHUNK_SIZE) {
 			// Generate a block of samples up to the upper threshold.
 			while (osc->output_queue_->size() < OSCILLATOR_CHUNK_SIZE) {
-				float sample = osc->next_sample();
+				double sample = osc->next_sample();
 				if (osc->output_queue_) {
 					osc->output_queue_->push(sample);
 				}
 			}
 		}
 		else {
-			// Sleep briefly to avoid busy-waiting
-			std::this_thread::yield();
+			// Wait for wake-up signal instead of busy-waiting
+			std::unique_lock<std::mutex> lock(osc->wake_mutex_);
+			osc->wake_condition_.wait(lock);
 		}
+		}
+		fprintf(stderr, "[THREAD] Oscillator thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+	}
+	catch (const std::exception& e) {
+		fprintf(stderr, "[THREAD] Oscillator thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+	}
+	catch (...) {
+		fprintf(stderr, "[THREAD] Oscillator thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 }
 
 //! \brief Generate the next audio sample based on the current settings
 //! and update the phase accumulator
-float oscillator::next_sample() {
+double oscillator::next_sample() {
 	// Update the current frequency based on drift
-	float frequency = update_drift_and_get_frequency();
+	double frequency = update_drift_and_get_frequency();
 	// Increment the phase accumulator by the current frequency 
 	// divided by the sample rate
-	phase_accumulator_ += 2.0F * PI * frequency / DEFAULT_SAMPLE_RATE;
+	phase_accumulator_ += 2.0 * PI * frequency / DEFAULT_SAMPLE_RATE;
 	// Wrap the phase accumulator to stay within 0 to 2*pi
-	if (phase_accumulator_ >= 2.0F * PI) {
-		phase_accumulator_ -= 2.0F * PI;
+	if (phase_accumulator_ >= 2.0 * PI) {
+		phase_accumulator_ -= 2.0 * PI;
 	}
 	// Apply fading multiplier to the output sample
-	float fading_multiplier = update_fading_and_get_multiplier();
+	double fading_multiplier = update_fading_and_get_multiplier();
 	// Return the sine of the phase accumulator as the output sample value
 	return std::sin(phase_accumulator_) * output_level_ * fading_multiplier;
 }
 
 //! \brief Update the current drift offset based on the selected 
 //! disturber type and return the total frequency for the current sample
-float oscillator::update_drift_and_get_frequency() {
+double oscillator::update_drift_and_get_frequency() {
 	switch (current_disturber_) {
 	case disturber_type::DRIFT_STEADY:
 		// drift rate is in % current frequency (pitch + offset) per second.
 		current_drift_offset_ += (drift_rate_ * 0.01 * (base_pitch_ + current_drift_offset_) * sample_delta_time_);
 		break;
 	case disturber_type::DRIFT_CYCLIC:
-		drift_phase_accumulator_ += 2.0F * PI * sample_delta_time_ / drift_period_;
-		if (drift_phase_accumulator_ >= 2.0F * PI) {
-			drift_phase_accumulator_ -= 2.0F * PI;
+		drift_phase_accumulator_ += 2.0 * PI * sample_delta_time_ / drift_period_;
+		if (drift_phase_accumulator_ >= 2.0 * PI) {
+			drift_phase_accumulator_ -= 2.0 * PI;
 		}
 		current_drift_offset_ = drift_amplitude_ * std::sin(drift_phase_accumulator_);
 		break;
 	default:
-		current_drift_offset_ = 0.0F;
+		current_drift_offset_ = 0.0;
 		break;
 	}
 	return base_pitch_ + current_drift_offset_;
 }
 
 //! \brief Update the current fading level based on the fading settings and return the current fading multiplier (0 to 1) to apply to the output sample.
-float oscillator::update_fading_and_get_multiplier() {
+double oscillator::update_fading_and_get_multiplier() {
 	if (current_disturber_ != disturber_type::FADING) {
-		return 1.0F; // No fading, so multiplier is 1
+		return 1.0; // No fading, so multiplier is 1
 	}
-	fading_phase_accumulator_ += 2.0F * PI * sample_delta_time_ / fading_period;
-	if (fading_phase_accumulator_ >= 2.0F * PI) {
-		fading_phase_accumulator_ -= 2.0F * PI;
+	fading_phase_accumulator_ += 2.0 * PI * sample_delta_time_ / fading_period;
+	if (fading_phase_accumulator_ >= 2.0 * PI) {
+		fading_phase_accumulator_ -= 2.0 * PI;
 	}
-	return 1.0F - (fading_amplitude_ * (0.5F * (1 - std::cos(fading_phase_accumulator_)))); // Fading multiplier based on a cosine wave
+	return 1.0 - (fading_amplitude_ * (0.5 * (1 - std::cos(fading_phase_accumulator_)))); // Fading multiplier based on a cosine wave
 }

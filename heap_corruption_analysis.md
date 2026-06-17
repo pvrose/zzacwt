@@ -34,7 +34,7 @@ The heap corruption is caused by **concurrent access to FLTK widgets from multip
 2. **Audio Thread(s)**: PortAudio callback thread (thread 11436) and multiple worker threads
    - Thread 9656: `oscillator::generation_loop`
    - Thread 21952: `shaper::generation_loop`
-   - Thread 14676: `zc_async_queue<float>::size`
+   - Thread 14676: `zc_async_queue<double>::size`
    - Thread 18592: `mod_mixer::modulation_loop`
    - Thread 8064: `ProcessingThreadProc` (PortAudio)
    - Thread 5488: `monitor::processing_thread_function`
@@ -53,7 +53,7 @@ static void audio_metadata_callback(const std::string& metadata)
 	}
 }
 
-static void audio_sample_callback(float sample)
+static void audio_sample_callback(double sample)
 {
 	if (review_) {
 		review_->add_audio_sample(sample);  // ← May be safe if monitor_ queues internally

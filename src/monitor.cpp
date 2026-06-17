@@ -40,7 +40,8 @@ extern double DEFAULT_OVERLAP;
 extern double DEFAULT_MAX_PITCH;
 extern double DEFAULT_MAX_TIME;
 
-monitor::monitor()
+monitor::monitor(zc_async_queue<double>* audio)
+	: audio_queue_(audio)
 {
 }
 
@@ -173,17 +174,28 @@ void monitor::start_monitor(double max_value) {
 // Processing thread function to continuously process the audio samples and recover the symbols until signalled to stop.
 void monitor::processing_thread_function(monitor* self)
 {
-	while (!self->stop_processing_) {
-		// Check if there are enough samples to process (thread-safe with mutex).
-		bool should_process = false;
-		{
-			std::lock_guard<std::mutex> lock(self->audio_queue_mutex_);
-			should_process = (self->audio_queue_.size() >= self->fft_size_);
+	fprintf(stderr, "[THREAD] Monitor thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+	try {
+		while (!self->stop_processing_) {
+			// Check if there are enough samples to process (thread-safe with mutex).
+			bool should_process = false;
+			{
+				should_process = (self->audio_queue_->size() >= self->fft_size_);
+			}
+			if (should_process) {
+				self->process_audio_samples();
+			}
+			std::this_thread::yield();
 		}
-		if (should_process) {
-			self->process_audio_samples();
-		}
-		std::this_thread::yield();
+		fprintf(stderr, "[THREAD] Monitor thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+	}
+	catch (const std::exception& e) {
+		// Log the exception so we know what went wrong
+		fprintf(stderr, "[THREAD] Monitor thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+		// Thread will exit cleanly with code 0 instead of 1
+	}
+	catch (...) {
+		fprintf(stderr, "[THREAD] Monitor thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 }
 
@@ -192,10 +204,19 @@ void monitor::process_audio_samples() {
 	// Copy the first M samples of the audio buffer into the FFT input.
 	// Protected by mutex to ensure thread safety with audio callback thread.
 	{
-		std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+		while (audio_queue_copy_.size() < fft_size_) {
+			// Copy the audio queue 
+			double sample;
+			if (audio_queue_->try_pop(sample)) {
+				audio_queue_copy_.push_back(sample);
+			}
+			else {
+				break;
+			}
+		}
 		for (size_t i = 0; i < fft_size_; i++) {
-			if (i < audio_queue_.size()) {
-				fft_input_buffer_[i][0] = audio_queue_[i] * shaping_window_[i]; // Real part
+			if (i < audio_queue_copy_.size()) {
+				fft_input_buffer_[i][0] = audio_queue_copy_[i] * shaping_window_[i]; // Real part
 				fft_input_buffer_[i][1] = 0.0; // Imaginary part
 			}
 			else {
@@ -204,8 +225,8 @@ void monitor::process_audio_samples() {
 			}
 		}
 		// Remove the first N samples from the audio queue
-		for (size_t i = 0; i < image_interval_ && !audio_queue_.empty(); i++) {
-			audio_queue_.pop_front();
+		for (size_t i = 0; i < image_interval_ && !audio_queue_copy_.empty(); i++) {
+			audio_queue_copy_.pop_front();
 		}
 	}
 	// Execute the FFT to get the frequency domain representation of the audio samples.
@@ -219,12 +240,26 @@ void monitor::process_audio_samples() {
 
 // Add the frequency domain image to the display buffer and call the display callback to update the display.
 void monitor::update_display_buffer() {
+	// Guard against race conditions during initialization/shutdown
+	if (!display_buffer_ || !display_callback_) {
+		return;  // Buffer not ready yet or already cleaned up
+	}
+
 	// Only process the frequency bins for the frequency range we are interested in
-	size_t num_bins = display_buffer_->y_values.size(); 
-	std::vector<float> image(num_bins);
+	size_t num_bins = display_buffer_->y_values.size();
+	if (num_bins == 0 || display_depth_ == 0) {
+		return;  // Not initialized properly
+	}
+
+	// Verify z_values is sized correctly to prevent out-of-bounds access
+	if (display_buffer_->z_values.size() != num_bins * display_depth_) {
+		return;  // Size mismatch - avoid crash
+	}
+
+	std::vector<double> image(num_bins);
 	for (size_t i = 0; i < num_bins; i++) {
-		float real = fft_output_buffer_[i][0];
-		float imag = fft_output_buffer_[i][1];
+		double real = fft_output_buffer_[i][0];
+		double imag = fft_output_buffer_[i][1];
 		image[i] = std::sqrt(real * real + imag * imag); // Magnitude of the frequency component
 	}
 	// Add the new image to the image queue.
@@ -300,14 +335,8 @@ void monitor::identify_signal_bin() {
 }
 
 // Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
-float monitor::get_bin_frequency(int bin) const {
-	return static_cast<float>(bin) * DEFAULT_SAMPLE_RATE / fft_size_;
-}
-
-// Add a sample
-void monitor::add_sample(float s) {
-	std::lock_guard<std::mutex> lock(audio_queue_mutex_);
-	audio_queue_.push_back(static_cast<double>(s));
+double monitor::get_bin_frequency(int bin) const {
+	return static_cast<double>(bin) * DEFAULT_SAMPLE_RATE / fft_size_;
 }
 
 // Set the decode callback and data
@@ -410,21 +439,17 @@ void monitor::update_speed() {
 	case symbol_t::DOT_MARK:
 	case symbol_t::INTERNAL_SPACE:
 		dot_times_.add(duration);
-		printf("Adding dot: value %f mean %f\n", duration, dot_times_.value());
 		break;
 	case symbol_t::DASH_MARK: {
 		dash_times_.add(duration);
-		printf("Adding dash: value %f mean %f\n", duration, dash_times_.value());
 		double weight = dash_times_.value() / dot_times_.value();
 		if (weight < MIN_DASH_DOT) {
 			dot_times_.clear();
 			dot_times_.add(dash_times_.value() / MIN_DASH_DOT);
-			printf("Reducing dot: value %f\n", dot_times_.value());
 		}
 		else if (weight > MAX_DASH_DOT) {
 			dot_times_.clear();
 			dot_times_.add(dash_times_.value() / MAX_DASH_DOT);
-			printf("Increasing dot: value %f\n", dot_times_.value());
 		}
 	}
 		break;

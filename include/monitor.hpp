@@ -85,14 +85,11 @@ class monitor
 {
 public:
 	//! Constructor.
-	monitor();
+	monitor(zc_async_queue<double>* audio);
 	//! Destructor.
 	~monitor();
 
-	//! Add a new audio sample to the monitor. This will be called by the audio output module.
-	void add_sample(float s);
-
-	//! Set display buffer for plotting the frequency domain images. 
+	//! Set display buffer for plotting t6he frequency domain images. 
 	//! Add a callback function to update the display when new images are available.
 	void set_display_buffer(zc_graph_::data_set_dens_t* buffer, std::function<void(void*)> callback, void* user_data);
 
@@ -154,7 +151,7 @@ private:
 	void identify_signal_bin();
 
 	//! Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
-	float get_bin_frequency(int bin) const;
+	double get_bin_frequency(int bin) const;
 
 	//! Decode the current monitored signal.
 	symbol_t decode_signal(bool signal);
@@ -179,10 +176,13 @@ private:
 	//! Flag to signal the processing thread to stop.
 	std::atomic<bool> stop_processing_ = false;
 
-	//! The queue of audio samples that are currently being collected.
-	std::deque<double> audio_queue_;
+	//! Audio queue
+	zc_async_queue<double>* audio_queue_ = nullptr;
+
+	//! Local copy of the audio queue to be processed. This is a deque of audio samples.
+	std::deque<double> audio_queue_copy_;
 	//! Mutex to protect audio_queue_ from concurrent access.
-	std::mutex audio_queue_mutex_;
+//	std::mutex audio_queue_mutex_;
 
 	//! FFT input buffer.
 	fftw_complex* fft_input_buffer_ = nullptr;
@@ -205,7 +205,7 @@ private:
 	void* decode_user_data_ = nullptr;
 
 	//! The queue of frequency images that have been processed and are waiting to be displayed.
-	std::deque<std::vector<float>> image_queue_;
+	std::deque<std::vector<double>> image_queue_;
 
 	//! The current signal value
 	bool current_signal_ = false;

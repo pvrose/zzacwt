@@ -45,6 +45,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <thread>
 #include <vector>
 
 // Text display style map 
@@ -62,6 +63,7 @@ static char STYLE_ERROR = 'C';
 static char STYLE_MATCH = 'D';
 
 extern zc_ticker* ticker_;
+extern monitor* monitor_;
 extern double DEFAULT_SAMPLE_RATE;
 extern int DEFAULT_FFT_SIZE;
 extern double DEFAULT_OVERLAP;
@@ -70,7 +72,8 @@ extern double DEFAULT_MAX_TIME;
 
 // Constructor
 review::review(int W, int H, const char* L) : Fl_Double_Window(W, H, L) {
-	monitor_ = new ::monitor;
+	// Capture main thread ID for thread safety checks
+	main_thread_id_ = std::this_thread::get_id();
 	create_widgets();
 	load_settings();
 	ticker_->add_ticker(this, cb_ticker, 1, false);
@@ -78,8 +81,6 @@ review::review(int W, int H, const char* L) : Fl_Double_Window(W, H, L) {
 
 // Destructor
 review::~review() {
-	// No dynamic memory to clean up.
-	if (monitor_) delete monitor_;
 }
 
 // Create the widgets for the review window.
@@ -274,8 +275,21 @@ void review::save_settings() const {
 	settings.set("Decode Source", decode_source_);
 }
 
+// Check if we're on the main thread, throw exception if not
+void review::check_main_thread(const char* method_name) const {
+	if (std::this_thread::get_id() != main_thread_id_) {
+		char error_msg[256];
+		snprintf(error_msg, sizeof(error_msg), 
+			"THREAD SAFETY VIOLATION: %s called from non-main thread!", method_name);
+		throw std::runtime_error(error_msg);
+	}
+}
+
 // Add sent text to the review.
 void review::add_sent_text(const std::string& text, text_source_t source) {
+	// Thread safety check - must be called from main thread only
+	check_main_thread("review::add_sent_text");
+
 	switch (source) {
 	case text_source_t::SENT_TEXT: {
 		Fl_Text_Buffer* buffer = td_sent_->buffer();
@@ -398,7 +412,7 @@ void review::cb_decode_source(Fl_Widget* w, void* data) {
 	settings.set("Decode Source", r->decode_source_);
 	r->update_decoder_controls();
 	if (r->decode_source_ == audio_source_t::NO_AUDIO) {
-		r->monitor_->stop_monitor();
+		monitor_->stop_monitor();
 	}
 	else {
 		r->configure_spectrogram();
@@ -588,6 +602,13 @@ void review::cb_ticker(void* data) {
 	review* r = static_cast<review*>(data);
 	r->poll_text_queue();
 	r->poll_decoded_text();
+	// Swap spectrogram buffers if monitor thread has written new data
+	if (r->spectrogram_data_ready_.load(std::memory_order_acquire)) {
+		std::lock_guard<std::mutex> lock(r->spectrogram_mutex_);
+		// Swap capture and display pointers
+		std::swap(r->spectrogram_data_capture_, r->spectrogram_data_display_);
+		r->spectrogram_data_ready_.store(false, std::memory_order_relaxed);
+	}
 	r->g_sgram_->redraw();
 	r->td_decoded_->redraw();
 }
@@ -651,9 +672,17 @@ void review::configure_spectrogram() {
 	std::vector<Fl_Color> map = { FL_BLACK, FL_RED, FL_YELLOW, FL_GREEN, FL_CYAN, FL_BLUE, FL_MAGENTA, FL_WHITE };
 	spectrogram_->add_data_set(2, spectrogram_data_display_, map);
 	spectrogram_->end_config();
-	monitor_->start_monitor(max_z);
-	monitor_->set_display_buffer(spectrogram_data_display_, cb_update_spectrogram, this);
+
+	// Create capture buffer (copy of display buffer for double-buffering)
+	spectrogram_data_capture_ = new zc_graph_::data_set_dens_t(*spectrogram_data_display_);
+
+	// CRITICAL: Set display buffer and callbacks BEFORE starting monitor thread
+	// to prevent race condition where thread tries to access uninitialized buffer
+	monitor_->set_display_buffer(spectrogram_data_capture_, cb_update_spectrogram, this);
 	monitor_->set_decode_callback(cb_decoder_callback, this);
+
+	// Now it's safe to start the monitor processing thread
+	monitor_->start_monitor(max_z);
 
 }
 
@@ -717,22 +746,26 @@ void review::update_decoder_controls() {
 }
 
 // Callback to update the spectrogram with new data.
+// Called from monitor thread - just set flag and request redraw
 void review::cb_update_spectrogram(void* data) {
 	review* r = static_cast<review*>(data);
+	// Signal that new spectrogram data is ready for swap
+	r->spectrogram_data_ready_.store(true, std::memory_order_release);
+	// Note: redraw() is safe to call from worker threads - it only sets damage flags
 	r->spectrogram_->redraw();
 }
 
 // Callback to update the decoded text with new data.
+// CRITICAL: This is called from monitor's processing thread, NOT the main thread!
+// Only queue data and update atomics - do NOT touch FLTK widgets here!
 void review::cb_decoder_callback(void* data, const std::string& text) {
 	review* r = static_cast<review*>(data);
 	r->decoded_text_queue_.push(text);
-	double freq = r->monitor_->get_selected_bin_pitch();
-	char temp[10];
-	snprintf(temp, sizeof(temp), "%.0f", freq);
-	r->op_decoded_pitch_->value(temp);
-	double wpm = r->monitor_->get_wpm();
-	std::snprintf(temp, sizeof(temp), "%.1f", wpm);
-	r->op_decoded_wpm_->value(temp);
+	// Store freq/WPM in atomics - will be read and displayed on main thread
+	double freq = monitor_->get_selected_bin_pitch();
+	r->latest_decoded_pitch_.store(freq, std::memory_order_relaxed);
+	double wpm = monitor_->get_wpm();
+	r->latest_decoded_wpm_.store(wpm, std::memory_order_relaxed);
 }
 
 // Add output text to display
@@ -753,5 +786,15 @@ void review::poll_decoded_text() {
 	std::string text;
 	while (decoded_text_queue_.try_pop(text)) {
 		add_sent_text(text, text_source_t::DECODED_TEXT);
+	}
+	// Safely update FLTK widgets with latest values from monitor thread
+	double freq = latest_decoded_pitch_.load(std::memory_order_relaxed);
+	double wpm = latest_decoded_wpm_.load(std::memory_order_relaxed);
+	if (freq > 0.0 || wpm > 0.0) {
+		char temp[10];
+		snprintf(temp, sizeof(temp), "%.0f", freq);
+		op_decoded_pitch_->value(temp);
+		snprintf(temp, sizeof(temp), "%.1f", wpm);
+		op_decoded_wpm_->value(temp);
 	}
 }

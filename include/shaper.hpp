@@ -21,10 +21,11 @@
 #include "codec.hpp"
 
 #include "zc_async_queue.h"
-#include "zc_audio_data.h"
 
 #include <atomic>
+#include <condition_variable>
 #include <map>
+#include <mutex>
 #include <queue>
 #include <random>
 #include <string>
@@ -101,7 +102,7 @@ class shaper
 {
 public:
 	//! Constructor. Takes the audio data queue as arguments.
-	shaper(zc_async_queue<zc_audio_data>* audio_data_queue);
+	shaper(zc_async_queue<double>* audio_data_queue, zc_async_queue<std::string>* text_queue);
 	//! Destructor.
 	~shaper();
 	//! Apply the current settings to update the internal state of the shaper.
@@ -117,35 +118,34 @@ private:
 	//! to the new state (mark or space) using a raised cosine function 
 	//! and then continues in the new state for the remaining duration of the symbol.
 	//! \param symbol The symbol for which to generate the audio envelope.
-	//! \param audio_samples The queue to which the generated audio samples will be pushed.
-	void generate_envelope(symbol_t symbol, std::queue<float>& audio_samples);
+	void generate_envelope(symbol_t symbol);
 
 	//! Generate timing disturbance value.
-	float generate_delta_t();
+	double generate_delta_t();
 
 	//! Add a raised cosine transition onto the specified audio sample queue.
-	void add_raised_cosine(std::queue<float>& audio_samples, float duration, bool target_mark);
+	void add_raised_cosine(zc_async_queue<double>* audio_samples, double duration, bool target_mark);
 
 	//! Add an overshoot disturbance to the specified audio sample queue.
-	void add_overshoot(std::queue<float>& audio_samples, float duration, bool target_mark);
+	void add_overshoot(zc_async_queue<double>* audio_samples, double duration, bool target_mark);
 
 	//! Current state of the shaper (mark or space)
 	bool is_mark_ = false;
 
 	//! Current dot-time duration in seconds.
-	float dot_time_ = 0.1F;
+	double dot_time_ = 0.1F;
 	//! Timing disturbance level (0-5).
 	int timing_disturbance_level_ = 0;
 	//! Duration of the raised cosine transition in seconds.
-	float rise_fall_time_ = 0.01F;
+	double rise_fall_time_ = 0.01F;
 	//! Current speed mode (Farnsworth, Wordsworth, or normal).
 	speed_type speed_mode_ = speed_type::NORMAL;
 	//! Dot speed in WPM.
-	float dot_speed_ = 12.0F;
+	double dot_speed_ = 12.0F;
 	//! Overall speed in WPM for Farnsworth and Wordsworth modes.
-	float overall_speed_ = 12.0F;
+	double overall_speed_ = 12.0F;
 	//! Nominal symbol durations in seconds for the effective speed.
-	std::map<symbol_t, float> symbol_durations_;
+	std::map<symbol_t, double> symbol_durations_;
 
 	//! Update the symbol durations based on the current speed settings.
 	void update_symbol_durations();
@@ -160,13 +160,25 @@ private:
 	static void generation_loop(shaper* shaper_instance);
 
 	//! Pointer to the audio data queue.
-	zc_async_queue<zc_audio_data>* audio_data_queue_;
+	zc_async_queue<double>* audio_data_queue_ = nullptr;
+	//! Monitored text queue
+	zc_async_queue<std::string>* text_queue_ = nullptr;
 
 	//! Random number generator for timing disturbance.
 	std::mt19937 rng_;
-	std::uniform_real_distribution<float> dist_;
+	std::uniform_real_distribution<double> dist_;
 
 	//! Test mode B - Solid tone
 	bool test_mode_b_ = false;
 
+	//! Condition variable for waking up the generation thread when more samples are needed.
+	std::condition_variable wake_condition_;
+	//! Mutex for the wake condition variable.
+	std::mutex wake_mutex_;
+
+public:
+	//! Wake up the generation thread to produce more samples.
+	void wake();
+
+private:
 };

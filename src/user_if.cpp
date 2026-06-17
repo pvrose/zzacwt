@@ -460,8 +460,8 @@ void user_if::update_disturber_widgets() {
 	sl_timing_dist_->value(timing_dist);
 
 	// Get softness setting
-	float softness;
-	settings.get<float>("Softness", softness, (DEFAULT_RISE_FALL * 1000.0F));
+	double softness;
+	settings.get<double>("Softness", softness, (DEFAULT_RISE_FALL * 1000.0F));
 	sl_softness_->value(softness);
 
 	// Get noise volume setting
@@ -478,8 +478,8 @@ void user_if::update_disturber_widgets() {
 	sl_noise_severity_->value(noise_severity);
 
 	// Get drift rate setting
-	float drift_rate;
-	settings.get("Drift Rate", drift_rate, 0.0F);
+	double drift_rate;
+	settings.get("Drift Rate", drift_rate, 0.0);
 	sl_drift_rate_->value(drift_rate);
 
 	// Get drift amplitude setting
@@ -491,26 +491,26 @@ void user_if::update_disturber_widgets() {
 	settings.set("Drift Amplitude", drift_amplitude);
 
 	// Get drift period setting
-	float drift_period;
-	settings.get("Drift Period", drift_period, 1.0F);
-	if (drift_period < 1.0F) drift_period = 1.0F;
-	if (drift_period > 10.0F) drift_period = 10.0F;
+	double drift_period;
+	settings.get("Drift Period", drift_period, 1.0);
+	if (drift_period < 1.0) drift_period = 1.0;
+	if (drift_period > 10.0) drift_period = 10.0;
 	sl_drift_period_->value(drift_period);
 	settings.set("Drift Period", drift_period);
 
 	// Get fading depth setting
-	float fading_depth;
-	settings.get("Fading Depth", fading_depth, 0.0F);
-	if (fading_depth < 0.0F) fading_depth = 0.0F;
-	else if (fading_depth > 1.0F) fading_depth = 1.0F;
+	double fading_depth;
+	settings.get("Fading Depth", fading_depth, 0.0);
+	if (fading_depth < 0.0) fading_depth = 0.0;
+	else if (fading_depth > 1.0) fading_depth = 1.0;
 	sl_fading_depth_->value(fading_depth);
 	settings.set("Fading Depth", fading_depth);
 
 	// Get fading period setting
-	float fading_period;
-	settings.get("Fading Period", fading_period, 1.0F);
-	if (fading_period < 0.1F) fading_period = 0.1F;
-	else if (fading_period > 10.0F) fading_period = 10.0F;
+	double fading_period;
+	settings.get("Fading Period", fading_period, 1.0);
+	if (fading_period < 0.1) fading_period = 0.1;
+	else if (fading_period > 10.0) fading_period = 10.0;
 	sl_fading_period_->value(fading_period);
 	settings.set("Fading Period", fading_period);
 
@@ -807,7 +807,7 @@ void user_if::cb_drift_rate(Fl_Widget* w, void* data)
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	float drift_rate = sl->value();
+	double drift_rate = sl->value();
 	settings.set("Drift Rate", drift_rate);
 	ui->update_disturber_widgets();
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect drift rate changes
@@ -831,7 +831,7 @@ void user_if::cb_drift_period(Fl_Widget* w, void* data)
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	float drift_period = sl->value();
+	double drift_period = sl->value();
 	settings.set("Drift Period", drift_period);
 	ui->update_disturber_widgets();
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect drift period changes
@@ -843,7 +843,7 @@ void user_if::cb_fading_depth(Fl_Widget* w, void* data)
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	float fading_depth = sl->value();
+	double fading_depth = sl->value();
 	settings.set("Fading Depth", fading_depth);
 	ui->update_disturber_widgets();
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect fading depth changes
@@ -855,7 +855,7 @@ void user_if::cb_fading_period(Fl_Widget* w, void* data)
 	Fl_Value_Slider* sl = static_cast<Fl_Value_Slider*>(w);
 	user_if* ui = static_cast<user_if*>(data);
 	zc_settings settings;
-	float fading_period = sl->value();
+	double fading_period = sl->value();
 	settings.set("Fading Period", fading_period);
 	ui->update_disturber_widgets();
 	ui->apply_oscillator_settings(); // Apply oscillator settings immediately to reflect fading period changes
@@ -869,7 +869,7 @@ void user_if::cb_default(Fl_Widget* w, void* data)
 	zc_settings settings;
 	settings.set("Disturber Type", disturber_type::NONE);
 	settings.set("Timing Disturbance", 0);
-	settings.set("Softness", DEFAULT_RISE_FALL * 1000.0F);
+	settings.set("Softness", DEFAULT_RISE_FALL * 1000.0);
 	settings.set("Noise Volume", -40);
 	settings.set("Noise Severity", 0);
 	settings.set("Drift Rate", 0);

@@ -28,8 +28,11 @@
 #include <FL/Fl_Widget.H>
 
 #include <array>
+#include <atomic>
 #include <cstdint>
+#include <mutex>
 #include <string>
+#include <thread>
 
 class Fl_Button;
 class Fl_Check_Button;
@@ -118,9 +121,6 @@ public:
 	//! Needs to run in main thread to avoid FLTK crashing when trying to draw from another thread.
 	static void cb_redraw(void* data);
 
-	//! Return pointer to monitor
-	monitor* my_monitor() { return monitor_; }
-
 private:
 
 	//! \brief Create the widgets for the review window.
@@ -191,16 +191,25 @@ private:
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
 	audio_source_t decode_source_;  //!< Source of audio for decoding.
 
-	//! Monitor instance
-	monitor* monitor_ = nullptr;
-
 	//! Queue of sent text
 	zc_async_queue<std::string>* text_queue_;
 	//! Queue of decoded text
 	zc_async_queue<std::string> decoded_text_queue_;
 
 	//! Spectrogram data.
-	zc_graph_::data_set_dens_t* spectrogram_data_capture_;
-	zc_graph_::data_set_dens_t* spectrogram_data_display_;
+	zc_graph_::data_set_dens_t* spectrogram_data_capture_;  // Written by monitor thread
+	zc_graph_::data_set_dens_t* spectrogram_data_display_;  // Read by FLTK on main thread
+	std::mutex spectrogram_mutex_;                          // Protects buffer swap
+	std::atomic<bool> spectrogram_data_ready_{false};       // Flag for buffer swap
+
+	//! Main thread ID for thread safety checks
+	std::thread::id main_thread_id_;
+
+	//! Latest decoded pitch and WPM (set from monitor thread, read from main thread)
+	std::atomic<double> latest_decoded_pitch_{0.0};
+	std::atomic<double> latest_decoded_wpm_{0.0};
+
+	//! Check if we're on the main thread, throw exception if not
+	void check_main_thread(const char* method_name) const;
 
 };

@@ -21,6 +21,8 @@
 
 #include "zc_async_queue.h"
 
+#include <condition_variable>
+#include <mutex>
 #include <queue>
 #include <thread>
 
@@ -67,7 +69,7 @@ class oscillator {
 public:
 	//! Constructor
 	//! \param output_queue Pointer to the queue where the oscillator will push generated audio samples
-	oscillator(zc_async_queue<float>* output_queue);
+	oscillator(zc_async_queue<double>* output_queue);
 
 	//! Destructor
 	~oscillator();
@@ -78,46 +80,46 @@ public:
 private:
 
 	//! Generate next sample based on current settings. Update the phase accumulator and apply any frequency drift as needed.
-	float next_sample();
+	double next_sample();
 
 	//! Pointer to the output queue.
-	zc_async_queue<float>* output_queue_ = nullptr;
+	zc_async_queue<double>* output_queue_ = nullptr;
 
 	//! Current phase accumulator for the oscillator (in radians).
-	float phase_accumulator_ = 0.0F;
+	double phase_accumulator_ = 0.0F;
 
 	//! Oscillator base pitch (in Hz).
-	float base_pitch_ = 700.0F;
+	double base_pitch_ = 700.0F;
 
 	//! Output level for the oscillator. This is a constant value that represents the amplitude of the output signal. The actual audio sample value will be this level multiplied by the sine of the phase accumulator.
-	float output_level_ = 1.0F;
+	double output_level_ = 1.0F;
 
 	//! Drift parameters - drift type.
 	disturber_type current_disturber_ = disturber_type::NONE;
 	//! Drift rate for steady drift (in Hz per second).
-	float drift_rate_ = 0.0F;
+	double drift_rate_ = 0.0F;
 	//! Drift amplitude for cyclic drift (in Hz).
-	float drift_amplitude_ = 0.0F;
+	double drift_amplitude_ = 0.0F;
 	//! Drift period for cyclic drift (in seconds).
-	float drift_period_ = 0.0F;
+	double drift_period_ = 0.0F;
 	//! Current drift phase accumulator for cyclic drift (in radians).
-	float drift_phase_accumulator_ = 0.0F;
+	double drift_phase_accumulator_ = 0.0F;
 	//! Current drift frequency offset (in Hz).
-	float current_drift_offset_ = 0.0F;
+	double current_drift_offset_ = 0.0F;
 	//! Sample delta time (in seconds) for calculating drift changes.
-	const float sample_delta_time_ = 1.0F / static_cast<float>(DEFAULT_SAMPLE_RATE);
+	const double sample_delta_time_ = 1.0F / DEFAULT_SAMPLE_RATE;
 	//! Update the current drift offset and return the total frequency 
 	//! (base pitch plus drift) for the current sample.
-	float update_drift_and_get_frequency();
+	double update_drift_and_get_frequency();
 
 	//! Fading parameters - period  in seconds.
-	float fading_period = 0.0F; 
+	double fading_period = 0.0F; 
 	//! Current fading phase accumulator (in radians).
-	float fading_phase_accumulator_ = 0.0F;
+	double fading_phase_accumulator_ = 0.0F;
 	//! fading amplitude (0 to 1).
-	float fading_amplitude_ = 0.0F;
+	double fading_amplitude_ = 0.0F;
 	//! Update the current fading level based on the fading settings and return the current fading multiplier (0 to 1) to apply to the output sample.
-	float update_fading_and_get_multiplier();
+	double update_fading_and_get_multiplier();
 
 	//! Thread for generating audio samples.
 	std::thread generation_thread_;
@@ -126,4 +128,14 @@ private:
 	//! Method for the generation thread to continuously generate audio samples and push them onto the output queue.
 	static void generation_loop(oscillator* osc);
 
+	//! Condition variable for waking up the generation thread when more samples are needed.
+	std::condition_variable wake_condition_;
+	//! Mutex for the wake condition variable.
+	std::mutex wake_mutex_;
+
+public:
+	//! Wake up the generation thread to produce more samples.
+	void wake();
+
+private:
 };
