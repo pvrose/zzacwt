@@ -79,9 +79,9 @@ mod_mixer::~mod_mixer() {
 //! This function runs in a separate thread and combines samples from the oscillator,
 //! shaper, and noise generator to produce the final audio output.
 void mod_mixer::modulation_loop(mod_mixer* that) {
-	fprintf(stderr, "[THREAD] Mod_mixer thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
-	try {
 #ifdef ENABLE_QUEUE_MONITORING
+	fprintf(stderr, "[THREAD] Mod_mixer thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+	try {
 	// Queue monitoring variables
 	size_t osc_min = SIZE_MAX, osc_max = 0;
 	size_t shaper_min = SIZE_MAX, shaper_max = 0;
@@ -233,14 +233,16 @@ void mod_mixer::modulation_loop(mod_mixer* that) {
 			std::this_thread::yield();
 		}
 	}
-	fprintf(stderr, "[THREAD] Mod_mixer thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+	fprintf(stderr, "[THREAD] Mod_mixer thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 	catch (const std::exception& e) {
-		fprintf(stderr, "[THREAD] Mod_mixer thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+		fprintf(stderr, "[THREAD] Mod_mixer thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
 	}
 	catch (...) {
-		fprintf(stderr, "[THREAD] Mod_mixer thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+		fprintf(stderr, "[THREAD] Mod_mixer thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
+#endif
 }
 
 //! \brief Clear all queues and reset the internal state of the modulator/mixer

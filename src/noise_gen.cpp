@@ -28,6 +28,16 @@
 #include <thread>
 #include <vector>
 
+// Enable queue monitoring in debug builds
+#ifdef _DEBUG
+#define ENABLE_QUEUE_MONITORING
+#endif
+
+#ifdef ENABLE_QUEUE_MONITORING
+#include <chrono>
+#include <iostream>
+#endif
+
 extern double DEFAULT_SAMPLE_RATE; //!< Default audio sample rate
 extern int NOISE_CHUNK_SIZE; //!< Number of samples to generate in each chunk when generating noise
 extern int LOWER_CHUNK_SIZE;
@@ -105,8 +115,10 @@ void noise_gen::apply_settings() {
 //! according to the current settings and pushes them onto 
 //! the audio data queue.
 void noise_gen::generation_loop(noise_gen* instance) {
-	fprintf(stderr, "[THREAD] Noise_gen thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+	fprintf(stderr, "[THREAD] Noise_gen thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	try {
+#endif
 		while (!instance->stop_generation_) {
 		if (instance->clear_requested_) {
 			// Clear the output queue and reset internal state
@@ -167,14 +179,16 @@ void noise_gen::generation_loop(noise_gen* instance) {
 			instance->wake_condition_.wait(lock);
 		}
 		}
-		fprintf(stderr, "[THREAD] Noise_gen thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+		fprintf(stderr, "[THREAD] Noise_gen thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 	catch (const std::exception& e) {
-		fprintf(stderr, "[THREAD] Noise_gen thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+		fprintf(stderr, "[THREAD] Noise_gen thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
 	}
 	catch (...) {
-		fprintf(stderr, "[THREAD] Noise_gen thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+		fprintf(stderr, "[THREAD] Noise_gen thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
+#endif
 }
 
 //! Generate a single burst of impact noise. This will consist of a short burst of white noise.

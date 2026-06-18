@@ -19,6 +19,16 @@
 
 #include "zc_settings.h"
 
+// Enable queue monitoring in debug builds
+#ifdef _DEBUG
+#define ENABLE_QUEUE_MONITORING
+#endif
+
+#ifdef ENABLE_QUEUE_MONITORING
+#include <chrono>
+#include <iostream>
+#endif
+
 // Local constant for pi (GCC-compatible)
 namespace {
 	constexpr double PI = 3.14159265358979323846;
@@ -73,8 +83,10 @@ void oscillator::apply_settings() {
 
 //! \brief Generation loop for the oscillator thread
 void oscillator::generation_loop(oscillator* osc) {
-	fprintf(stderr, "[THREAD] Oscillator thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+	fprintf(stderr, "[THREAD] Oscillator thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	try {
+#endif
 		// Set first phase accumulator value to 0 and set first output value to 0.
 		osc->phase_accumulator_ = 0.0;
 		osc->output_queue_->push(0.0);
@@ -95,14 +107,16 @@ void oscillator::generation_loop(oscillator* osc) {
 			osc->wake_condition_.wait(lock);
 		}
 		}
-		fprintf(stderr, "[THREAD] Oscillator thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+		fprintf(stderr, "[THREAD] Oscillator thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 	catch (const std::exception& e) {
-		fprintf(stderr, "[THREAD] Oscillator thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+		fprintf(stderr, "[THREAD] Oscillator thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
 	}
 	catch (...) {
-		fprintf(stderr, "[THREAD] Oscillator thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+		fprintf(stderr, "[THREAD] Oscillator thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
+#endif
 }
 
 //! \brief Generate the next audio sample based on the current settings

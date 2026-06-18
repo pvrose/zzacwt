@@ -32,6 +32,16 @@
 #include <thread>
 #include <vector>
 
+// Enable queue monitoring in debug builds
+#ifdef _DEBUG
+#define ENABLE_QUEUE_MONITORING
+#endif
+
+#ifdef ENABLE_QUEUE_MONITORING
+#include <chrono>
+#include <iostream>
+#endif
+
 constexpr double MARK_VALUE = 1.0F; //!< Value of the audio envelope when in mark state
 constexpr double SPACE_VALUE = 0.0F; //!< Value of the audio envelope when in space state
 
@@ -139,8 +149,10 @@ void shaper::update_symbol_durations() {
 
 //! Generation loop for the generation thread
 void shaper::generation_loop(shaper* that) {
-	fprintf(stderr, "[THREAD] Shaper thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+	fprintf(stderr, "[THREAD] Shaper thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	try {
+#endif
 		while (!that->stop_generation_) {
 		if (!text_gen_) continue;
 		if (that->clear_requested_) {
@@ -212,14 +224,16 @@ void shaper::generation_loop(shaper* that) {
 			that->wake_condition_.wait(lock);
 		}
 		}
-		fprintf(stderr, "[THREAD] Shaper thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+		fprintf(stderr, "[THREAD] Shaper thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 	catch (const std::exception& e) {
-		fprintf(stderr, "[THREAD] Shaper thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+		fprintf(stderr, "[THREAD] Shaper thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
 	}
 	catch (...) {
-		fprintf(stderr, "[THREAD] Shaper thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+		fprintf(stderr, "[THREAD] Shaper thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
+#endif
 }
 
 

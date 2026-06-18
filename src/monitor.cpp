@@ -33,6 +33,16 @@
 
 #include <fftw3.h>
 
+// Enable queue monitoring in debug builds
+#ifdef _DEBUG
+#define ENABLE_QUEUE_MONITORING
+#endif
+
+#ifdef ENABLE_QUEUE_MONITORING
+#include <chrono>
+#include <iostream>
+#endif
+
 // External sample rate variable defined in main.cpp. 
 extern double DEFAULT_SAMPLE_RATE;
 extern int DEFAULT_FFT_SIZE;
@@ -174,8 +184,10 @@ void monitor::start_monitor(double max_value) {
 // Processing thread function to continuously process the audio samples and recover the symbols until signalled to stop.
 void monitor::processing_thread_function(monitor* self)
 {
-	fprintf(stderr, "[THREAD] Monitor thread started, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+	fprintf(stderr, "[THREAD] Monitor thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	try {
+#endif
 		while (!self->stop_processing_) {
 			// Check if there are enough samples to process (thread-safe with mutex).
 			bool should_process = false;
@@ -187,16 +199,18 @@ void monitor::processing_thread_function(monitor* self)
 			}
 			std::this_thread::yield();
 		}
-		fprintf(stderr, "[THREAD] Monitor thread exiting normally, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#ifdef ENABLE_QUEUE_MONITORING
+		fprintf(stderr, "[THREAD] Monitor thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
 	catch (const std::exception& e) {
 		// Log the exception so we know what went wrong
-		fprintf(stderr, "[THREAD] Monitor thread exception, ID: %u, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
+		fprintf(stderr, "[THREAD] Monitor thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
 		// Thread will exit cleanly with code 0 instead of 1
 	}
 	catch (...) {
-		fprintf(stderr, "[THREAD] Monitor thread unknown exception, ID: %u\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+		fprintf(stderr, "[THREAD] Monitor thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
+#endif
 }
 
 // Process one chunk of audio samples

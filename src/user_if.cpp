@@ -25,10 +25,9 @@
 #include "shaper.hpp"
 #include "text_gen.hpp"
 
-#include "zc_drawing.h"
+#include "zc_audio.h"
 #include "zc_fltk.h"
 #include "zc_settings.h"
-#include "zc_speaker.h"
 
 #include <FL/Enumerations.H>
 #include <FL/fl_ask.H>
@@ -50,7 +49,7 @@ extern oscillator* oscillator_;
 extern mod_mixer* mod_mixer_;
 extern noise_gen* noise_gen_;
 extern shaper* shaper_;
-extern zc_speaker* speaker_;
+extern zc_audio* speaker_;
 extern text_gen* text_gen_;
 extern review* review_;
 
