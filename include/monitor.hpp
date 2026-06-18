@@ -85,7 +85,7 @@ class monitor
 {
 public:
 	//! Constructor.
-	monitor(zc_async_queue<double>* audio);
+	monitor(zc_async_queue<double>* audio_sent, zc_async_queue<double>* audio_received);
 	//! Destructor.
 	~monitor();
 
@@ -114,6 +114,22 @@ public:
 
 	//! Set the decoded string callback
 	void set_decode_callback(std::function<void(void*, const std::string&)> callback, void* user_data);
+
+	//! Set the monitoring source. If set to NO_AUDIO, monitoring will be disabled. 
+	//! Queues may still need to be drained.
+	void set_monitoring_source(audio_source_t source) {
+		switch (source) {
+		case audio_source_t::NO_AUDIO:
+			active_audio_queue_ = nullptr;
+			break;
+		case audio_source_t::SENT_AUDIO:
+			active_audio_queue_ = audio_sent_queue_;
+			break;
+		case audio_source_t::MIC_AUDIO:
+			active_audio_queue_ = audio_received_queue_;
+			break;
+		}
+	}
 
 
 private:
@@ -176,13 +192,15 @@ private:
 	//! Flag to signal the processing thread to stop.
 	std::atomic<bool> stop_processing_ = false;
 
-	//! Audio queue
-	zc_async_queue<double>* audio_queue_ = nullptr;
+	//! Audio queue - sent by the app.
+	zc_async_queue<double>* audio_sent_queue_ = nullptr;
+	//! Audio queue - received by the monitor.
+	zc_async_queue<double>* audio_received_queue_ = nullptr;
+	//! Current active audio queue to be processed. This is a pointer to either the sent or received queue.
+	std::atomic<zc_async_queue<double>*> active_audio_queue_ = nullptr;
 
 	//! Local copy of the audio queue to be processed. This is a deque of audio samples.
 	std::deque<double> audio_queue_copy_;
-	//! Mutex to protect audio_queue_ from concurrent access.
-//	std::mutex audio_queue_mutex_;
 
 	//! FFT input buffer.
 	fftw_complex* fft_input_buffer_ = nullptr;
@@ -247,9 +265,6 @@ private:
 	unsigned int fft_size_ = 0; // Number of samples for the FFT (F).
 	unsigned int image_interval_ = 0; // Interval between images in samples (N).
 	unsigned int display_depth_ = 0; // Number of images to display in the frequency domain plot.
-
-	//! Monitor enabled
-	bool enabled_ = false;
 
 	//! FFT shaping window
 	std::vector<double> shaping_window_;

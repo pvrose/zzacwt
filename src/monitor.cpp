@@ -50,8 +50,9 @@ extern double DEFAULT_OVERLAP;
 extern double DEFAULT_MAX_PITCH;
 extern double DEFAULT_MAX_TIME;
 
-monitor::monitor(zc_async_queue<double>* audio)
-	: audio_queue_(audio)
+monitor::monitor(zc_async_queue<double>* audio_sent, zc_async_queue<double>* audio_received)
+	: audio_sent_queue_(audio_sent), 
+	audio_received_queue_(audio_received)
 {
 }
 
@@ -79,8 +80,6 @@ void monitor::load_parameters()
 	display_depth_ = static_cast<int>(max_time / time_per_sample);
 	audio_source_t source = audio_source_t::NO_AUDIO;
 	settings.get("Decode Source", source, source);
-	if (source != audio_source_t::NO_AUDIO) enabled_ = true;
-	else enabled_ = false;
 	// Use set dot speed as a basis for setting decoding thresholds
 	double dot_speed;
 	settings.get("Dot Speed", dot_speed, 20.0);
@@ -175,10 +174,8 @@ void monitor::start_monitor(double max_value) {
 	running_mean_low_.add(0.0);
 	update_detected_signal_levels();
 	selected_signal_bin_ = -1;
-	if (enabled_) {
-		create_fft_buffers_and_plan();
-		start_processing_thread();
-	}
+	create_fft_buffers_and_plan();
+	start_processing_thread();
 }
 
 // Processing thread function to continuously process the audio samples and recover the symbols until signalled to stop.
@@ -192,7 +189,8 @@ void monitor::processing_thread_function(monitor* self)
 			// Check if there are enough samples to process (thread-safe with mutex).
 			bool should_process = false;
 			{
-				should_process = (self->audio_queue_->size() >= self->fft_size_);
+				zc_async_queue<double>* active_queue = self->active_audio_queue_;
+				should_process = (!active_queue || active_queue->size() >= self->fft_size_);
 			}
 			if (should_process) {
 				self->process_audio_samples();
@@ -218,29 +216,48 @@ void monitor::process_audio_samples() {
 	// Copy the first M samples of the audio buffer into the FFT input.
 	// Protected by mutex to ensure thread safety with audio callback thread.
 	{
-		while (audio_queue_copy_.size() < fft_size_) {
-			// Copy the audio queue 
+		if (active_audio_queue_) {
+			while (audio_queue_copy_.size() < fft_size_) {
+				// Copy the audio queue 
+				double sample;
+				zc_async_queue<double>* active_queue = active_audio_queue_;
+				if (active_queue && active_queue->try_pop(sample)) {
+					audio_queue_copy_.push_back(sample);
+				}
+				else {
+					break;
+				}
+			}
+			for (size_t i = 0; i < fft_size_; i++) {
+				if (i < audio_queue_copy_.size()) {
+					fft_input_buffer_[i][0] = audio_queue_copy_[i] * shaping_window_[i]; // Real part
+					fft_input_buffer_[i][1] = 0.0; // Imaginary part
+				}
+				else {
+					fft_input_buffer_[i][0] = 0.0; // Real part
+					fft_input_buffer_[i][1] = 0.0; // Imaginary part
+				}
+			}
+			// Remove the first N samples from the audio queue
+			for (size_t i = 0; i < image_interval_ && !audio_queue_copy_.empty(); i++) {
+				audio_queue_copy_.pop_front();
+			}
+		}
+		// TODO The below code is in the audio processing path - consider moving it as it is not 
+		// needed for the FFT processing. 
+		// Drain the queues that are not being monitored to prevent them from 
+		// filling up and blocking the audio callback thread.
+		if (active_audio_queue_ != audio_sent_queue_) {
 			double sample;
-			if (audio_queue_->try_pop(sample)) {
-				audio_queue_copy_.push_back(sample);
-			}
-			else {
-				break;
+			while (audio_sent_queue_->try_pop(sample)) {
+				// Discard the sample
 			}
 		}
-		for (size_t i = 0; i < fft_size_; i++) {
-			if (i < audio_queue_copy_.size()) {
-				fft_input_buffer_[i][0] = audio_queue_copy_[i] * shaping_window_[i]; // Real part
-				fft_input_buffer_[i][1] = 0.0; // Imaginary part
+		if (active_audio_queue_ != audio_received_queue_) {
+			double sample;
+			while (audio_received_queue_->try_pop(sample)) {
+				// Discard the sample
 			}
-			else {
-				fft_input_buffer_[i][0] = 0.0; // Real part
-				fft_input_buffer_[i][1] = 0.0; // Imaginary part
-			}
-		}
-		// Remove the first N samples from the audio queue
-		for (size_t i = 0; i < image_interval_ && !audio_queue_copy_.empty(); i++) {
-			audio_queue_copy_.pop_front();
 		}
 	}
 	// Execute the FFT to get the frequency domain representation of the audio samples.

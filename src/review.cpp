@@ -44,6 +44,8 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
@@ -411,12 +413,8 @@ void review::cb_decode_source(Fl_Widget* w, void* data) {
 	zc_settings settings;
 	settings.set("Decode Source", r->decode_source_);
 	r->update_decoder_controls();
-	if (r->decode_source_ == audio_source_t::NO_AUDIO) {
-		monitor_->stop_monitor();
-	}
-	else {
-		r->configure_spectrogram();
-	}
+	monitor_->stop_monitor();
+	r->configure_spectrogram();
 }
 
 void review::cb_compare_decoded(Fl_Widget* w, void* data) {
@@ -605,8 +603,8 @@ void review::cb_ticker(void* data) {
 	// Swap spectrogram buffers if monitor thread has written new data
 	if (r->spectrogram_data_ready_.load(std::memory_order_acquire)) {
 		std::lock_guard<std::mutex> lock(r->spectrogram_mutex_);
-		// Swap capture and display pointers
-		std::swap(r->spectrogram_data_capture_, r->spectrogram_data_display_);
+		// Move captured data to display buffer for rendering
+		*r->spectrogram_data_display_ = *r->spectrogram_data_capture_;
 		r->spectrogram_data_ready_.store(false, std::memory_order_relaxed);
 	}
 	r->g_sgram_->redraw();
@@ -680,6 +678,7 @@ void review::configure_spectrogram() {
 	// to prevent race condition where thread tries to access uninitialized buffer
 	monitor_->set_display_buffer(spectrogram_data_capture_, cb_update_spectrogram, this);
 	monitor_->set_decode_callback(cb_decoder_callback, this);
+	monitor_->set_monitoring_source(decode_source_);
 
 	// Now it's safe to start the monitor processing thread
 	monitor_->start_monitor(max_z);

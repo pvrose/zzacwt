@@ -141,6 +141,7 @@ int main(int argc, char** argv)
 	// Create the combined audio queue
 	zc_async_queue<double>* audio_out_queue = new zc_async_queue<double>();
 	zc_async_queue<double>* audio_monitor_queue = new zc_async_queue<double>();
+	zc_async_queue<double>* audio_receive_queue = new zc_async_queue<double>();
 	// Create the modulator/mixer, passing producer objects for wake-up
 	mod_mixer_ = new mod_mixer(carrier_queue, envelope_queue, noise_queue, audio_out_queue,
 		oscillator_, shaper_, noise_gen_);
@@ -154,7 +155,7 @@ int main(int argc, char** argv)
 	}
 	status_->misc_status(ST_OK, "Audio output initialized successfully");
 
-	monitor_ = new monitor(audio_monitor_queue);
+	monitor_ = new monitor(audio_monitor_queue, audio_receive_queue);
 
 	// Show the window
 	window->show(argc, argv);
