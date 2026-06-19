@@ -26,11 +26,13 @@
 #include <stdexcept>
 
 class Fl_Button;
+class Fl_Check_Button;
 class Fl_Choice;
 class Fl_Group;
 class Fl_Input;
 class Fl_Text_Editor;
 class Fl_Value_Slider;
+class Fl_Widget;
 
 //! \brief Class user_if - the user interface for the CW trainer.
 class user_if : public Fl_Double_Window
@@ -63,6 +65,8 @@ public:
 	static void cb_stop(Fl_Widget* w, void* data);
 	static void cb_repeat(Fl_Widget* w, void* data);
 	static void cb_customise(Fl_Widget* w, void* data);
+	static void cb_enable_audio_in(Fl_Widget* w, void* data);
+	static void cb_enable_audio_out(Fl_Widget* w, void* data);
 	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
 
@@ -70,6 +74,12 @@ public:
 	int handle(int event) override;
 
 private:
+
+	Fl_Group* g_audio_;                 //!< Group for audio controls
+	Fl_Check_Button* cb_enable_audio_in_;  //!< Enable audio input checkbox
+	Fl_Check_Button* cb_enable_audio_out_; //!< Enable audio output checkbox
+	Fl_Choice* ch_audio_in_device_;  //!< Audio input device choice
+	Fl_Choice* ch_audio_out_device_; //!< Audio output device choice
 
 	Fl_Group* g_content_;               //!< Group for content
 	Fl_Choice* ch_mode_;                //!< Mode choice
@@ -109,6 +119,7 @@ private:
 	void update_speed_widgets();       //!< Update speed type and related widgets
 	void update_disturber_widgets();  //!< Update disturber type and related widgets
 	void update_tone_widgets();       //!< Update tone settings and related widgets
+	void update_audio_widgets();      //!< Update audio input/output device choices
 
 	//! Create the user interface controls and set their initial states
 	void create_widgets();
@@ -121,6 +132,13 @@ private:
 	void apply_noise_settings();
 	//! Apply the current settings to the speaker.
 	void apply_speaker_settings();
+	//! Apply the current settings to the microphone.
+	void apply_microphone_settings();
+
+	//! Speaker port number
+	int speaker_port_;
+	//! Microphone port number
+	int microphone_port_;
 
 public:
 

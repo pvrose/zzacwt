@@ -32,6 +32,7 @@
 #include <FL/Enumerations.H>
 #include <FL/fl_ask.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Group.H>
@@ -50,6 +51,7 @@ extern mod_mixer* mod_mixer_;
 extern noise_gen* noise_gen_;
 extern shaper* shaper_;
 extern zc_audio* speaker_;
+extern zc_audio* microphone_;
 extern text_gen* text_gen_;
 extern review* review_;
 
@@ -71,6 +73,48 @@ void user_if::create_widgets() {
 	int cx = GAP;
 	int cy = GAP;
 	const int WGROUPS = GAP + 3 * WBUTTON + GAP;
+
+	const int WWGROUP = 2 * WGROUPS + GAP;
+
+	g_audio_ = new Fl_Group(cx, cy, WWGROUP, 150, "Audio");
+	g_audio_->box(FL_BORDER_BOX);
+	g_audio_->align(FL_ALIGN_LEFT | FL_ALIGN_TOP | FL_ALIGN_INSIDE);
+
+	cx += GAP + WLABEL;
+	cy += HTEXT;
+	cb_enable_audio_in_ = new Fl_Check_Button(cx, cy, HBUTTON, HBUTTON, "In:");
+	cb_enable_audio_in_->value(0); // Default to disabled
+	cb_enable_audio_in_->align(FL_ALIGN_LEFT);
+	cb_enable_audio_in_->callback(cb_enable_audio_in, this);
+	cb_enable_audio_in_->tooltip("Enable audio input");
+
+	cx += HBUTTON;
+	ch_audio_in_device_ = new Fl_Choice(cx, cy, WEDIT, HBUTTON);
+	ch_audio_in_device_->tooltip("Select the audio input device");
+
+	cx = g_audio_->x() + GAP + WLABEL;
+	cy += HBUTTON;
+
+	cb_enable_audio_out_ = new Fl_Check_Button(cx, cy, HBUTTON, HBUTTON, "Out:");
+	cb_enable_audio_out_->value(1); // Default to enabled
+	cb_enable_audio_out_->align(FL_ALIGN_LEFT);
+	cb_enable_audio_out_->callback(cb_enable_audio_out, this);
+	cb_enable_audio_out_->tooltip("Enable audio output");
+
+	cx += HBUTTON;
+	ch_audio_out_device_ = new Fl_Choice(cx, cy, WEDIT, HBUTTON);
+	ch_audio_out_device_->tooltip("Select the audio output device");
+
+	cy += HBUTTON + GAP;
+	// End the audio group
+	g_audio_->end();
+	// Resize the audio group to fit the controls
+	g_audio_->resizable(nullptr);
+	int audio_height = cy - g_audio_->y();
+	g_audio_->size(g_audio_->w(), audio_height);
+
+	cy += GAP;
+	cx = g_audio_->x();
 
 	g_content_ = new Fl_Group(cx, cy, WGROUPS, 150, "Content");
 	g_content_->box(FL_BORDER_BOX);
@@ -211,7 +255,7 @@ void user_if::create_widgets() {
 
 	int needed_height = g_tone_->y() + tone_height + GAP;
 
-	cy = GAP;
+	cy = g_content_->y();
 	cx = g_content_->x() + g_content_->w() + GAP;
 
 	// Create the controls group for play/stop/repeat buttons
@@ -371,6 +415,7 @@ void user_if::create_widgets() {
 	size(total_width, total_height);
 
 	// Initialize widget values from settings
+	update_audio_widgets();
 	update_content_widgets();
 	update_speed_widgets();
 	update_disturber_widgets();
@@ -631,6 +676,58 @@ void user_if::update_tone_widgets() {
 	sl_pitch_->value(pitch);
 }
 
+void user_if::update_audio_widgets() {
+	zc_settings settings;
+	// Get the current audio input enabled state from settings
+	bool audio_in_enabled;
+	settings.get("Audio Input Enabled", audio_in_enabled, false);
+	cb_enable_audio_in_->value(audio_in_enabled ? 1 : 0);
+	// Get the current audio output enabled state from settings
+	bool audio_out_enabled;
+	settings.get("Audio Output Enabled", audio_out_enabled, false);
+	cb_enable_audio_out_->value(audio_out_enabled ? 1 : 0);
+	std::string selected_input_device;
+	settings.get<std::string>("Audio Input Device", selected_input_device, "");
+	// Populate the audio input device choice with available devices
+	ch_audio_in_device_->clear();
+	auto input_devices = microphone_->get_ports(DEFAULT_SAMPLE_RATE);
+	int i = 0;
+	for (const auto& device : input_devices) {
+		ch_audio_in_device_->add(device.c_str());
+		if (device == selected_input_device) {
+			ch_audio_in_device_->value(i);
+			microphone_port_ = i;
+		}
+		i++;
+	}
+	// Populate the audio output device choice with available devices
+	std::string selected_output_device;
+	settings.get<std::string>("Audio Output Device", selected_output_device, "");
+	ch_audio_out_device_->clear();
+	auto output_devices = speaker_->get_ports(DEFAULT_SAMPLE_RATE);
+	i = 0;
+	for (const auto& device : output_devices) {
+		ch_audio_out_device_->add(device.c_str());
+		if (device == selected_output_device) {
+			ch_audio_out_device_->value(i);
+			speaker_port_ = i;
+		}
+		i++;
+	}
+	if (audio_out_enabled) {
+		ch_audio_out_device_->deactivate();
+	}
+	else {
+		ch_audio_out_device_->activate();
+	}
+	if (audio_in_enabled) {
+		ch_audio_in_device_->deactivate();
+	}
+	else {
+		ch_audio_in_device_->activate();
+	}
+}	
+
 // Apply settings methods
 
 void user_if::apply_oscillator_settings()
@@ -650,6 +747,22 @@ void user_if::apply_noise_settings()
 
 void user_if::apply_speaker_settings()
 {
+	if (cb_enable_audio_out_->value()) {
+		speaker_->use_port(speaker_port_);
+	}
+	else {
+		if (speaker_->enabled()) speaker_->disconnect_port();
+	}
+}
+
+void user_if::apply_microphone_settings()
+{
+	if (cb_enable_audio_in_->value()) {
+		microphone_->use_port(microphone_port_);
+	}
+	else {
+		if (microphone_->enabled()) microphone_->disconnect_port();
+	}
 }
 
 // Callback implementations (placeholders)
@@ -968,6 +1081,54 @@ void user_if::cb_customise(Fl_Widget* w, void* data)
 	}
 	text_gen_->set_qso_user_macros(dialog->get_credentials());
 	delete dialog;
+}
+
+// Callback for the enable audio input checkbox - enables or disables audio input and saves the setting
+void user_if::cb_enable_audio_in(Fl_Widget* w, void* data)
+{
+	user_if* ui = static_cast<user_if*>(data);
+	Fl_Check_Button* cb = static_cast<Fl_Check_Button*>(w);
+	zc_settings settings;
+	if (cb->value()) {
+		const char* device = ui->ch_audio_in_device_->text();
+		ui->microphone_port_ = ui->ch_audio_in_device_->value();
+		if (device && device[0]) {
+			std::string selected_input_device = device;
+			settings.set("Audio Input Enabled", true);
+			settings.set("Audio Input Device", selected_input_device);
+			ui->update_audio_widgets();
+			ui->apply_microphone_settings();
+		}
+	}
+	else {
+		settings.set("Audio Input Enabled", false);
+		ui->update_audio_widgets();
+		ui->apply_microphone_settings();
+	}
+}
+
+// Callback for the enable audio output checkbox - enables or disables audio output and saves the setting
+void user_if::cb_enable_audio_out(Fl_Widget* w, void* data)
+{
+	user_if* ui = static_cast<user_if*>(data);
+	Fl_Check_Button* cb = static_cast<Fl_Check_Button*>(w);
+	zc_settings settings;
+	if (cb->value()) {
+		const char* device = ui->ch_audio_out_device_->text();
+		ui->speaker_port_ = ui->ch_audio_out_device_->value();
+		if (device && device[0]) {
+			std::string selected_output_device = device;
+			settings.set("Audio Output Enabled", true);
+			settings.set("Audio Output Device", selected_output_device);
+			ui->update_audio_widgets();
+			ui->apply_speaker_settings();
+		}
+	}
+	else {
+		settings.set("Audio Output Enabled", false);
+		ui->update_audio_widgets();
+		ui->apply_speaker_settings();
+	}
 }
 
 // Override the handle method to catch the CTRL/+ and CTRL/-.

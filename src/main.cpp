@@ -92,6 +92,7 @@ mod_mixer* mod_mixer_ = nullptr; //!< Pointer to the modulator/mixer instance
 zc_audio* speaker_ = nullptr; //!< Pointer to the speaker instance
 review* review_ = nullptr; //!< Pointer to the review window instance
 monitor* monitor_ = nullptr; //!< Pointer to the monitor window instance
+zc_audio* microphone_ = nullptr; //!< Pointer to the microphone instance
 zc_async_queue<std::string>* mon_text_q_ = nullptr; //!< Pointer to monitored text interface
 
 bool restart_ = false; //!< Flag to indicate that the app should be restarted - when the user changes a setting that requires a restart
@@ -119,6 +120,14 @@ int main(int argc, char** argv)
 
 	// Create the monitor queue
 	mon_text_q_ = new zc_async_queue<std::string>;
+	// Create the combined audio queue
+	zc_async_queue<double>* audio_out_queue = new zc_async_queue<double>();
+	zc_async_queue<double>* audio_monitor_queue = new zc_async_queue<double>();
+	zc_async_queue<double>* audio_receive_queue = new zc_async_queue<double>();
+	// Create the speaker before user if.
+	speaker_ = new zc_audio(zc_audio_direction::AUDIO_OUT, 1, audio_out_queue, audio_monitor_queue);
+	// Create the microphone
+	microphone_ = new zc_audio(zc_audio_direction::AUDIO_IN, 1, audio_receive_queue, nullptr);
 
 	// Create the main user interface window
 	user_if* window = new user_if(600, 800);
@@ -138,22 +147,16 @@ int main(int argc, char** argv)
 	zc_async_queue<double>* noise_queue = new zc_async_queue<double>();
 	// Create the noise generator
 	noise_gen_ = new noise_gen(noise_queue);
-	// Create the combined audio queue
-	zc_async_queue<double>* audio_out_queue = new zc_async_queue<double>();
-	zc_async_queue<double>* audio_monitor_queue = new zc_async_queue<double>();
-	zc_async_queue<double>* audio_receive_queue = new zc_async_queue<double>();
 	// Create the modulator/mixer, passing producer objects for wake-up
 	mod_mixer_ = new mod_mixer(carrier_queue, envelope_queue, noise_queue, audio_out_queue,
 		oscillator_, shaper_, noise_gen_);
-	// Create the speaker
-	speaker_ = new zc_audio(zc_audio_direction::AUDIO_OUT, 1, audio_out_queue, audio_monitor_queue);
 
-	// Initialize and enable the speaker (uses default audio device)
-	if (!speaker_->use_port(0)) {
-		status_->misc_status(ST_ERROR, "Failed to select audio port");
-		return 1;
-	}
-	status_->misc_status(ST_OK, "Audio output initialized successfully");
+	//// Initialize and enable the speaker (uses default audio device)
+	//if (!speaker_->use_port(0)) {
+	//	status_->misc_status(ST_ERROR, "Failed to select audio port");
+	//	return 1;
+	//}
+	//status_->misc_status(ST_OK, "Audio output initialized successfully");
 
 	monitor_ = new monitor(audio_monitor_queue, audio_receive_queue);
 
