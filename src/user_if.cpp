@@ -37,6 +37,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Input.H>
+#include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Widget.H>
@@ -45,6 +46,18 @@
 #include <algorithm>
 #include <map>
 #include <string>
+
+// Include platform-specific headers for opening files.
+#ifdef _WIN32
+#include <Windows.h>
+// Undefine min and max macros that may be defined by Windows headers to avoid conflicts with std::min and std::max.
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+#endif
 
 extern oscillator* oscillator_;
 extern mod_mixer* mod_mixer_;
@@ -73,8 +86,9 @@ void user_if::create_widgets() {
 	int cx = GAP;
 	int cy = GAP;
 	const int WGROUPS = GAP + 3 * WBUTTON + GAP;
+	const int WHELP = 2 * GAP + HBUTTON;
 
-	const int WWGROUP = 2 * WGROUPS + GAP;
+	const int WWGROUP = 2 * WGROUPS - WHELP;
 
 	g_audio_ = new Fl_Group(cx, cy, WWGROUP, 150, "Audio");
 	g_audio_->box(FL_BORDER_BOX);
@@ -113,8 +127,43 @@ void user_if::create_widgets() {
 	int audio_height = cy - g_audio_->y();
 	g_audio_->size(g_audio_->w(), audio_height);
 
-	cy += GAP;
+	cy = g_audio_->y();
+	cx = g_audio_->x() + g_audio_->w() + GAP;
+
+	g_help_ = new Fl_Group(cx, cy, WHELP, 150, "Help");
+	g_help_->box(FL_BORDER_BOX);
+	g_help_->align(FL_ALIGN_LEFT | FL_ALIGN_TOP | FL_ALIGN_INSIDE);
+	cx += GAP;
+	cy += HTEXT;
+
+	bt_help_html_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
+	bt_help_html_->callback(cb_open_html, this);
+	bt_help_html_->tooltip("Open the help documentation as HTML");
+	std::string fn_html = file_holder_->get_filename(FILE_ICON_ZZA);
+	Fl_PNG_Image* img_html = new Fl_PNG_Image(fn_html.c_str());
+	Fl_Image* icon = img_html->copy(HBUTTON, HBUTTON);
+	bt_help_html_->image(icon);
+
+	cy += HBUTTON;
+	bt_help_pdf_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
+	bt_help_pdf_->callback(cb_open_pdf, this);
+	bt_help_pdf_->tooltip("Open the help documentation as PDF");
+	std::string fn_pdf = file_holder_->get_filename(FILE_ICON_PDF);
+	Fl_PNG_Image* img_pdf = new Fl_PNG_Image(fn_pdf.c_str());
+	Fl_Image* icon_pdf = img_pdf->copy(HBUTTON, HBUTTON);
+	bt_help_pdf_->image(icon_pdf);
+
+	cy += HBUTTON + GAP;
+
+	// End the help group
+	g_help_->end();
+	// Resize the audio group to fit the controls
+	g_help_->resizable(nullptr);
+	int help_height = cy - g_help_->y();
+	g_help_->size(g_help_->w(), help_height);
+
 	cx = g_audio_->x();
+	cy = std::max(g_audio_->y() + g_audio_->h(), g_help_->y() + g_help_->h()) + GAP;
 
 	g_content_ = new Fl_Group(cx, cy, WGROUPS, 150, "Content");
 	g_content_->box(FL_BORDER_BOX);
@@ -1130,6 +1179,40 @@ void user_if::cb_enable_audio_out(Fl_Widget* w, void* data)
 		ui->apply_speaker_settings();
 	}
 }
+
+// Callback function for the "Open HTML" button.
+void user_if::cb_open_html(Fl_Widget* widget, void* data) {
+	std::string full_path = file_holder_->get_directory(FDD_DOCUMENTS) +
+		"userguide/html/index.html";
+	open_help_file(full_path);
+}
+
+// Callback function for the "Open PDF" button.
+void user_if::cb_open_pdf(Fl_Widget* widget, void* data) {
+	std::string full_path = file_holder_->get_directory(FDD_DOCUMENTS) +
+		"userguide/ZZAVNAD.pdf";
+	open_help_file(full_path);
+}
+
+void user_if::open_help_file(const std::string& full_filename) {
+#ifdef _WIN32
+	HINSTANCE result = ShellExecute(NULL, "open", full_filename.c_str(), NULL, NULL, SW_SHOWNORMAL);
+	if ((intptr_t)result <= 32) {
+		printf("ZZAVNAD: Error opening HTML %s. Error code: %d",
+			full_filename.c_str(),
+			(int)(intptr_t)result);
+	}
+#else 
+	std::string cmd = "xdg-open \"" + full_filename + "\"";
+	int res = system(cmd.c_str());
+	if (res != 0) {
+		printf("ZZAVNAD: Error opening HTML %s. Error code: %d",
+			full_filename.c_str(),
+			res);
+	}
+#endif
+}
+
 
 // Override the handle method to catch the CTRL/+ and CTRL/-.
 int user_if::handle(int event) {

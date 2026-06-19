@@ -67,6 +67,8 @@ public:
 	static void cb_customise(Fl_Widget* w, void* data);
 	static void cb_enable_audio_in(Fl_Widget* w, void* data);
 	static void cb_enable_audio_out(Fl_Widget* w, void* data);
+	static void cb_open_html(Fl_Widget* w, void* v);
+	static void cb_open_pdf(Fl_Widget* w, void* v);
 	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
 
@@ -80,6 +82,10 @@ private:
 	Fl_Check_Button* cb_enable_audio_out_; //!< Enable audio output checkbox
 	Fl_Choice* ch_audio_in_device_;  //!< Audio input device choice
 	Fl_Choice* ch_audio_out_device_; //!< Audio output device choice
+
+	Fl_Group* g_help_;                 //!< Group for help buttons
+	Fl_Button* bt_help_html_;          //!< Open HTML User guide
+	Fl_Button* bt_help_pdf_;           //!< Open PDF user guide.
 
 	Fl_Group* g_content_;               //!< Group for content
 	Fl_Choice* ch_mode_;                //!< Mode choice
@@ -134,6 +140,9 @@ private:
 	void apply_speaker_settings();
 	//! Apply the current settings to the microphone.
 	void apply_microphone_settings();
+
+	//! Open the provided help file
+	static void open_help_file(const std::string& full_filename);
 
 	//! Speaker port number
 	int speaker_port_;
