@@ -179,6 +179,7 @@ private:
 	
 	Fl_Group* g_sgram_;              //!< Group for spectogram and controls
 	zc_graph_density* spectrogram_;  //!< Spectrogram (sideways waterfall) graph.
+	zc_graph_cartesian* waveform_;   //!< Waveform graph.
 	Fl_Choice* ch_fft_size_;         //!< Size of FFT input (number of samples in each chunk)
 	Fl_Value_Slider* sl_overlap_;    //!< Overlap between FFT chunks (in eigthth-chunks)
 	Fl_Value_Slider* sl_max_freq_;   //!< Maximum audio frequency in display (1 kHz to SAMPLE_RATE/2)
@@ -197,10 +198,13 @@ private:
 	zc_async_queue<std::string> decoded_text_queue_;
 
 	//! Spectrogram data.
-	zc_graph_::data_set_dens_t* spectrogram_data_capture_;  // Written by monitor thread
-	zc_graph_::data_set_dens_t* spectrogram_data_display_;  // Read by FLTK on main thread
+	zc_graph_::data_set_dens_t* spectrogram_data_capture_ = nullptr;  // Written by monitor thread
+	zc_graph_::data_set_dens_t* spectrogram_data_display_ = nullptr;  // Read by FLTK on main thread
 	std::mutex spectrogram_mutex_;                          // Protects buffer swap
 	std::atomic<bool> spectrogram_data_ready_{false};       // Flag for buffer swap
+	//! Waveform data. Control is the same as for spectrogram data.
+	std::vector<zc_graph_::data_point_t>* waveform_data_capture_ = nullptr;  // Written by monitor thread
+	std::vector<zc_graph_::data_point_t>* waveform_data_display_ = nullptr;  // Read by FLTK on main thread
 
 	//! Main thread ID for thread safety checks
 	std::thread::id main_thread_id_;

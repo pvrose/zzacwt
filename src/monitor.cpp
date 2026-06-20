@@ -94,9 +94,13 @@ void monitor::store_parameters() const
 }
 
 // Set display buffer for plotting the frequency domain images. Add a callback function to update the display when new images are available.
-void monitor::set_display_buffer(zc_graph_::data_set_dens_t* buffer, std::function<void(void*)> callback, void* user_data)
+void monitor::set_display_buffer(
+	zc_graph_::data_set_dens_t* buffer, 
+	std::vector<zc_graph_::data_point_t>* waveform_buffer,
+	std::function<void(void*)> callback, void* user_data)
 {
 	display_buffer_ = buffer;
+	waveform_display_buffer_ = waveform_buffer;
 	display_callback_ = callback;
 	display_user_data_ = user_data;
 }
@@ -238,8 +242,13 @@ void monitor::process_audio_samples() {
 					fft_input_buffer_[i][1] = 0.0; // Imaginary part
 				}
 			}
+			// Copy the first N samples to the waveform interim buffer for display.
+			for (size_t i = 0; i < image_interval_ && i < audio_queue_copy_.size(); i++) {
+				waveform_interim_buffer_.push(audio_queue_copy_[i]);
+			}
 			// Remove the first N samples from the audio queue
 			for (size_t i = 0; i < image_interval_ && !audio_queue_copy_.empty(); i++) {
+	
 				audio_queue_copy_.pop_front();
 			}
 		}
@@ -263,7 +272,7 @@ void monitor::process_audio_samples() {
 	// Execute the FFT to get the frequency domain representation of the audio samples.
 	fftw_execute(fft_plan_);
 	// Update the display buffer with the new frequency domain image and call the display callback to update the display.
-	if (display_buffer_ && display_callback_) {
+	if (display_buffer_ && display_callback_ && active_audio_queue_) {
 		update_display_buffer();
 	}
 
@@ -307,6 +316,23 @@ void monitor::update_display_buffer() {
 			display_buffer_->z_values[r * display_depth_ + c] = display_buffer_->z_values[r * display_depth_ + c + 1];
 		}
 		display_buffer_->z_values[r * display_depth_ + display_depth_ - 1] = image[r];
+	}
+	// Update the waveform display buffer with the current waveform data.
+	// Shift the waveform display buffer N samples left and add the current waveform data at the right.
+	int iw = 0;
+	int iv = iw + image_interval_;
+	int copy_last = (int)waveform_display_buffer_->size() - image_interval_;
+	while(iw < copy_last) {
+			
+		(*waveform_display_buffer_)[iw++].second = (*waveform_display_buffer_)[iv++].second;
+	}
+	double d = 0.0;
+	while(iw < waveform_display_buffer_->size()) {
+		d = waveform_interim_buffer_.empty() ? 0.0 : waveform_interim_buffer_.front();
+		(*waveform_display_buffer_)[iw++].second = d;
+		if (!waveform_interim_buffer_.empty()) {
+			waveform_interim_buffer_.pop();
+		}
 	}
 	// Call the display callback to update the display with the new image.
 	display_callback_(display_user_data_);

@@ -178,7 +178,8 @@ void review::create_widgets() {
 	cy = g_decoded_->y() + g_decoded_->h() + GAP;
 	cx = g_decoded_->x();
 
-	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HGROUPS + HBUTTON * 3, "Spectrogram");
+	int HSGRAMS = std::max(HTEXT + HBUTTON * 8 + GAP, HTEXT + HDISPLAY * 2 + GAP);
+	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HSGRAMS, "Spectrogram");
 	g_sgram_->box(FL_BORDER_BOX);
 	g_sgram_->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_TOP);
 
@@ -242,11 +243,15 @@ void review::create_widgets() {
 	const int WSGRAM = g_sgram_->w() - GAP - (cx - g_sgram_->x());
 
 	spectrogram_ = new zc_graph_density(cx, cy, WSGRAM, HDISPLAY);
+
+	cy += HDISPLAY;
+	waveform_ = new zc_graph_cartesian(cx, cy, WSGRAM, HDISPLAY);
+
 	configure_spectrogram();
 
 	g_sgram_->end();
 
-	cy += g_sgram_->h() + GAP;
+	cy = g_sgram_->y() + g_sgram_->h() + GAP;
 
 	end();
 	// Resize the window to fit the widgets.
@@ -605,6 +610,8 @@ void review::cb_ticker(void* data) {
 		std::lock_guard<std::mutex> lock(r->spectrogram_mutex_);
 		// Move captured data to display buffer for rendering
 		*r->spectrogram_data_display_ = *r->spectrogram_data_capture_;
+		// Move captured waveform data to display buffer for rendering
+		*r->waveform_data_display_ = *r->waveform_data_capture_;
 		r->spectrogram_data_ready_.store(false, std::memory_order_relaxed);
 	}
 	r->g_sgram_->redraw();
@@ -615,6 +622,7 @@ void review::cb_ticker(void* data) {
 void review::cb_redraw(void* data) {
 	review* r = static_cast<review*>(data);
 	r->spectrogram_->redraw();
+	r->waveform_->redraw();
 }
 
 // Configure the spectrogram based on the current settings.
@@ -645,15 +653,16 @@ void review::configure_spectrogram() {
 	double max_z = static_cast<double>(fft_size);
 	zc_graph_::range_t mag_range = { 0.0, static_cast<double>(fft_size) };
 	spectrogram_->set_axis_ranges(2, mag_range, mag_range, mag_range);
+	if (spectrogram_data_display_) delete spectrogram_data_display_;
 	spectrogram_data_display_ = new zc_graph_::data_set_dens_t;
 	// Set the X-values 
-	double time_per_sample = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / DEFAULT_SAMPLE_RATE;
-	size_t num_time_samples = static_cast<size_t>(max_time / time_per_sample);
-	spectrogram_data_display_->x_values.resize(num_time_samples);
+	double time_per_ffts = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / DEFAULT_SAMPLE_RATE;
+	size_t num_time_ffts = static_cast<size_t>(max_time / time_per_ffts);
+	spectrogram_data_display_->x_values.resize(num_time_ffts);
 	double t = 0.0;
-	for (size_t ix = 0; ix < num_time_samples; ix++) {
+	for (size_t ix = 0; ix < num_time_ffts; ix++) {
 		spectrogram_data_display_->x_values[ix] = t;
-		t += time_per_sample;
+		t += time_per_ffts;
 	}
 	// Set the Y-values - these are the frequencies corresponding to each FFT bin.
 	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size);
@@ -672,11 +681,43 @@ void review::configure_spectrogram() {
 	spectrogram_->end_config();
 
 	// Create capture buffer (copy of display buffer for double-buffering)
+	if (spectrogram_data_capture_) delete spectrogram_data_capture_;
 	spectrogram_data_capture_ = new zc_graph_::data_set_dens_t(*spectrogram_data_display_);
+
+	// Configure the waveform display
+	waveform_->start_config();
+	// Axis 0 - time
+	waveform_->set_axis_params(0, zc_graph_::SI_PREFIX, "s", "Time");
+	waveform_->set_axis_ranges(0, time_range, time_range, time_range);
+	// Axis 1 - amplitude
+	waveform_->set_axis_params(1, zc_graph_::NO_MODIFIER, "", "Amplitude");
+	zc_graph_::range_t amp_range = { -1.0, 1.0 };
+	waveform_->set_axis_ranges(1, amp_range, amp_range, amp_range);
+	if (waveform_data_display_) delete waveform_data_display_;
+	waveform_data_display_ = new std::vector<zc_graph_::data_point_t>;
+	// Set the X-values for the waveform display to time and Y-values to zero.
+	double time_per_waves = 1.0 / DEFAULT_SAMPLE_RATE;
+	size_t num_wave_samples = static_cast<size_t>(max_time / time_per_waves);
+	waveform_data_display_->resize(num_wave_samples);
+	t = 0.0;
+	for (size_t ix = 0; ix < num_wave_samples; ix++) {
+		(*waveform_data_display_)[ix] = { t, 0.0 };
+		t += time_per_waves;
+	}
+	// Remove any existing data.
+	waveform_->clear_data_sets();
+	// Add the waveform data set to the waveform display.
+	waveform_->add_data_set(1, waveform_data_display_, { FL_BLACK, 1, FL_SOLID });
+	// End configuration of the waveform display.
+	waveform_->end_config();
+
+	// Create a capture buffer (copy of display buffer for double-buffering) for the waveform display.
+	if (waveform_data_capture_) delete waveform_data_capture_;
+	waveform_data_capture_ = new std::vector<zc_graph_::data_point_t>(*waveform_data_display_);
 
 	// CRITICAL: Set display buffer and callbacks BEFORE starting monitor thread
 	// to prevent race condition where thread tries to access uninitialized buffer
-	monitor_->set_display_buffer(spectrogram_data_capture_, cb_update_spectrogram, this);
+	monitor_->set_display_buffer(spectrogram_data_capture_, waveform_data_capture_,cb_update_spectrogram, this);
 	monitor_->set_decode_callback(cb_decoder_callback, this);
 	monitor_->set_monitoring_source(decode_source_);
 
@@ -752,6 +793,7 @@ void review::cb_update_spectrogram(void* data) {
 	r->spectrogram_data_ready_.store(true, std::memory_order_release);
 	// Note: redraw() is safe to call from worker threads - it only sets damage flags
 	r->spectrogram_->redraw();
+	r->waveform_->redraw();
 }
 
 // Callback to update the decoded text with new data.

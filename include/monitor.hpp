@@ -91,7 +91,10 @@ public:
 
 	//! Set display buffer for plotting t6he frequency domain images. 
 	//! Add a callback function to update the display when new images are available.
-	void set_display_buffer(zc_graph_::data_set_dens_t* buffer, std::function<void(void*)> callback, void* user_data);
+	void set_display_buffer(
+		zc_graph_::data_set_dens_t* buffer, 
+		std::vector<zc_graph_::data_point_t>* waveform_buffer,
+		std::function<void(void*)> callback, void* user_data);
 
 	//! Get the pitch of the selected bin in Hz. This is the frequency of the transmitted signal that is being monitored.
 	double get_selected_bin_pitch() const {
@@ -216,6 +219,11 @@ private:
 	std::function<void(void*)> display_callback_ = nullptr;
 	//! User data to pass to the display callback function.
 	void* display_user_data_ = nullptr;
+
+	//! Waveform display buffer for plotting the audio samples.
+	std::vector<zc_graph_::data_point_t>* waveform_display_buffer_ = nullptr;
+	//! Interim waveform buffer to keep the audio samples in sync with the frequency domain images.
+	std::queue<double> waveform_interim_buffer_;
 
 	//! Decoded string callback
 	std::function<void(void*, const std::string&)> decode_callback_ = nullptr;
