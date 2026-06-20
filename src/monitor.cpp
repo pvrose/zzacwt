@@ -481,7 +481,17 @@ void monitor::accumulate_symbol() {
 		current_symbol_ == symbol_t::CHARACTER_SPACE) {
 		std::string word;
 		codec::decode(recovered_symbols_, word);
-		decode_callback_(decode_user_data_, word);
+		// Forward the decoded word on unless we have continual silence.
+		if (word == " ") {
+			if (!decoded_silence_) {
+				decode_callback_(decode_user_data_, word);
+				decoded_silence_ = true;
+			}
+		}
+		else {
+			decode_callback_(decode_user_data_, word);
+			decoded_silence_ = false;
+		}
 		recovered_symbols_.clear();
 	}
 }

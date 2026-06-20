@@ -277,4 +277,7 @@ private:
 	//! FFT shaping window
 	std::vector<double> shaping_window_;
 
+	//! Decoding silence - used to prevent spaces being continually written to displays
+	bool decoded_silence_ = false;
+
 };
