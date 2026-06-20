@@ -187,9 +187,6 @@ private:
 	//! Update derived times
 	void update_derived_times();
 
-	//! Update detected signal levels
-	void update_detected_signal_levels();
-
 	//! Thread for processing the audio samples and recovering the symbols.
 	std::thread* processing_thread_ = nullptr;
 	//! Flag to signal the processing thread to stop.
@@ -261,10 +258,8 @@ private:
 	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_high_;
 	//! Signal training level - running mean: logic low.
 	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_low_;
-	//! High signal trigger level - set to 2/3 between running mean high and low.
-	double high_trigger_level_ = 0.7;
-	//! Low signal trigger level - set to 1/3 between running mean high and low.
-	double low_trigger_level_ = 0.3;
+	//! Signal training level - running mean: all signals
+	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_;
 
 	//! Selected frequency bin number for extracting signal
 	int selected_signal_bin_ = -1;

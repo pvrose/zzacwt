@@ -176,8 +176,9 @@ void monitor::start_monitor(double max_value) {
 	running_mean_high_.add(max_value * 0.25);
 	running_mean_low_.clear();
 	running_mean_low_.add(0.0);
-	update_detected_signal_levels();
 	selected_signal_bin_ = -1;
+	running_mean_.clear();
+	running_mean_.add((running_mean_high_.value() + running_mean_low_.value()) / 2.0);
 	create_fft_buffers_and_plan();
 	start_processing_thread();
 }
@@ -403,30 +404,22 @@ void monitor::set_decode_callback(std::function<void(void*, const std::string&)>
 }
 
 // Convert the signal into a Boolean value
+const double HIGH_MARGIN = 1.05;
+const double LOW_MARGIN = 0.95;
 bool monitor::get_signal(double signal) {
 	bool result = previous_signal_;
-	if (signal > high_trigger_level_) {
+	if (signal > running_mean_.value() * HIGH_MARGIN) {
 		result = true;
 		running_mean_high_.add(signal);
 	}
-	else if (signal < low_trigger_level_) {
+	else if (signal < running_mean_.value() * LOW_MARGIN) {
 		result = false;
 		running_mean_low_.add(signal);
 	}
-	update_detected_signal_levels();
-
+	running_mean_.add(signal);
 	//if (result != previous_signal_) 
 	//	printf("Signal: %f, Result: %d, Duration: %d\n", signal, previous_signal_, image_count_);
 	return result;
-}
-
-//! Update detected signal levels
-void monitor::update_detected_signal_levels() {
-	// Update the trigger levels based on the running means
-	high_trigger_level_ = running_mean_high_.value() * HIGH_LEVEL + 
-		running_mean_low_.value() * (1.0 - HIGH_LEVEL);
-	low_trigger_level_ = running_mean_high_.value() * LOW_LEVEL + 
-		running_mean_low_.value() * (1.0 - LOW_LEVEL);
 }
 
 
