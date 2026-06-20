@@ -676,7 +676,8 @@ void review::configure_spectrogram() {
 	spectrogram_data_display_->z_values.resize(
 		spectrogram_data_display_->x_values.size() * 
 		spectrogram_data_display_->y_values.size());
-	std::vector<Fl_Color> map = { FL_BLACK, FL_RED, FL_YELLOW, FL_GREEN, FL_CYAN, FL_BLUE, FL_MAGENTA, FL_WHITE };
+	// generate a colour map with 16 levels, logarithmic, black at -50 dB.
+	zc_graph_::colour_map_t map = { 16, true, -50.0 };
 	spectrogram_->add_data_set(2, spectrogram_data_display_, map);
 	spectrogram_->end_config();
 
