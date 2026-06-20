@@ -49,6 +49,8 @@ extern int DEFAULT_FFT_SIZE;
 extern double DEFAULT_OVERLAP;
 extern double DEFAULT_MAX_PITCH;
 extern double DEFAULT_MAX_TIME;
+const double HIGH_MARGIN = 1.05;
+const double LOW_MARGIN = 0.95;
 
 monitor::monitor(zc_async_queue<double>* audio_sent, zc_async_queue<double>* audio_received)
 	: audio_sent_queue_(audio_sent), 
@@ -164,21 +166,15 @@ void monitor::stop_monitor() {
 };
 
 // (Re-)configure, initialise FFT and start proeccsing.
-const double HIGH_LEVEL = 2.0 / 3.0;
-const double LOW_LEVEL = 1.0 / 3.0;
 void monitor::start_monitor(double max_value) {
 	load_parameters();
 	image_queue_.clear();
-	running_mean_high_.clear();
-	// The initial value of the running mean high is set to 25% 
-	// as the full max_value will be spread over several bins. 
-	// The running mean low is set to 0.0.
-	running_mean_high_.add(max_value * 0.25);
-	running_mean_low_.clear();
-	running_mean_low_.add(0.0);
-	selected_signal_bin_ = -1;
+	// Set the two running means both to 0
 	running_mean_.clear();
-	running_mean_.add((running_mean_high_.value() + running_mean_low_.value()) / 2.0);
+	running_mean_.add(0.0);
+	running_variance_.clear();
+	running_variance_.add(0.0);
+	selected_signal_bin_ = -1;
 	create_fft_buffers_and_plan();
 	start_processing_thread();
 }
@@ -363,7 +359,7 @@ void monitor::identify_signal_bin() {
 			}
 		}
 		// If that magnitude is considered a logic high, increment the count for that bin.
-		if (get_signal(max_value)) {
+		if (get_logic(max_value, true)) {
 			largest_bin_count[largest_bin]++;
 		}
 	}
@@ -377,9 +373,9 @@ void monitor::identify_signal_bin() {
 		}
 	}
 	// Update the selected_signal_ queue with the magnitude of the selected frequency bin over time.
-	bool signal = get_signal(image_queue_.back()[bin_number]);
+	bool logic = get_logic(image_queue_.back()[bin_number], false);
 	image_count_++;
-	symbol_t symbol = decode_signal(signal);
+	symbol_t symbol = decode_logic(logic);
 	if (symbol != symbol_t::UNFINISHED) {
 //		printf("Decoded symbol: %s, Duration: %d, Dit size: %d\n", symbol_strings_.at(symbol).c_str(), image_count_, dit_size_);
 		current_symbol_ = symbol;
@@ -404,19 +400,27 @@ void monitor::set_decode_callback(std::function<void(void*, const std::string&)>
 }
 
 // Convert the signal into a Boolean value
-const double HIGH_MARGIN = 1.05;
-const double LOW_MARGIN = 0.95;
-bool monitor::get_signal(double signal) {
-	bool result = previous_signal_;
-	if (signal > running_mean_.value() * HIGH_MARGIN) {
+// If the current signal differs from the previous by more than
+// N standard deviations it's high. Similarly low. If between the two
+// keep the same value.
+const double DEVIATION = 1.0;
+bool monitor::get_logic(double signal, bool silent) {
+	double mean = running_mean_.value();
+	double sd = std::sqrt(running_variance_.value()) * DEVIATION;
+	double delta = signal - previous_signal_;
+	bool result = previous_logic_;
+	if (delta > sd) {
 		result = true;
-		running_mean_high_.add(signal);
 	}
-	else if (signal < running_mean_.value() * LOW_MARGIN) {
+	else if (delta < (-sd)) {
 		result = false;
-		running_mean_low_.add(signal);
 	}
-	running_mean_.add(signal);
+	if (!silent) {
+		previous_signal_ = signal;
+		running_mean_.add(signal);
+		double diff = signal - mean;
+		running_variance_.add(diff * diff);
+	}
 	//if (result != previous_signal_) 
 	//	printf("Signal: %f, Result: %d, Duration: %d\n", signal, previous_signal_, image_count_);
 	return result;
@@ -426,9 +430,9 @@ bool monitor::get_signal(double signal) {
 // Decode signal. This code is cribbed off my arduino sketch doing the same job.
 // If the level has transited check the duration since the last one and
 // decode the symbol accordingly.
-symbol_t monitor::decode_signal(bool signal) {
+symbol_t monitor::decode_logic(bool logic) {
 	symbol_t result = symbol_t::UNFINISHED;
-	if (signal && !previous_signal_) {
+	if (logic && !previous_logic_) {
 		if (image_count_ < min_dit_size_) {
 			result = symbol_t::NOISE;
 		}
@@ -442,10 +446,10 @@ symbol_t monitor::decode_signal(bool signal) {
 			result = symbol_t::WORD_SPACE;
 		}
 	} 
-	else if (signal && previous_signal_) {
+	else if (logic && previous_logic_) {
 		// \todo handle stuck high
 	}
-	else if (!signal && !previous_signal_) {
+	else if (!logic && !previous_logic_) {
 		if (image_count_ > max_char_size_) {
 			result = symbol_t::WORD_SPACE;
 		}
@@ -461,7 +465,7 @@ symbol_t monitor::decode_signal(bool signal) {
 			result = symbol_t::DASH_MARK;
 		}
 	}
-	previous_signal_ = signal;
+	previous_logic_ = logic;
 	return result;
 }
 

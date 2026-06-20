@@ -39,7 +39,7 @@
 
 //! Used for running averages.
 const size_t SPEED_HISTORY_LENGTH = 10;
-const size_t LEVEL_HISTORY_LENGTH = 20;
+const size_t LEVEL_HISTORY_LENGTH = 5;
 
 
 //! \brief Class to monitor the generated audio samples and recover the transmitted symbols.
@@ -172,11 +172,13 @@ private:
 	//! Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
 	double get_bin_frequency(int bin) const;
 
-	//! Decode the current monitored signal.
-	symbol_t decode_signal(bool signal);
+	//! Decode the current monitored symbol.
+	symbol_t decode_logic(bool logic);
 
-	//! Convert signal level to boolean. Involve hysteresis.
-	bool get_signal(double f);
+	//! Convert signal level to boolean.
+	//! \param f signal level
+	//! \param silent Do not update running totals.
+	bool get_logic(double f, bool silent);
 
 	//! Accumulate symbols
 	void accumulate_symbol();
@@ -230,10 +232,10 @@ private:
 	//! The queue of frequency images that have been processed and are waiting to be displayed.
 	std::deque<std::vector<double>> image_queue_;
 
-	//! The current signal value
-	bool current_signal_ = false;
 	//! The previous signal value
-	bool previous_signal_ = false;
+	double previous_signal_ = 0.0;
+	//! The previous signal logic value
+	bool previous_logic_ = false;
 	//! The current symbol
 	symbol_t current_symbol_ = symbol_t::UNFINISHED;
 	//! The current array of symbols
@@ -254,12 +256,10 @@ private:
 	zc_running_average<double, SPEED_HISTORY_LENGTH> dot_times_;
 	//! Running average of dash times
 	zc_running_average<double, SPEED_HISTORY_LENGTH> dash_times_;
-	//! Signal training level - running mean: logic high.
-	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_high_;
-	//! Signal training level - running mean: logic low.
-	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_low_;
-	//! Signal training level - running mean: all signals
+	//! Signal training level - running mean
 	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_;
+	//! Signal training level - running variance 
+	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_variance_;
 
 	//! Selected frequency bin number for extracting signal
 	int selected_signal_bin_ = -1;
