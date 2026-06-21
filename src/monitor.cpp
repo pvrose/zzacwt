@@ -546,7 +546,7 @@ void monitor::update_speed() {
 void monitor::update_derived_times() {
 	unsigned int dit_samples = static_cast<unsigned int>(dot_times_.value() * sample_rate_);
 	dit_size_ = dit_samples / image_interval_;
-	min_dit_size_ = 0; 
+	min_dit_size_ = dit_size_ / 5; 
 	max_dit_size_ = dit_size_ * 2;
 	max_int_size_ = dit_size_ * 2;
 	max_char_size_ = dit_size_ * 6;
