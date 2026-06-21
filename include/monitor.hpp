@@ -38,7 +38,7 @@
 
 
 //! Used for running averages.
-const size_t SPEED_HISTORY_LENGTH = 10;
+const size_t SPEED_HISTORY_LENGTH = 5;
 const size_t LEVEL_HISTORY_LENGTH = 5;
 
 

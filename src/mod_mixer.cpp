@@ -27,9 +27,9 @@
 #include <thread>
 
 // Enable queue monitoring in debug builds
-#ifdef _DEBUG
-#define ENABLE_QUEUE_MONITORING
-#endif
+//#ifdef _DEBUG
+//#define ENABLE_QUEUE_MONITORING
+//#endif
 
 #ifdef ENABLE_QUEUE_MONITORING
 #include <chrono>

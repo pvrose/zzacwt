@@ -51,6 +51,8 @@ extern double DEFAULT_MAX_PITCH;
 extern double DEFAULT_MAX_TIME;
 const double HIGH_MARGIN = 1.05;
 const double LOW_MARGIN = 0.95;
+// Maximum number of char spaces without int spaces before we trip a timeout.
+unsigned int INT_SPACE_TIMEOUT = 4;
 
 monitor::monitor(zc_async_queue<double>* audio_sent, zc_async_queue<double>* audio_received)
 	: audio_sent_queue_(audio_sent), 
@@ -503,22 +505,37 @@ void monitor::update_speed() {
 	case symbol_t::DOT_MARK:
 	case symbol_t::INTERNAL_SPACE:
 		dot_times_.add(duration);
+#ifdef ENABLE_SPEED_MONITORING
+		printf("Adding %g to dot time - average now %g\n", duration, dot_times_.value());
+#endif
 		break;
 	case symbol_t::DASH_MARK: {
 		dash_times_.add(duration);
+#ifdef ENABLE_SPEED_MONITORING
+		printf("Adding %g to dash time - average now %g\n", duration, dash_times_.value());
+#endif
 		double weight = dash_times_.value() / dot_times_.value();
+		double new_dot;
 		if (weight < MIN_DASH_DOT) {
 			dot_times_.clear();
-			dot_times_.add(dash_times_.value() / MIN_DASH_DOT);
+			new_dot = dash_times_.value() / MIN_DASH_DOT;
+			dot_times_.add(new_dot);
+#ifdef ENABLE_SPEED_MONITORING
+			printf("Adding %g to dot time - average now %g\n", new_dot, dot_times_.value());
+#endif
 		}
 		else if (weight > MAX_DASH_DOT) {
 			dot_times_.clear();
-			dot_times_.add(dash_times_.value() / MAX_DASH_DOT);
+			new_dot = dash_times_.value() / MAX_DASH_DOT;
+			dot_times_.add(new_dot);
+#ifdef ENABLE_SPEED_MONITORING
+			printf("Adding %g to dot time - average now %g\n", new_dot, dot_times_.value());
+#endif
 		}
 	}
 		break;
 	default:
-		// Do nothin
+		// Do nothing
 		break;
 	}
 	update_derived_times();
