@@ -144,6 +144,8 @@ private:
 	double dot_speed_ = 12.0F;
 	//! Overall speed in WPM for Farnsworth and Wordsworth modes.
 	double overall_speed_ = 12.0F;
+	//! Sample rate
+	double sample_rate_;
 	//! Nominal symbol durations in seconds for the effective speed.
 	std::map<symbol_t, double> symbol_durations_;
 

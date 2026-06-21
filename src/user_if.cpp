@@ -733,6 +733,8 @@ void user_if::update_tone_widgets() {
 
 void user_if::update_audio_widgets() {
 	zc_settings settings;
+	double sample_rate;
+	settings.get("Sample Rate", sample_rate, DEFAULT_SAMPLE_RATE);
 	// Get the current audio input enabled state from settings
 	bool audio_in_enabled;
 	settings.get("Audio Input Enabled", audio_in_enabled, false);
@@ -745,7 +747,7 @@ void user_if::update_audio_widgets() {
 	settings.get<std::string>("Audio Input Device", selected_input_device, "");
 	// Populate the audio input device choice with available devices
 	ch_audio_in_device_->clear();
-	auto input_devices = microphone_->get_ports(DEFAULT_SAMPLE_RATE);
+	auto input_devices = microphone_->get_ports(sample_rate);
 	int i = 0;
 	for (const auto& device : input_devices) {
 		ch_audio_in_device_->add(device.c_str());
@@ -759,7 +761,7 @@ void user_if::update_audio_widgets() {
 	std::string selected_output_device;
 	settings.get<std::string>("Audio Output Device", selected_output_device, "");
 	ch_audio_out_device_->clear();
-	auto output_devices = speaker_->get_ports(DEFAULT_SAMPLE_RATE);
+	auto output_devices = speaker_->get_ports(sample_rate);
 	i = 0;
 	for (const auto& device : output_devices) {
 		ch_audio_out_device_->add(device.c_str());
@@ -770,10 +772,9 @@ void user_if::update_audio_widgets() {
 		i++;
 	}
 	// populate the sample rate.
-	unsigned int sample_rate;
-	settings.get("Sample Rate", sample_rate, static_cast<unsigned int>(DEFAULT_SAMPLE_RATE));
 	ch_sample_rate_->clear();
 	i = 0;
+	unsigned int irate = static_cast<unsigned int>(sample_rate);
 	char text[10];
 	for (const auto& rate : sample_rates_) {
 		snprintf(text, sizeof(text), "%d", rate);

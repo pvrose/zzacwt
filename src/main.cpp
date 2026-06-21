@@ -67,7 +67,7 @@ const std::map < uint8_t, file_control_t > FILE_CONTROL = {
 	{ FILE_QSO_DATA, { "qso_data.txt", true, true, 0 }}
 };
 
-double DEFAULT_SAMPLE_RATE = 22050.0; //!< Default sample rate for audio generation
+double DEFAULT_SAMPLE_RATE = 24000.0; //!< Default sample rate for audio generation
 double DEFAULT_BASE_PITCH = 700.0; //!< Default base pitch for the oscillator in Hz
 double DEFAULT_RISE_FALL = 0.005; //!< Default rise time for the audio envelope in seconds
 double DEFAULT_WPM = 12.0; //!< Default speed in words per minute
@@ -125,10 +125,12 @@ int main(int argc, char** argv)
 	zc_async_queue<double>* audio_out_queue = new zc_async_queue<double>();
 	zc_async_queue<double>* audio_monitor_queue = new zc_async_queue<double>();
 	zc_async_queue<double>* audio_receive_queue = new zc_async_queue<double>();
+	double sample_rate;
+	settings.get("Sample Rate", sample_rate, DEFAULT_SAMPLE_RATE);
 	// Create the speaker before user if.
-	speaker_ = new zc_audio(zc_audio_direction::AUDIO_OUT, 1, audio_out_queue, audio_monitor_queue);
+	speaker_ = new zc_audio(zc_audio_direction::AUDIO_OUT, 1, sample_rate, audio_out_queue, audio_monitor_queue);
 	// Create the microphone
-	microphone_ = new zc_audio(zc_audio_direction::AUDIO_IN, 1, audio_receive_queue, nullptr);
+	microphone_ = new zc_audio(zc_audio_direction::AUDIO_IN, 1, sample_rate, audio_receive_queue, nullptr);
 
 	// Create the main user interface window
 	user_if* window = new user_if(600, 800);

@@ -49,7 +49,7 @@ extern int LOWER_CHUNK_SIZE;
 extern int GENERATION_CHUNK_SIZE;
 extern int SHAPER_CHUNK_SIZE;
 extern double DEFAULT_RISE_FALL;
-extern double DEFAULT_SAMPLE_RATE;
+extern double sample_rate_;
 
 extern text_gen* text_gen_; //!< Pointer to the text generator instance
 extern review* review_; //!< Pointer to the review instance
@@ -108,6 +108,7 @@ void shaper::apply_settings() {
 		rise_fall_time_ = DEFAULT_RISE_FALL; // Default softness if disturber type is not softness
 	}
 	settings.get("Speed Type", speed_mode_, speed_type::NORMAL);
+	settings.get("Sample Rate", sample_rate_, sample_rate_);
 	update_symbol_durations();
 	// Start the generation thread if not already running
 	if (!generation_thread_.joinable()) {
@@ -253,7 +254,7 @@ void shaper::generate_envelope(symbol_t symbol) {
 	}
 	// Add samples for the remaining duration of the symbol
 	double value = target_mark ? MARK_VALUE : SPACE_VALUE;
-	int num_samples = static_cast<int>((duration - rise_fall_time_) * DEFAULT_SAMPLE_RATE);
+	int num_samples = static_cast<int>((duration - rise_fall_time_) * sample_rate_);
 	for (int i = 0; i < num_samples; ++i) {
 		audio_data_queue_->push(value);
 	}
@@ -261,7 +262,7 @@ void shaper::generate_envelope(symbol_t symbol) {
 
 //! Add a raised cosine transition onto the specified audio sample queue
 void shaper::add_raised_cosine(zc_async_queue<double>* audio_samples, double duration, bool target_mark) {
-	int num_samples = static_cast<int>(duration * DEFAULT_SAMPLE_RATE);
+	int num_samples = static_cast<int>(duration * sample_rate_);
 	double start_value = is_mark_ ? MARK_VALUE : SPACE_VALUE;
 	double end_value = target_mark ? MARK_VALUE : SPACE_VALUE;
 	for (int i = 0; i < num_samples; ++i) {
@@ -277,7 +278,7 @@ void shaper::add_raised_cosine(zc_async_queue<double>* audio_samples, double dur
 //! add a brief overshoot of 10% above the target mark value or 10% below the target space value,
 //! tapering off over the duration of the overshoot.
 void shaper::add_overshoot(zc_async_queue<double>* audio_samples, double duration, bool target_mark) {
-	int num_samples = static_cast<int>(duration * DEFAULT_SAMPLE_RATE);
+	int num_samples = static_cast<int>(duration * sample_rate_);
 	double start_value = is_mark_ ? MARK_VALUE : SPACE_VALUE;
 	double end_value = target_mark ? MARK_VALUE : SPACE_VALUE;
 	// No overshoot if the target state is the same as the current state
