@@ -192,6 +192,9 @@ private:
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
 	audio_source_t decode_source_;  //!< Source of audio for decoding.
 
+	//! Sample rate
+	double sample_rate_;
+
 	//! Queue of sent text
 	zc_async_queue<std::string>* text_queue_;
 	//! Queue of decoded text

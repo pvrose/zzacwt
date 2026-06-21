@@ -26,6 +26,7 @@ using json = nlohmann::json;
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 //! Additional file IDs for the file holder
 enum file_types : uint8_t {
@@ -136,6 +137,14 @@ static inline const std::map<audio_source_t, std::string> audio_source_strings_ 
 	{audio_source_t::NO_AUDIO, "No Audio"},
 	{audio_source_t::SENT_AUDIO, "Sent Audio"},
 	{audio_source_t::MIC_AUDIO, "Microphone"},
+};
+
+//! Valid sample rate settings
+static inline const std::vector<unsigned int> sample_rates_ = {
+	22050,
+	24000,
+	44100,
+	48000
 };
 
 // JSON serialization for enums using the shared maps

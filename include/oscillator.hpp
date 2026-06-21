@@ -107,7 +107,9 @@ private:
 	//! Current drift frequency offset (in Hz).
 	double current_drift_offset_ = 0.0F;
 	//! Sample delta time (in seconds) for calculating drift changes.
-	const double sample_delta_time_ = 1.0F / DEFAULT_SAMPLE_RATE;
+	double sample_delta_time_ = 1.0F / DEFAULT_SAMPLE_RATE;
+	//! Sample rate
+	double sample_rate_ = DEFAULT_SAMPLE_RATE;
 	//! Update the current drift offset and return the total frequency 
 	//! (base pitch plus drift) for the current sample.
 	double update_drift_and_get_frequency();

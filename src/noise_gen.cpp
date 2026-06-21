@@ -96,6 +96,8 @@ void noise_gen::apply_settings() {
 			noise_severity_ = 0.0;
 			return;
 	}
+	// Get sample rate
+	settings.get("Sample Rate", sample_rate_, DEFAULT_SAMPLE_RATE);
 	// Update the noise event distribution based on the severity setting:
 	// The severity setting controls the frequency of noise events.
 	// We can model this using an exponential distribution, where the 
@@ -107,7 +109,7 @@ void noise_gen::apply_settings() {
 	double noise_amplitude = std::pow(10.0, noise_volume_ / 20.0);
 	white_noise_dist_ = std::normal_distribution<double>(0.0F, noise_amplitude);
 	// Reset the next noise event time
-	next_noise_event_time_ = static_cast<int>(noise_event_dist_(rng_) * DEFAULT_SAMPLE_RATE);
+	next_noise_event_time_ = static_cast<int>(noise_event_dist_(rng_) * sample_rate_);
 
 }
 
@@ -125,7 +127,7 @@ void noise_gen::generation_loop(noise_gen* instance) {
 			if (instance->audio_data_queue_) {
 				instance->audio_data_queue_->clear();
 			}
-			instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * DEFAULT_SAMPLE_RATE);
+			instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * instance->sample_rate_);
 			instance->clear_requested_ = false;
 		}
 		// Check if we need to generate more noise samples
@@ -162,7 +164,7 @@ void noise_gen::generation_loop(noise_gen* instance) {
 						instance->generate_plink_plonk();
 					}
 					// Schedule the next noise event
-					instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * DEFAULT_SAMPLE_RATE);
+					instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * instance->sample_rate_);
 				}
 				break;
 			default:
@@ -194,7 +196,7 @@ void noise_gen::generation_loop(noise_gen* instance) {
 //! Generate a single burst of impact noise. This will consist of a short burst of white noise.
 void noise_gen::generate_impact_noise() {
 	// Generate a burst of white noise samples for the impact event
-	int num_samples = static_cast<int>(0.1 * DEFAULT_SAMPLE_RATE); // 100ms burst
+	int num_samples = static_cast<int>(0.1 * sample_rate_); // 100ms burst
 	// Generate white noise starting at amplitude 1.0 and decaying 
 	// linerarly over the duration of the burst
 	for (int i = 0; i < num_samples; ++i) {
@@ -207,13 +209,13 @@ void noise_gen::generate_impact_noise() {
 //! Generate a single plink or plonk event. This will consist of a short burst of tone at a random frequency.
 void noise_gen::generate_plink_plonk() {
 	// Generate a burst of tone samples for the plink/plonk event
-	int num_samples = static_cast<int>(0.1 * DEFAULT_SAMPLE_RATE); // 100ms burst
+	int num_samples = static_cast<int>(0.1 * sample_rate_); // 100ms burst
 	double frequency = 300.0 + static_cast<double>(rng_() % 2700); // Random frequency between 300 Hz and 3000 Hz
 
 	// Use a phase accumulator that wraps to stay within [0, 2π)
 	constexpr double TWO_PI = 2.0 * 3.14159265358979323846;
 	double phase = 0.0;
-	double phase_increment = TWO_PI * frequency / DEFAULT_SAMPLE_RATE;
+	double phase_increment = TWO_PI * frequency / sample_rate_;
 
 	// Convert dB to linear amplitude for plink/plonk tones
 	double noise_amplitude = std::pow(10.0, noise_volume_ / 20.0);

@@ -69,6 +69,7 @@ public:
 	static void cb_enable_audio_out(Fl_Widget* w, void* data);
 	static void cb_open_html(Fl_Widget* w, void* v);
 	static void cb_open_pdf(Fl_Widget* w, void* v);
+	static void cb_sample_rate(Fl_Widget* w, void* v);
 	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
 
@@ -82,6 +83,7 @@ private:
 	Fl_Check_Button* cb_enable_audio_out_; //!< Enable audio output checkbox
 	Fl_Choice* ch_audio_in_device_;  //!< Audio input device choice
 	Fl_Choice* ch_audio_out_device_; //!< Audio output device choice
+	Fl_Choice* ch_sample_rate_;      //!< Actual sample rate
 
 	Fl_Group* g_help_;                 //!< Group for help buttons
 	Fl_Button* bt_help_html_;          //!< Open HTML User guide

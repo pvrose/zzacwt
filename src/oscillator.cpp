@@ -75,6 +75,8 @@ void oscillator::apply_settings() {
 	settings.get("Drift Period", drift_period_, 1.0);
 	settings.get("Fading Period", fading_period, 0.0);
 	settings.get("Fading Depth", fading_amplitude_, 0.0);
+	settings.get("Sample Rate", sample_rate_, DEFAULT_SAMPLE_RATE);
+	sample_delta_time_ = 1.0 / sample_rate_;
 	// Reset drift state when settings are applied
 	current_drift_offset_ = 0.0;
 	drift_phase_accumulator_ = 0.0;
@@ -126,7 +128,7 @@ double oscillator::next_sample() {
 	double frequency = update_drift_and_get_frequency();
 	// Increment the phase accumulator by the current frequency 
 	// divided by the sample rate
-	phase_accumulator_ += 2.0 * PI * frequency / DEFAULT_SAMPLE_RATE;
+	phase_accumulator_ += 2.0 * PI * frequency * sample_delta_time_;
 	// Wrap the phase accumulator to stay within 0 to 2*pi
 	if (phase_accumulator_ >= 2.0 * PI) {
 		phase_accumulator_ -= 2.0 * PI;

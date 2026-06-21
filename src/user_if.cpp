@@ -106,6 +106,12 @@ void user_if::create_widgets() {
 	ch_audio_in_device_ = new Fl_Choice(cx, cy, WEDIT, HBUTTON);
 	ch_audio_in_device_->tooltip("Select the audio input device");
 
+	cx += ch_audio_in_device_->w();
+	ch_sample_rate_ = new Fl_Choice(cx, cy, WBUTTON, HBUTTON, "Sample Rate");
+	ch_sample_rate_->align(FL_ALIGN_TOP);
+	ch_sample_rate_->callback(cb_sample_rate, this);
+	ch_sample_rate_->tooltip("Select the desired sample-rate");
+
 	cx = g_audio_->x() + GAP + WLABEL;
 	cy += HBUTTON;
 
@@ -763,6 +769,20 @@ void user_if::update_audio_widgets() {
 		}
 		i++;
 	}
+	// populate the sample rate.
+	unsigned int sample_rate;
+	settings.get("Sample Rate", sample_rate, static_cast<unsigned int>(DEFAULT_SAMPLE_RATE));
+	ch_sample_rate_->clear();
+	i = 0;
+	char text[10];
+	for (const auto& rate : sample_rates_) {
+		snprintf(text, sizeof(text), "%d", rate);
+		ch_sample_rate_->add(text);
+		if (sample_rate == rate) {
+			ch_sample_rate_->value(i);
+		}
+		i++;
+	}
 	if (audio_out_enabled) {
 		ch_audio_out_device_->deactivate();
 	}
@@ -774,6 +794,12 @@ void user_if::update_audio_widgets() {
 	}
 	else {
 		ch_audio_in_device_->activate();
+	}
+	if (audio_out_enabled && audio_in_enabled) {
+		ch_sample_rate_->deactivate();
+	}
+	else {
+		ch_sample_rate_->activate();
 	}
 }	
 
@@ -1178,6 +1204,18 @@ void user_if::cb_enable_audio_out(Fl_Widget* w, void* data)
 		ui->update_audio_widgets();
 		ui->apply_speaker_settings();
 	}
+}
+
+// Callback function for the "Sample Rate" choice
+void user_if::cb_sample_rate(Fl_Widget* w, void* data) {
+	Fl_Choice* ch = static_cast<Fl_Choice*>(w);
+	user_if* ui = static_cast<user_if*>(data);
+	int ix = ch->value();
+	unsigned int rate = sample_rates_[ix];
+	zc_settings settings;
+	settings.set("Sample Rate", rate);
+	ui->update_audio_widgets();
+	ui->apply_speaker_settings();
 }
 
 // Callback function for the "Open HTML" button.

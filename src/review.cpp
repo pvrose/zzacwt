@@ -77,7 +77,6 @@ review::review(int W, int H, const char* L) : Fl_Double_Window(W, H, L) {
 	// Capture main thread ID for thread safety checks
 	main_thread_id_ = std::this_thread::get_id();
 	create_widgets();
-	load_settings();
 	ticker_->add_ticker(this, cb_ticker, 1, false);
 }
 
@@ -247,6 +246,7 @@ void review::create_widgets() {
 	cy += HDISPLAY;
 	waveform_ = new zc_graph_cartesian(cx, cy, WSGRAM, HDISPLAY);
 
+	load_settings();
 	configure_spectrogram();
 
 	g_sgram_->end();
@@ -265,8 +265,11 @@ void review::load_settings() {
 	zc_settings settings;
 	settings.get("Display While Sending", show_as_sending_, false);
 	settings.get("Decode Source", decode_source_, audio_source_t::NO_AUDIO);
+	settings.get("Sample Rate", sample_rate_, DEFAULT_SAMPLE_RATE);
 	ck_as_sending_->value(show_as_sending_);
 	ch_decode_source_->value(static_cast<int>(decode_source_));
+	if (sl_max_freq_->value() > sample_rate_) sl_max_freq_->value(sample_rate_);
+	sl_max_freq_->range(0.0, sample_rate_);
 	if (ck_as_sending_->value()) {
 		show_text(td_sent_);
 	}
@@ -640,6 +643,7 @@ void review::configure_spectrogram() {
 	double max_time = DEFAULT_MAX_TIME;
 	settings.get("Spectrogram Time Span", max_time, max_time);
 
+
 	update_decoder_controls();
 	spectrogram_->start_config();
 	// Axis 0 - time
@@ -659,7 +663,7 @@ void review::configure_spectrogram() {
 	if (spectrogram_data_display_) delete spectrogram_data_display_;
 	spectrogram_data_display_ = new zc_graph_::data_set_dens_t;
 	// Set the X-values 
-	double time_per_ffts = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / DEFAULT_SAMPLE_RATE;
+	double time_per_ffts = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / sample_rate_;
 	size_t num_time_ffts = static_cast<size_t>(max_time / time_per_ffts);
 	spectrogram_data_display_->x_values.resize(num_time_ffts);
 	double t = 0.0;
@@ -668,7 +672,7 @@ void review::configure_spectrogram() {
 		t += time_per_ffts;
 	}
 	// Set the Y-values - these are the frequencies corresponding to each FFT bin.
-	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size);
+	double freq_bin = sample_rate_ / static_cast<double>(fft_size);
 	double f = 0.0;
 	size_t num_freq_bins = (max_freq / freq_bin) + 1;
 	spectrogram_data_display_->y_values.resize(num_freq_bins);
@@ -700,7 +704,7 @@ void review::configure_spectrogram() {
 	if (waveform_data_display_) delete waveform_data_display_;
 	waveform_data_display_ = new std::vector<zc_graph_::data_point_t>;
 	// Set the X-values for the waveform display to time and Y-values to zero.
-	double time_per_waves = 1.0 / DEFAULT_SAMPLE_RATE;
+	double time_per_waves = 1.0 / sample_rate_;
 	size_t num_wave_samples = static_cast<size_t>(max_time / time_per_waves);
 	waveform_data_display_->resize(num_wave_samples);
 	t = 0.0;
@@ -741,8 +745,8 @@ void review::update_decoder_controls() {
 	settings.get("Spectrogram Frequency Span", max_freq, max_freq);
 	double max_time = DEFAULT_MAX_TIME;
 	settings.get("Spectrogram Time Span", max_time, max_time);
-	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size);
-	double time_per_sample = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / DEFAULT_SAMPLE_RATE;
+	double freq_bin = sample_rate_ / static_cast<double>(fft_size);
+	double time_per_sample = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / sample_rate_;
 
 	int fft_index = 0;
 	int temp = fft_size;

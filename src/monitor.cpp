@@ -76,10 +76,11 @@ void monitor::load_parameters()
 	settings.get("Spectrogram Frequency Span", max_freq, max_freq);
 	double max_time = DEFAULT_MAX_TIME;
 	settings.get("Spectrogram Time Span", max_time, max_time);
-	double freq_bin = DEFAULT_SAMPLE_RATE / static_cast<double>(fft_size_);
+	settings.get("Sample Rate", sample_rate_, DEFAULT_SAMPLE_RATE);
+	double freq_bin = sample_rate_ / static_cast<double>(fft_size_);
 	double interval = static_cast<double>(fft_size_) * (1.0 - overlap * 0.01);
 	image_interval_ = static_cast<int>(interval);
-	double time_per_sample = interval / DEFAULT_SAMPLE_RATE;
+	double time_per_sample = interval / sample_rate_;
 	// Calculate the number of images
 	display_depth_ = static_cast<int>(max_time / time_per_sample);
 	audio_source_t source = audio_source_t::NO_AUDIO;
@@ -392,7 +393,7 @@ void monitor::identify_signal_bin() {
 
 // Return the frequency of the \p bin in Hz based on the FFT size and sample rate.
 double monitor::get_bin_frequency(int bin) const {
-	return static_cast<double>(bin) * DEFAULT_SAMPLE_RATE / fft_size_;
+	return static_cast<double>(bin) * sample_rate_ / fft_size_;
 }
 
 // Set the decode callback and data
@@ -500,7 +501,7 @@ void monitor::update_speed() {
 	// Constants
 	double MAX_DASH_DOT = 4.8;    // Maximum dash:dot ratio.
 	double MIN_DASH_DOT = 2.6;    // Minimum dash:dot ration.
-	double duration = static_cast<double>(image_count_ * image_interval_) / DEFAULT_SAMPLE_RATE;
+	double duration = static_cast<double>(image_count_ * image_interval_) / sample_rate_;
 	switch (current_symbol_) {
 	case symbol_t::DOT_MARK:
 	case symbol_t::INTERNAL_SPACE:
@@ -543,7 +544,7 @@ void monitor::update_speed() {
 
 // Convert monitored dot time into the cvarious threshold times
 void monitor::update_derived_times() {
-	unsigned int dit_samples = static_cast<unsigned int>(dot_times_.value() * DEFAULT_SAMPLE_RATE);
+	unsigned int dit_samples = static_cast<unsigned int>(dot_times_.value() * sample_rate_);
 	dit_size_ = dit_samples / image_interval_;
 	min_dit_size_ = 0; 
 	max_dit_size_ = dit_size_ * 2;

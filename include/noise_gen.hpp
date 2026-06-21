@@ -29,6 +29,8 @@
 #include <vector>
 
 //! \file noise_gen.hpp
+//! 
+extern double DEFAULT_SAMPLE_RATE;
 
 //! \brief Noise generator class for simulating various
 //! types of noise and distortion in the audio signal.
@@ -115,6 +117,9 @@ private:
 	double noise_volume_ = 0.0F;
 	//! Current noise severity level (0-100).
 	double noise_severity_ = 0.0F;
+
+	//! Sample rate
+	double sample_rate_ = DEFAULT_SAMPLE_RATE;
 
 	//! Time for the next noise event to occur, in samples. 
 	//! This will be updated after each noise event is generated and

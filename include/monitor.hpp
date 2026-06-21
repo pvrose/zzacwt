@@ -269,6 +269,8 @@ private:
 	unsigned int image_interval_ = 0; // Interval between images in samples (N).
 	unsigned int display_depth_ = 0; // Number of images to display in the frequency domain plot.
 
+	double sample_rate_;
+
 	//! FFT shaping window
 	std::vector<double> shaping_window_;
 
