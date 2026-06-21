@@ -179,7 +179,7 @@ void review::create_widgets() {
 	cx = g_decoded_->x();
 
 	int HSGRAMS = std::max(HTEXT + HBUTTON * 8 + GAP, HTEXT + HDISPLAY * 2 + GAP);
-	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HSGRAMS, "Spectrogram");
+	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HSGRAMS, "Scope views");
 	g_sgram_->box(FL_BORDER_BOX);
 	g_sgram_->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_TOP);
 
@@ -226,7 +226,7 @@ void review::create_widgets() {
 	cy += HBUTTON;
 	op_time_slice_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Step (ms)");
 	op_time_slice_->align(FL_ALIGN_LEFT);
-	op_time_slice_->tooltip("Displays ythetime resilution in milliseconds");
+	op_time_slice_->tooltip("Displays the time resilution in milliseconds");
 
 	cy += HBUTTON;
 	op_decoded_pitch_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Freq (Hz)");
@@ -296,6 +296,9 @@ void review::check_main_thread(const char* method_name) const {
 void review::add_sent_text(const std::string& text, text_source_t source) {
 	// Thread safety check - must be called from main thread only
 	check_main_thread("review::add_sent_text");
+
+	// Avoid unnecessary scrolling
+	if (text.empty()) return;
 
 	switch (source) {
 	case text_source_t::SENT_TEXT: {
