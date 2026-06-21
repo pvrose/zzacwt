@@ -25,8 +25,8 @@ generator to produce the final audio output.
 - A "Speaker" which controls the audio output to the user.
 - A "Display" which shows the generated text and allows the user 
 to enter what they heard for comparison.
-
-\todo Adding a "Decoder" module to convert audio signals back into the
-Morse signals and then into text.
+- A "Monitor" which decodes either generated audio or audio input. The audio
+is displayes in a "Spectrogram" or "Sideways waterfall" and also
+as a waveform.
 
 */

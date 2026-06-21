@@ -1229,7 +1229,7 @@ void user_if::cb_open_html(Fl_Widget* widget, void* data) {
 // Callback function for the "Open PDF" button.
 void user_if::cb_open_pdf(Fl_Widget* widget, void* data) {
 	std::string full_path = file_holder_->get_directory(FDD_DOCUMENTS) +
-		"userguide/ZZAVNAD.pdf";
+		"userguide/ZZACWT.pdf";
 	open_help_file(full_path);
 }
 
@@ -1237,7 +1237,7 @@ void user_if::open_help_file(const std::string& full_filename) {
 #ifdef _WIN32
 	HINSTANCE result = ShellExecute(NULL, "open", full_filename.c_str(), NULL, NULL, SW_SHOWNORMAL);
 	if ((intptr_t)result <= 32) {
-		printf("ZZAVNAD: Error opening HTML %s. Error code: %d",
+		printf("ZZACWT: Error opening HTML %s. Error code: %d",
 			full_filename.c_str(),
 			(int)(intptr_t)result);
 	}
@@ -1245,7 +1245,7 @@ void user_if::open_help_file(const std::string& full_filename) {
 	std::string cmd = "xdg-open \"" + full_filename + "\"";
 	int res = system(cmd.c_str());
 	if (res != 0) {
-		printf("ZZAVNAD: Error opening HTML %s. Error code: %d",
+		printf("ZZACWT: Error opening HTML %s. Error code: %d",
 			full_filename.c_str(),
 			res);
 	}

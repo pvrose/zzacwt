@@ -64,7 +64,7 @@ static inline const std::map<content_mode, std::string> content_mode_strings_ = 
 	{content_mode::CALLSIGNS, "Callsigns"},
 	{content_mode::USER_TEXT, "User Text"},
 	{content_mode::TEST_MODE_A, "Test Mode A (VVV)"},
-	{content_mode::TEST_MODE_B, "Solid tone"},
+	{content_mode::TEST_MODE_B, "Test Mode B (Solid tone)"},
 };
 
 //! Enumerated type for the different speed types

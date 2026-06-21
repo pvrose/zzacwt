@@ -1,0 +1,24 @@
+/** \page audio Selecting audio ports
+
+Audio port selection is controlled by the main user interface - outlined
+in green below.
+
+\image html user_if_2.png "Generation controls"
+\image latex user_if_2.png "Generation controls" width=8cm
+
+This panel allows the user to specify the source and destination of audio
+signals.
+
+For both "In" and "Out" there are an enable and a choice widget. When the port
+is enabled, the user cannot change the selection. The "In" controls allow the
+user to specify whether to connect an external audio source to the application. In this 
+case a virtual cable has been selected, allowing the connection to the output
+of another application. The "Out" controls allow the user to specify where the 
+generated audio is played. In this case the Windows sound mixer has been selected.
+
+There is also a "Sample Rate" control. This allows the user to specify the 
+sample rate used for <B>both</B> input and output. 
+\todo This is still "work-in-progress" and only a sample rate of 22050
+samples per second is supported. 
+
+*/

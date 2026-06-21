@@ -7,12 +7,15 @@ It provides the following functionality:
 - Allows the pitch of the generated Morse code to be configured.
 - Adds "disturbances" to the generated Morse code to simulate real-world conditions.
 - Displays the generated text and allows the user to enter what they heard for comparison.	
+- Displays audio in both "sideways waterfall" and "waveform" displays and attempts
+to decode it.
 
 \section contents Contents
 
 - \subpage overview
 - \subpage generation
 - \subpage review
+- \subpage audio
 - \subpage data
 
 \copyright Philip Rose GM3ZZA 2026.

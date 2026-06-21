@@ -1,7 +1,7 @@
 /** \page generation Morse Code Generation
 
-Morse Code generation is controlled by the main user interface - shown
-below.
+Morse Code generation is controlled by the main user interface - outlined
+in green below.
 
 \image html user_if.png "Generation controls"
 \image latex user_if.png "Generation controls" width=8cm
@@ -21,6 +21,7 @@ The "Mode" drop down allows the user to select the type of text that is generate
 - <B>Callsigns</B> generates random callsigns (letters and numbers in a specific format)using a built-in callsign generator.
 - <B>User Text</B> allows the user to enter their own text for generation.
 - <B>Test Mode "A"</B> generates a series of "VVV" groups, added for initial testing of the app.
+- <B>Test Mode "B"</B> generates a continuous tone.
 
 The "Block Size" control allows the user to specify how many groups or words
 to send in a single play.
@@ -55,8 +56,19 @@ between words.. This allows the user to practice
 at a slower overall speed while still hearing the words at a faster speed.
 
 The "Dot Speed" control allows the user to set the dot speed. This
-is the speed at which characters are formed. A speed of 12 WPM
-corresponds to a dot unit of 50 ms. 
+is the speed at which characters are formed. This relates to a 
+"dot unit" which is the time taken for a single dot mark or intra-symbol
+space:
+
+ WPM | Dot unit 
+ ----|---------
+ 6   | 100 ms   
+ 12  | 50 ms    
+ 15  | 40 ms    
+ 20  | 30 ms    
+ 25  | 24 ms    
+ 30  | 20 ms    
+ 40  | 15 ms    
 
 The "Overall WPM" controls allows the user to set the overall
 WPM. As describe above this adds spaces either between letters and words or 
@@ -99,7 +111,7 @@ of disturbance.
 \section disturbance Signal disturbances
 
 The panel marked "Disturbers" allows one of a number of means
-of disturbing the users reception of the Morse code.
+of disturbing the user's reception of the Morse code.
 
 \subsection timing Variation of timing
 
@@ -109,7 +121,7 @@ of hand-sent Morse code.
 
 There is a nominal time at which 
 the transition would be scheduled:
-- <B>Dot Mark</B> The mark of a dot set by the "Dot Timing" (a dot unit: 50 ms for 12 WPM).
+- <B>Dot Mark</B> The mark of a dot set by the "Dot Timing".
 - <B>Dash Mark</B> The mark of a dash (3 dot units).
 - <B>Internal Space</B> The space between two consecutive marks (dot or dash)
   within a single character (1 dot unit).
