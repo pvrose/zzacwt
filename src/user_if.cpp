@@ -69,6 +69,9 @@ extern text_gen* text_gen_;
 extern review* review_;
 
 extern double DEFAULT_RISE_FALL;
+extern double DEFAULT_WPM;
+extern double MAXIMUM_WPM;
+extern double MINIMUM_WPM;
 extern void restart_application();
 
 user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)
@@ -243,7 +246,7 @@ void user_if::create_widgets() {
 	// Create dot speed WPM slider
 	sl_dot_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Dot Speed:");
 	sl_dot_speed_->type(FL_HOR_SLIDER);
-	sl_dot_speed_->bounds(6, 50);
+	sl_dot_speed_->bounds(MINIMUM_WPM, MAXIMUM_WPM);
 	sl_dot_speed_->step(1.0);
 	sl_dot_speed_->callback(cb_wpm, this);
 	sl_dot_speed_->tooltip("Adjust the dot speed");
@@ -254,7 +257,7 @@ void user_if::create_widgets() {
 	// Create Overall WPM slider
 	sl_overall_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Overall WPM:");
 	sl_overall_speed_->type(FL_HOR_SLIDER);
-	sl_overall_speed_->bounds(6, 50);
+	sl_overall_speed_->bounds(MINIMUM_WPM, MAXIMUM_WPM);
 	sl_overall_speed_->step(1.0);
 	sl_overall_speed_->callback(cb_overall, this);
 	sl_overall_speed_->tooltip("Overall: adds spacing between letters or words to achieve target WPM");
@@ -510,19 +513,23 @@ void user_if::update_speed_widgets() {
 	ch_speed_type_->value(static_cast<int>(current_speed_type));
 
 	// Get the current dot speed from settings
-	int dot_speed;
-	settings.get("Dot Speed", dot_speed, 20);
+	double dot_speed;
+	settings.get("Dot Speed", dot_speed, DEFAULT_WPM);
+	if (dot_speed < MINIMUM_WPM) dot_speed = MINIMUM_WPM;
+	if (dot_speed > MAXIMUM_WPM) dot_speed = MAXIMUM_WPM;
+
 	sl_dot_speed_->value(dot_speed);
+	settings.set("Dot Speed", dot_speed);
 
 	// Get the current Overall WPM setting
-	int overall_speed;
-	settings.get("Overall WPM", overall_speed, 6);
+	double overall_speed;
+	settings.get("Overall WPM", overall_speed, DEFAULT_WPM);
 	if (current_speed_type == speed_type::NORMAL) {
 		overall_speed = dot_speed; // If not in Farnsworth mode, set Overall WPM to dot speed
 	}
 	// Restrict the Overall WPM value to be between 6 and dot speed.
-	if (overall_speed < 6) {
-		overall_speed = 6;
+	if (overall_speed < MINIMUM_WPM) {
+		overall_speed = MINIMUM_WPM;
 	}
 	else if (overall_speed > dot_speed) {
 		overall_speed = dot_speed;

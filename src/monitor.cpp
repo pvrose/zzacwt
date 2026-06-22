@@ -53,6 +53,11 @@ const double HIGH_MARGIN = 1.05;
 const double LOW_MARGIN = 0.95;
 // Maximum number of char spaces without int spaces before we trip a timeout.
 unsigned int INT_SPACE_TIMEOUT = 4;
+// WPM bounds and therefore dot time bounds
+extern double MAXIMUM_WPM;
+const double MINIMUM_DOT_TIME = 0.6 / MAXIMUM_WPM;
+extern double MINIMUM_WPM;
+const double MAXIMUM_DOT_TIME = 0.6 / MINIMUM_WPM;
 
 monitor::monitor(zc_async_queue<double>* audio_sent, zc_async_queue<double>* audio_received)
 	: audio_sent_queue_(audio_sent), 
@@ -520,6 +525,7 @@ void monitor::update_speed() {
 		if (weight < MIN_DASH_DOT) {
 			dot_times_.clear();
 			new_dot = dash_times_.value() / MIN_DASH_DOT;
+			if (new_dot < MINIMUM_DOT_TIME) new_dot = MINIMUM_DOT_TIME;
 			dot_times_.add(new_dot);
 #ifdef ENABLE_SPEED_MONITORING
 			printf("Adding %g to dot time - average now %g\n", new_dot, dot_times_.value());
@@ -528,6 +534,7 @@ void monitor::update_speed() {
 		else if (weight > MAX_DASH_DOT) {
 			dot_times_.clear();
 			new_dot = dash_times_.value() / MAX_DASH_DOT;
+			if (new_dot > MAXIMUM_DOT_TIME) new_dot = MAXIMUM_DOT_TIME;
 			dot_times_.add(new_dot);
 #ifdef ENABLE_SPEED_MONITORING
 			printf("Adding %g to dot time - average now %g\n", new_dot, dot_times_.value());

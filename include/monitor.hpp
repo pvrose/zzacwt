@@ -41,6 +41,8 @@
 const size_t SPEED_HISTORY_LENGTH = 5;
 const size_t LEVEL_HISTORY_LENGTH = 5;
 
+extern double DEFAULT_SAMPLE_RATE;
+
 
 //! \brief Class to monitor the generated audio samples and recover the transmitted symbols.
 //! 
@@ -269,7 +271,7 @@ private:
 	unsigned int image_interval_ = 0; // Interval between images in samples (N).
 	unsigned int display_depth_ = 0; // Number of images to display in the frequency domain plot.
 
-	double sample_rate_;
+	double sample_rate_ = DEFAULT_SAMPLE_RATE;
 
 	//! FFT shaping window
 	std::vector<double> shaping_window_;
