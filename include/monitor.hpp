@@ -39,7 +39,7 @@
 
 //! Used for running averages.
 const size_t SPEED_HISTORY_LENGTH = 5;
-const size_t LEVEL_HISTORY_LENGTH = 50;
+const size_t LEVEL_HISTORY_LENGTH = 5;
 
 extern double DEFAULT_SAMPLE_RATE;
 

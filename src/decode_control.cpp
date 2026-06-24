@@ -264,6 +264,11 @@ void decode_control::cb_ticker(void* data) {
 		*r->waveform_data_display_ = *r->waveform_data_capture_;
 		r->spectrogram_data_ready_.store(false, std::memory_order_relaxed);
 	}
+	char text[32]; 
+	snprintf(text, sizeof(text), "%.0f", r->latest_decoded_pitch_.load());
+	r->op_decoded_pitch_->value(text);
+	snprintf(text, sizeof(text), "%.1f", r->latest_decoded_wpm_.load());
+	r->op_decoded_wpm_->value(text);
 	r->g_sgram_->redraw();
 }
 
