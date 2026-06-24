@@ -17,6 +17,7 @@
 
 #include "oscillator.hpp"
 #include "codec.hpp"
+#include "decode_control.hpp"
 #include "mod_mixer.hpp"
 #include "monitor.hpp"
 #include "noise_gen.hpp"
@@ -95,6 +96,7 @@ mod_mixer* mod_mixer_ = nullptr; //!< Pointer to the modulator/mixer instance
 zc_audio* speaker_ = nullptr; //!< Pointer to the speaker instance
 review* review_ = nullptr; //!< Pointer to the review window instance
 monitor* monitor_ = nullptr; //!< Pointer to the monitor window instance
+decode_control* decoder_ = nullptr; //!< Pointer to the decode control window instance
 zc_audio* microphone_ = nullptr; //!< Pointer to the microphone instance
 zc_async_queue<std::string>* mon_text_q_ = nullptr; //!< Pointer to monitored text interface
 
@@ -173,6 +175,11 @@ int main(int argc, char** argv)
 	review_->copy_label(label.c_str());
 	review_->add_sent_text_queue(mon_text_q_);
 	review_->show();
+
+	decoder_ = new decode_control(600, 800);
+	label = APP_NAME + " v" + APP_VERSION + " - Decode Control";
+	decoder_->copy_label(label.c_str());
+	decoder_->show();
 
 	// Run the FLTK event loop
 	bool result = Fl::run();

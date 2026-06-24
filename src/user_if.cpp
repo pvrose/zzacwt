@@ -17,6 +17,7 @@
 #include "user_if.hpp"
 
 #include "cred_dialog.hpp"
+#include "decode_control.hpp"
 #include "oscillator.hpp"
 #include "mod_mixer.hpp"
 #include "noise_gen.hpp"
@@ -59,6 +60,7 @@
 #endif
 #endif
 
+extern decode_control* decoder_;
 extern oscillator* oscillator_;
 extern mod_mixer* mod_mixer_;
 extern noise_gen* noise_gen_;
@@ -831,7 +833,9 @@ void user_if::apply_noise_settings()
 void user_if::apply_speaker_settings()
 {
 	if (cb_enable_audio_out_->value()) {
-		speaker_->use_port(speaker_port_);
+		if (!speaker_->enabled()) {
+    		speaker_->use_port(speaker_port_);
+		}
 	}
 	else {
 		if (speaker_->enabled()) speaker_->disconnect_port();
@@ -1144,6 +1148,10 @@ void user_if::cb_close(Fl_Widget* w, void* data)
 	// Hide the review window if it's open
 	if (review_) {
 		review_->hide();
+	}
+	// Hide the decoder if it's open
+	if (decoder_) {
+		decoder_->hide();
 	}
 	// Call default close behavior to close the main window and exit the application
 	Fl_Window::default_callback((Fl_Window*)w, data);

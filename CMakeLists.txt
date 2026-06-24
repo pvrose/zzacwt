@@ -54,6 +54,7 @@ set(APP_VERSION "${ZZACWT_VERSION}${APP_RC_VALUE}")
 set(CPPFILES 
   ${ZZACWT_SOURCE_DIR}/src/codec.cpp
   ${ZZACWT_SOURCE_DIR}/src/cred_dialog.cpp
+  ${ZZACWT_SOURCE_DIR}/src/decode_control.cpp
   ${ZZACWT_SOURCE_DIR}/src/main.cpp
   ${ZZACWT_SOURCE_DIR}/src/mod_mixer.cpp
   ${ZZACWT_SOURCE_DIR}/src/monitor.cpp

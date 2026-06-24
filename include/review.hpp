@@ -92,12 +92,7 @@ public:
 	static void cb_as_sending(Fl_Widget* w, void* data);
 	static void cb_show(Fl_Widget* w, void* data);
 	static void cb_compare_typed(Fl_Widget* w, void* data);
-	static void cb_decode_source(Fl_Widget* w, void* data);
 	static void cb_compare_decoded(Fl_Widget* w, void* data);
-	static void cb_ch_fft_size(Fl_Widget* w, void* data);
-	static void cb_slider_overlap(Fl_Widget* w, void* data);
-	static void cb_slider_max_pitch(Fl_Widget* w, void* data);
-	static void cb_slider_max_time(Fl_Widget* w, void* data);
 
 	//! Callback for unfinished styles - null function to prevent FLTK from crashing when it encounters a style that is not defined in the style table.
 	static void cb_unfinished_style(int pos, void* data) {
@@ -114,12 +109,11 @@ public:
 	//! Callback from zc_ticker to update the sent window
 	static void cb_ticker(void* data);
 
-	//! Callback to update spectrogram with latest audio sample
-	static void cb_update_spectrogram(void* data);
+	//! Push decoded text onto queue
+	void push_decoded_text(const std::string& text) {
+		decoded_text_queue_.push(text);
+	}
 
-	//! Callback to redraw the review window with latest spectrogram data
-	//! Needs to run in main thread to avoid FLTK crashing when trying to draw from another thread.
-	static void cb_redraw(void* data);
 
 private:
 
@@ -142,14 +136,6 @@ private:
 	//! \brief Show the text in a text display by displaying it in foreground colour.
 	void show_text(Fl_Text_Display* td);
 
-	//! \brief Configure the spectogram graph widget
-	//! This must include validation and correction of the settings, and 
-	//! updating the spectrogram with the new settings.
-	void configure_spectrogram();
-
-	//! \brief Update decoder and spectrogram controls from settings
-	void update_decoder_controls();
-
 	//! \brief Add sent text to the review.
 	void add_sent_text(const std::string& text, text_source_t source = text_source_t::SENT_TEXT);
 
@@ -158,9 +144,6 @@ private:
 
 	//! \brief Check and display the decoded text from the monitor. Called every 100 ms.
 	void poll_decoded_text();
-
-	//! \brief Callback from decoder in monitor.
-	static void cb_decoder_callback(void* data, const std::string& decoded_text);
 
 	// Widgets.
 	Fl_Group* g_sent_;     //!< Group for sent text.
@@ -174,23 +157,10 @@ private:
 
 	Fl_Group* g_decoded_;  //!< Group for decoded text.
 	Fl_Text_Display* td_decoded_;  //!< Text display for decoded text.
-	Fl_Choice* ch_decode_source_;  //!< Choice to select source of audio for decoding.
 	Fl_Button* btn_compare_decoded_;  //!< Button to compare sent text with decoded text.
 	
-	Fl_Group* g_sgram_;              //!< Group for spectogram and controls
-	zc_graph_density* spectrogram_;  //!< Spectrogram (sideways waterfall) graph.
-	zc_graph_cartesian* waveform_;   //!< Waveform graph.
-	Fl_Choice* ch_fft_size_;         //!< Size of FFT input (number of samples in each chunk)
-	Fl_Value_Slider* sl_overlap_;    //!< Overlap between FFT chunks (in eigthth-chunks)
-	Fl_Value_Slider* sl_max_freq_;   //!< Maximum audio frequency in display (1 kHz to SAMPLE_RATE/2)
-	Fl_Value_Slider* sl_max_time_;   //!< Maximum time span in dispalay.
-	Fl_Output* op_freq_bin_;         //!< Frequency bin size (in Hz)
-	Fl_Output* op_time_slice_;       //!< Length of a time slice (in ms) - non overlapped part of a chunk. 
-	Fl_Output* op_decoded_pitch_;    //!< Decoded pitch 
-	Fl_Output* op_decoded_wpm_;      //!< Decoded WPM
 	// Settings.
 	bool show_as_sending_;  //!< Whether to show sent text while sending.
-	audio_source_t decode_source_;  //!< Source of audio for decoding.
 
 	//! Sample rate
 	double sample_rate_;
@@ -200,21 +170,9 @@ private:
 	//! Queue of decoded text
 	zc_async_queue<std::string> decoded_text_queue_;
 
-	//! Spectrogram data.
-	zc_graph_::data_set_dens_t* spectrogram_data_capture_ = nullptr;  // Written by monitor thread
-	zc_graph_::data_set_dens_t* spectrogram_data_display_ = nullptr;  // Read by FLTK on main thread
-	std::mutex spectrogram_mutex_;                          // Protects buffer swap
-	std::atomic<bool> spectrogram_data_ready_{false};       // Flag for buffer swap
-	//! Waveform data. Control is the same as for spectrogram data.
-	std::vector<zc_graph_::data_point_t>* waveform_data_capture_ = nullptr;  // Written by monitor thread
-	std::vector<zc_graph_::data_point_t>* waveform_data_display_ = nullptr;  // Read by FLTK on main thread
 
 	//! Main thread ID for thread safety checks
 	std::thread::id main_thread_id_;
-
-	//! Latest decoded pitch and WPM (set from monitor thread, read from main thread)
-	std::atomic<double> latest_decoded_pitch_{0.0};
-	std::atomic<double> latest_decoded_wpm_{0.0};
 
 	//! Check if we're on the main thread, throw exception if not
 	void check_main_thread(const char* method_name) const;
