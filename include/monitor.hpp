@@ -30,6 +30,7 @@
 #include <deque>
 #include <functional>
 #include <mutex>
+#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
@@ -234,8 +235,6 @@ private:
 	//! The queue of frequency images that have been processed and are waiting to be displayed.
 	std::deque<std::vector<double>> image_queue_;
 
-	//! The previous signal value
-	double previous_signal_ = 0.0;
 	//! The previous signal logic value
 	bool previous_logic_ = false;
 	//! The current symbol
@@ -258,10 +257,11 @@ private:
 	zc_running_average<double, SPEED_HISTORY_LENGTH> dot_times_;
 	//! Running average of dash times
 	zc_running_average<double, SPEED_HISTORY_LENGTH> dash_times_;
-	//! Signal training level - running mean
-	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_mean_;
-	//! Signal training level - running variance 
-	zc_running_average<double, LEVEL_HISTORY_LENGTH> running_variance_;
+
+	//! Current monitored high signal level.
+	double high_signal_level_ = 0.0;
+	//! "Squelch" level for detecting the presence of a signal.
+	double squelch_level_ = 0.0;
 
 	//! Selected frequency bin number for extracting signal
 	int selected_signal_bin_ = -1;

@@ -19,15 +19,19 @@
 #include "codec.hpp"
 #include "params.hpp"
 
+#include "zc_async_queue.h"
 #include "zc_graph_.h"
 #include "zc_settings.h"
 #include "zc_utils.h"
 
-#include <chrono>
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <deque>
+#include <exception>
 #include <functional>
-#include <mutex>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -95,6 +99,8 @@ void monitor::load_parameters()
 	settings.get("Dot Speed", dot_speed, 20.0);
 	if (dot_times_.empty()) dot_times_.add(1.2 / dot_speed);
 	if (dash_times_.empty()) dash_times_.add(3.0 * dot_times_.value());
+	// Squelch level is set to 0.0 by default, but can be adjusted by the user.
+	settings.get("Squelch Level", squelch_level_, squelch_level_);
 	update_derived_times();
 }
 
@@ -177,12 +183,9 @@ void monitor::stop_monitor() {
 void monitor::start_monitor(double max_value) {
 	load_parameters();
 	image_queue_.clear();
-	// Set the two running means both to 0
-	running_mean_.clear();
-	running_mean_.add(0.0);
-	running_variance_.clear();
-	running_variance_.add(0.0);
 	selected_signal_bin_ = -1;
+	high_signal_level_ = 0.0;
+	squelch_level_ = 0.0;
 	create_fft_buffers_and_plan();
 	start_processing_thread();
 }
@@ -411,23 +414,26 @@ void monitor::set_decode_callback(std::function<void(void*, const std::string&)>
 // If the current signal differs from the previous by more than
 // N standard deviations it's high. Similarly low. If between the two
 // keep the same value.
-const double DEVIATION = 1.0;
+const double DECAY_FACTOR = 0.99;
 bool monitor::get_logic(double signal, bool silent) {
-	double mean = running_mean_.value();
-	double sd = std::sqrt(running_variance_.value()) * DEVIATION;
-	double delta = signal - previous_signal_;
-	bool result = previous_logic_;
-	if (delta > sd) {
+	bool result = false;
+	// If the signal is greater than half the high signal level, consider it a logic high.
+	if (signal > high_signal_level_ / 2.0) {
 		result = true;
 	}
-	else if (delta < (-sd)) {
+	else {
 		result = false;
 	}
 	if (!silent) {
-		previous_signal_ = signal;
-		running_mean_.add(signal);
-		double diff = signal - mean;
-		running_variance_.add(diff * diff);
+		// Update the high signal level based on the current signal.
+		if (result) {
+			// Keep the high signal level updated to the maximum value seen so far.
+			high_signal_level_ = std::max(high_signal_level_, signal);
+		}
+		else {
+			// Gradually decay the high signal level to allow for a slow drop in signal strength.
+			high_signal_level_ *= DECAY_FACTOR + squelch_level_ * (1.0 - DECAY_FACTOR);
+		}
 	}
 	//if (result != previous_signal_) 
 	//	printf("Signal: %f, Result: %d, Duration: %d\n", signal, previous_signal_, image_count_);
