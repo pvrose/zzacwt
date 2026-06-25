@@ -81,7 +81,7 @@ void decode_control::create_widgets() {
 	int WGROUPS = GAP + WBUTTON + WDISPLAY + GAP;
 	int HDISPLAY = 120;
 	int HGROUPS = HTEXT + HDISPLAY + GAP;
-	int HSGRAMS = std::max(HTEXT + HBUTTON * 9 + GAP, HTEXT + HDISPLAY * 2 + GAP);
+	int HSGRAMS = std::max(HTEXT + HBUTTON * 10 + GAP, HTEXT + HDISPLAY * 2 + GAP);
 
 	g_sgram_ = new Fl_Group(cx, cy, WGROUPS, HSGRAMS, "Scope views");
 	g_sgram_->box(FL_BORDER_BOX);
@@ -130,6 +130,15 @@ void decode_control::create_widgets() {
 	sl_max_time_->tooltip("select the maximum time displayed");
 	sl_max_time_->range(0.1, 10);
 	sl_max_time_->step(0.05);
+
+	cy += HBUTTON;
+	sl_squelch_ = new zc_wheel_value_slider(cx, cy, WBUTTON, HBUTTON, "Squelch (%)");
+	sl_squelch_->type(FL_HOR_SLIDER);
+	sl_squelch_->align(FL_ALIGN_LEFT);
+	sl_squelch_->callback(cb_slider_squelch, (void*)this);
+	sl_squelch_->tooltip("Select the squelch level");
+	sl_squelch_->range(0.0, 100.0);
+	sl_squelch_->step(1.0);
 
 	cy += HBUTTON;
 	op_freq_bin_ = new Fl_Output(cx, cy, WBUTTON, HBUTTON, "Step (Hz)");
@@ -225,7 +234,7 @@ void decode_control::cb_ch_fft_size(Fl_Widget* w, void* data) {
 // Callback to set the FFT overlap 
 void decode_control::cb_slider_overlap(Fl_Widget* w, void* data) {
 	decode_control* r = static_cast<decode_control*>(data);
-	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
+	zc_wheel_value_slider* slider = static_cast<zc_wheel_value_slider*>(w);
 	double pc_overlap = slider->value();
 	zc_settings settings;
 	settings.set("FFT Overlap %", pc_overlap);
@@ -235,7 +244,7 @@ void decode_control::cb_slider_overlap(Fl_Widget* w, void* data) {
 // Callback to set the display frequency range
 void decode_control::cb_slider_max_pitch(Fl_Widget* w, void* data) {
 	decode_control* r = static_cast<decode_control*>(data);
-	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
+	zc_wheel_value_slider* slider = static_cast<zc_wheel_value_slider*>(w);
 	double max_freq = slider->value();
 	zc_settings settings;
 	settings.set("Spectrogram Frequency Span", max_freq);
@@ -245,11 +254,23 @@ void decode_control::cb_slider_max_pitch(Fl_Widget* w, void* data) {
 // Callback to set the display time range
 void decode_control::cb_slider_max_time(Fl_Widget* w, void* data) {
 	decode_control* r = static_cast<decode_control*>(data);
-	Fl_Value_Slider* slider = static_cast<Fl_Value_Slider*>(w);
+	zc_wheel_value_slider* slider = static_cast<zc_wheel_value_slider*>(w);
 	double max_time = slider->value();
 	zc_settings settings;
 	settings.set("Spectrogram Time Span", max_time);
 	r->configure_spectrogram();
+}
+
+// Callback to set the squelch level
+void decode_control::cb_slider_squelch(Fl_Widget* w, void* data) {
+	decode_control* r = static_cast<decode_control*>(data);
+	zc_wheel_value_slider* slider = static_cast<zc_wheel_value_slider*>(w);
+	double squelch = slider->value();
+	zc_settings settings;
+	settings.set("Squelch Level", squelch);
+	int fft_size = 64 << (r->ch_fft_size_->value());
+	double real_squelch = squelch * 0.01 * static_cast<double>(fft_size);
+	monitor_->set_squelch_level(real_squelch);
 }
 
 

@@ -62,13 +62,13 @@ space:
 
  WPM | Dot unit 
  ----|---------
- 6   | 100 ms   
- 12  | 50 ms    
- 15  | 40 ms    
- 20  | 30 ms    
- 25  | 24 ms    
- 30  | 20 ms    
- 40  | 15 ms    
+ 6   | 200 ms   
+ 12  | 100 ms    
+ 15  | 80 ms    
+ 20  | 60 ms    
+ 25  | 48 ms    
+ 30  | 40 ms    
+ 40  | 30 ms    
 
 The "Overall WPM" controls allows the user to set the overall
 WPM. As describe above this adds spaces either between letters and words or 

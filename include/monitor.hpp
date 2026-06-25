@@ -137,6 +137,19 @@ public:
 		}
 	}
 
+	//! Get the squelch level for detecting the presence of a signal.
+	double get_squelch_level() const {
+		return squelch_level_;
+	}
+
+	//! Set the squelch level for detecting the presence of a signal.
+	void set_squelch_level(double level) {
+		squelch_level_ = level;
+		if (high_signal_level_ < squelch_level_) {
+			high_signal_level_ = squelch_level_;
+		}
+	}
+
 
 private:
 

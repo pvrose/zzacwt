@@ -40,6 +40,7 @@
 // Enable queue monitoring in debug builds
 #ifdef _DEBUG
 #define ENABLE_QUEUE_MONITORING
+#define ENABLE_SPEED_MONITORING
 #endif
 
 #ifdef ENABLE_QUEUE_MONITORING
@@ -59,9 +60,9 @@ const double LOW_MARGIN = 0.95;
 unsigned int INT_SPACE_TIMEOUT = 4;
 // WPM bounds and therefore dot time bounds
 extern double MAXIMUM_WPM;
-const double MINIMUM_DOT_TIME = 0.6 / MAXIMUM_WPM;
+const double MINIMUM_DOT_TIME = 1.2 / MAXIMUM_WPM;
 extern double MINIMUM_WPM;
-const double MAXIMUM_DOT_TIME = 0.6 / MINIMUM_WPM;
+const double MAXIMUM_DOT_TIME = 1.2 / MINIMUM_WPM;
 
 monitor::monitor(zc_async_queue<double>* audio_sent, zc_async_queue<double>* audio_received)
 	: audio_sent_queue_(audio_sent), 
@@ -387,7 +388,7 @@ void monitor::identify_signal_bin() {
 	bool logic = get_logic(image_queue_.back()[bin_number], false);
 	image_count_++;
 	symbol_t symbol = decode_logic(logic);
-	if (symbol != symbol_t::UNFINISHED) {
+	if (symbol != symbol_t::UNFINISHED && symbol != symbol_t::NOISE) {
 //		printf("Decoded symbol: %s, Duration: %d, Dit size: %d\n", symbol_strings_.at(symbol).c_str(), image_count_, dit_size_);
 		current_symbol_ = symbol;
 		accumulate_symbol();
@@ -432,7 +433,7 @@ bool monitor::get_logic(double signal, bool silent) {
 		}
 		else {
 			// Gradually decay the high signal level to allow for a slow drop in signal strength.
-			high_signal_level_ *= DECAY_FACTOR + squelch_level_ * (1.0 - DECAY_FACTOR);
+			high_signal_level_ = high_signal_level_ * DECAY_FACTOR + squelch_level_ * (1.0 - DECAY_FACTOR);
 		}
 	}
 	//if (result != previous_signal_) 
@@ -515,13 +516,33 @@ void monitor::update_speed() {
 	double duration = static_cast<double>(image_count_ * image_interval_) / sample_rate_;
 	switch (current_symbol_) {
 	case symbol_t::DOT_MARK:
-	case symbol_t::INTERNAL_SPACE:
-		dot_times_.add(duration);
 #ifdef ENABLE_SPEED_MONITORING
-		printf("Adding %g to dot time - average now %g\n", duration, dot_times_.value());
+		printf("Decoded DOT_MARK, duration: %g\n", duration);
 #endif
+		// Do not update the speed if it will takes us above 40 WPM on average.
+		if (dot_times_.value() > MINIMUM_DOT_TIME) {
+			dot_times_.add(duration);
+#ifdef ENABLE_SPEED_MONITORING
+			printf("Adding %g to dot time - average now %g\n", duration, dot_times_.value());
+#endif
+		}
+		break;
+	case symbol_t::INTERNAL_SPACE:
+#ifdef ENABLE_SPEED_MONITORING
+		printf("Decoded INTERNAL_SPACE, duration: %g\n", duration);
+#endif
+		// Do not update the speed if it will takes us above 40 WPM on average.
+		if (dot_times_.value() > MINIMUM_DOT_TIME) {
+			dot_times_.add(duration);
+#ifdef ENABLE_SPEED_MONITORING
+			printf("Adding %g to dot time - average now %g\n", duration, dot_times_.value());
+#endif
+		}
 		break;
 	case symbol_t::DASH_MARK: {
+#ifdef ENABLE_SPEED_MONITORING
+		printf("Decoded DASH_MARK, duration: %g\n", duration);
+#endif
 		dash_times_.add(duration);
 #ifdef ENABLE_SPEED_MONITORING
 		printf("Adding %g to dash time - average now %g\n", duration, dash_times_.value());
@@ -547,6 +568,16 @@ void monitor::update_speed() {
 #endif
 		}
 	}
+		break;
+	case symbol_t::CHARACTER_SPACE:
+#ifdef ENABLE_SPEED_MONITORING
+		printf("Decoded CHARACTER_SPACE, duration: %g\n", duration);
+#endif
+		break;
+	case symbol_t::WORD_SPACE:
+#ifdef ENABLE_SPEED_MONITORING
+		printf("Decoded WORD_SPACE, duration: %g\n", duration);
+#endif
 		break;
 	default:
 		// Do nothing

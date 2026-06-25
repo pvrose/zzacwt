@@ -22,6 +22,9 @@
 #include <string>
 #include <vector>
 
+#ifdef _DEBUG
+// #define SHOW_DECODER_WARNINGS
+#endif
 
 //! Map between characters and their Morse code representations.
 const std::map<char, std::string> TO_MORSE = {
@@ -138,7 +141,9 @@ void codec::encode(const std::string& input, std::vector<std::vector<symbol_t>>&
 						}
 					}
 					else {
+#ifdef SHOW_DECODER_WARNINGS
 						std::cerr << "Warning: Unsupported character '" << pc << "' in prosign ignored in encoding." << std::endl;
+#endif
 					}
 				}
 				
@@ -185,7 +190,9 @@ void codec::encode(const std::string& input, std::vector<std::vector<symbol_t>>&
 			symbols.push_back(char_symbols);
 		}
 		else {
+#ifdef SHOW_DECODER_WARNINGS
 			std::cerr << "Warning: Unsupported character '" << c << "' ignored in encoding." << std::endl;
+#endif
 		}
 	}
 }
@@ -224,7 +231,9 @@ void codec::decode(const std::vector<symbol_t>& symbols, std::string& output)
 			continue; // No change to the Morse code representation of the current character.
 		}
 		else {
+#ifdef SHOW_DECODER_WARNINGS
 			std::cerr << "Warning: Badly formed symbol sequence at index " << i << " ignored in decoding." << std::endl;
+#endif
 		}
 	}
 }

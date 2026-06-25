@@ -65,6 +65,7 @@ public:
 	static void cb_slider_overlap(Fl_Widget* w, void* data);
 	static void cb_slider_max_pitch(Fl_Widget* w, void* data);
 	static void cb_slider_max_time(Fl_Widget* w, void* data);
+	static void cb_slider_squelch(Fl_Widget* w, void* data);
 
 	//! Callback from zc_ticker to update the sent window
 	static void cb_ticker(void* data);
