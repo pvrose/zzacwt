@@ -25,6 +25,7 @@
 #include "zc_graph_.h"
 #include "zc_settings.h"
 #include "zc_ticker.h"
+#include "zc_wheel_value_slider.h"
 
 #include <FL/Enumerations.H>
 #include <FL/Fl.H>
@@ -38,7 +39,7 @@
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Text_Editor.H>
-#include <FL/Fl_Value_Slider.H>
+#include <FL/Fl_Value_Slider.H>	
 #include <FL/Fl_Widget.H>
 
 #include <algorithm>
@@ -104,7 +105,7 @@ void decode_control::create_widgets() {
 	ch_fft_size_->tooltip("Select the appropriate FFT size");
 
 	cy += HBUTTON;
-	sl_overlap_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Overlap");
+	sl_overlap_ = new zc_wheel_value_slider(cx, cy, WBUTTON, HBUTTON, "Overlap");
 	sl_overlap_->type(FL_HOR_SLIDER);
 	sl_overlap_->align(FL_ALIGN_LEFT);
 	sl_overlap_->callback(cb_slider_overlap, (void*)this);
@@ -113,7 +114,7 @@ void decode_control::create_widgets() {
 	sl_overlap_->step(12.5);
 
 	cy += HBUTTON;
-	sl_max_freq_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Max Freq");
+	sl_max_freq_ = new zc_wheel_value_slider(cx, cy, WBUTTON, HBUTTON, "Max Freq");
 	sl_max_freq_->type(FL_HOR_SLIDER);
 	sl_max_freq_->align(FL_ALIGN_LEFT);
 	sl_max_freq_->callback(cb_slider_max_pitch, (void*)this);
@@ -122,7 +123,7 @@ void decode_control::create_widgets() {
 	sl_max_freq_->step(100.0);
 
 	cy += HBUTTON;
-	sl_max_time_ = new Fl_Value_Slider(cx, cy, WBUTTON, HBUTTON, "Max Time");
+	sl_max_time_ = new zc_wheel_value_slider(cx, cy, WBUTTON, HBUTTON, "Max Time");
 	sl_max_time_->type(FL_HOR_SLIDER);
 	sl_max_time_->align(FL_ALIGN_LEFT);
 	sl_max_time_->callback(cb_slider_max_time, (void*)this);

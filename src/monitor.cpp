@@ -447,7 +447,7 @@ bool monitor::get_logic(double signal, bool silent) {
 symbol_t monitor::decode_logic(bool logic) {
 	symbol_t result = symbol_t::UNFINISHED;
 	if (logic && !previous_logic_) {
-		if (image_count_ < min_dit_size_) {
+		if (image_count_ <= min_dit_size_) {
 			result = symbol_t::NOISE;
 		}
 		else if (image_count_ < max_int_size_) {
@@ -559,7 +559,7 @@ void monitor::update_speed() {
 void monitor::update_derived_times() {
 	unsigned int dit_samples = static_cast<unsigned int>(dot_times_.value() * sample_rate_);
 	dit_size_ = dit_samples / image_interval_;
-	min_dit_size_ = dit_size_ / 5; 
+	min_dit_size_ = dit_size_ / 2; 
 	max_dit_size_ = dit_size_ * 2;
 	max_int_size_ = dit_size_ * 2;
 	max_char_size_ = dit_size_ * 6;

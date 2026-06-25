@@ -33,6 +33,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 class Fl_Button;
 class Fl_Check_Button;
@@ -41,13 +42,13 @@ class Fl_Group;
 class Fl_Text_Buffer;
 class Fl_Text_Display;
 class Fl_Text_Editor;
-class Fl_Value_Slider;
+class zc_wheel_value_slider;
 class zc_graph_density;
 class monitor;
 
-//! \file decoder_control.hpp
+//! \file decode_control.hpp
 
-//! \brief Class decoder_control - displays decaoder controls.
+//! \brief Class decode_control - displays decoder controls.
 //! 
 //! Controls include:
 //! FFT configuration.
@@ -57,7 +58,7 @@ class decode_control : public Fl_Double_Window {
 public:
 	//! \brief Constructor for decode_control class.
 	decode_control(int W, int H, const char* L = nullptr);
-	//! \brief Destructor for review class.
+	//! \brief Destructor for decode_control class.
 	~decode_control();
 	static void cb_decode_source(Fl_Widget* w, void* data);
 	static void cb_ch_fft_size(Fl_Widget* w, void* data);
@@ -104,10 +105,10 @@ private:
 	zc_graph_cartesian* waveform_;   //!< Waveform graph.
 	Fl_Choice* ch_decode_source_;    //!< Choice to select source of audio for decoding.
 	Fl_Choice* ch_fft_size_;         //!< Size of FFT input (number of samples in each chunk)
-	Fl_Value_Slider* sl_overlap_;    //!< Overlap between FFT chunks (in eigthth-chunks)
-	Fl_Value_Slider* sl_max_freq_;   //!< Maximum audio frequency in display (1 kHz to SAMPLE_RATE/2)
-	Fl_Value_Slider* sl_max_time_;   //!< Maximum time span in dispalay.
-	Fl_Value_Slider* sl_squelch_;    //!< Squelch (default level at which to start decoding
+	zc_wheel_value_slider* sl_overlap_;    //!< Overlap between FFT chunks (in eigthth-chunks)
+	zc_wheel_value_slider* sl_max_freq_;   //!< Maximum audio frequency in display (1 kHz to SAMPLE_RATE/2)
+	zc_wheel_value_slider* sl_max_time_;   //!< Maximum time span in dispalay.
+	zc_wheel_value_slider* sl_squelch_;    //!< Squelch (default level at which to start decoding
 	Fl_Output* op_freq_bin_;         //!< Frequency bin size (in Hz)
 	Fl_Output* op_time_slice_;       //!< Length of a time slice (in ms) - non overlapped part of a chunk. 
 	Fl_Output* op_decoded_pitch_;    //!< Decoded pitch 

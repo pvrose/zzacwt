@@ -29,6 +29,7 @@
 #include "zc_audio.h"
 #include "zc_fltk.h"
 #include "zc_settings.h"
+#include "zc_wheel_value_slider.h"
 
 #include <FL/Enumerations.H>
 #include <FL/fl_ask.H>
@@ -195,7 +196,7 @@ void user_if::create_widgets() {
 
 	cy += HBUTTON;
 	// Create the Block size slider
-	sl_tx_size_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Block Size:");
+	sl_tx_size_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Block Size:");
 	sl_tx_size_->type(FL_HOR_SLIDER);
 	sl_tx_size_->bounds(1, 100);
 	sl_tx_size_->step(1.0);
@@ -246,7 +247,7 @@ void user_if::create_widgets() {
 	
 	cy += HBUTTON;
 	// Create dot speed WPM slider
-	sl_dot_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Dot Speed:");
+	sl_dot_speed_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Dot Speed:");
 	sl_dot_speed_->type(FL_HOR_SLIDER);
 	sl_dot_speed_->bounds(MINIMUM_WPM, MAXIMUM_WPM);
 	sl_dot_speed_->step(1.0);
@@ -257,7 +258,7 @@ void user_if::create_widgets() {
 
 	cy += HBUTTON;
 	// Create Overall WPM slider
-	sl_overall_speed_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Overall WPM:");
+	sl_overall_speed_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Overall WPM:");
 	sl_overall_speed_->type(FL_HOR_SLIDER);
 	sl_overall_speed_->bounds(MINIMUM_WPM, MAXIMUM_WPM);
 	sl_overall_speed_->step(1.0);
@@ -285,7 +286,7 @@ void user_if::create_widgets() {
 	cx = g_tone_->x() + GAP + WBUTTON;
 	cy += HTEXT;
 	// Create volume slider
-	sl_volume_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Volume (dB):");
+	sl_volume_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Volume (dB):");
 	sl_volume_->type(FL_HOR_SLIDER);
 	sl_volume_->bounds(-40, 0);
 	sl_volume_->step(1.0);
@@ -296,7 +297,7 @@ void user_if::create_widgets() {
 
 	cy += HBUTTON;
 	// Create pitch slider
-	sl_pitch_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Pitch (Hz):");
+	sl_pitch_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Pitch (Hz):");
 	sl_pitch_->type(FL_HOR_SLIDER);
 	sl_pitch_->bounds(350, 1400);
 	sl_pitch_->step(1.0);
@@ -369,7 +370,7 @@ void user_if::create_widgets() {
 
 	// Create sliders for different disturber parameters (timing, softness, noise volume/frequency, drift rate/period)
 	cy += HBUTTON;
-	sl_timing_dist_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Timing:");
+	sl_timing_dist_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Timing:");
 	sl_timing_dist_->type(FL_HOR_SLIDER);
 	sl_timing_dist_->bounds(0, 5);
 	sl_timing_dist_->step(1.0);
@@ -379,7 +380,7 @@ void user_if::create_widgets() {
 	sl_timing_dist_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_softness_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Softness:");
+	sl_softness_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Softness:");
 	sl_softness_->type(FL_HOR_SLIDER);
 	sl_softness_->bounds(-(DEFAULT_RISE_FALL * 1000.0F), 3 * (DEFAULT_RISE_FALL * 1000.0F));
 	sl_softness_->step(1.0);
@@ -389,7 +390,7 @@ void user_if::create_widgets() {
 	sl_softness_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_noise_vol_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Volume (dB):");
+	sl_noise_vol_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Volume (dB):");
 	sl_noise_vol_->type(FL_HOR_SLIDER);
 	sl_noise_vol_->bounds(-40, 0);
 	sl_noise_vol_->step(1.0);
@@ -399,7 +400,7 @@ void user_if::create_widgets() {
 	sl_noise_vol_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_noise_severity_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Severity:");
+	sl_noise_severity_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Severity:");
 	sl_noise_severity_->type(FL_HOR_SLIDER);
 	sl_noise_severity_->bounds(0, 100);
 	sl_noise_severity_->step(1.0);
@@ -409,7 +410,7 @@ void user_if::create_widgets() {
 	sl_noise_severity_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_drift_rate_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift (%/s):");
+	sl_drift_rate_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Drift (%/s):");
 	sl_drift_rate_->type(FL_HOR_SLIDER);
 	sl_drift_rate_->bounds(-5, 5);
 	sl_drift_rate_->step(0.2);
@@ -419,7 +420,7 @@ void user_if::create_widgets() {
 	sl_drift_rate_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_drift_amplitude_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Ampl:");
+	sl_drift_amplitude_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Drift Ampl:");
 	sl_drift_amplitude_->type(FL_HOR_SLIDER);
 	sl_drift_amplitude_->bounds(0, 50);
 	sl_drift_amplitude_->step(1.0);
@@ -429,7 +430,7 @@ void user_if::create_widgets() {
 	sl_drift_amplitude_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_drift_period_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "Drift Period:");
+	sl_drift_period_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "Drift Period:");
 	sl_drift_period_->type(FL_HOR_SLIDER);
 	sl_drift_period_->bounds(1.0, 10.0);
 	sl_drift_period_->step(0.1);
@@ -439,7 +440,7 @@ void user_if::create_widgets() {
 	sl_drift_period_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_fading_depth_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "QSB Depth:");	
+	sl_fading_depth_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "QSB Depth:");	
 	sl_fading_depth_->type(FL_HOR_SLIDER);
 	sl_fading_depth_->bounds(0, 1.0);
 	sl_fading_depth_->step(0.01);
@@ -449,7 +450,7 @@ void user_if::create_widgets() {
 	sl_fading_depth_->textsize(DEFAULT_SIZE - 2);
 
 	cy += HBUTTON;
-	sl_fading_period_ = new Fl_Value_Slider(cx, cy, WSMEDIT, HBUTTON, "QSB Period:");
+	sl_fading_period_ = new zc_wheel_value_slider(cx, cy, WSMEDIT, HBUTTON, "QSB Period:");
 	sl_fading_period_->type(FL_HOR_SLIDER);
 	sl_fading_period_->bounds(0.1, 10.0);
 	sl_fading_period_->step(0.1);

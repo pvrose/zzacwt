@@ -31,7 +31,7 @@ class Fl_Choice;
 class Fl_Group;
 class Fl_Input;
 class Fl_Text_Editor;
-class Fl_Value_Slider;
+class zc_wheel_value_slider;
 class Fl_Widget;
 
 //! \brief Class user_if - the user interface for the CW trainer.
@@ -91,31 +91,31 @@ private:
 
 	Fl_Group* g_content_;               //!< Group for content
 	Fl_Choice* ch_mode_;                //!< Mode choice
-	Fl_Value_Slider* sl_tx_size_;       //!< Transmission size slider
+	zc_wheel_value_slider* sl_tx_size_;       //!< Transmission size slider
 	Fl_Input* in_text_;                 //!< User input for text mode
 	Fl_Button* bt_customise_;             //!< Customise button for QSO generation - gets user's credentials
 
 	Fl_Group* g_speed_;                 //!< Group for speed controls
 	Fl_Choice* ch_speed_type_;          //!< Speed type choice
-	Fl_Value_Slider* sl_dot_speed_;     //!< Dot speed slider
-	Fl_Value_Slider* sl_overall_speed_; //!< Overall speed slider
+	zc_wheel_value_slider* sl_dot_speed_;     //!< Dot speed slider
+	zc_wheel_value_slider* sl_overall_speed_; //!< Overall speed slider
 
 	Fl_Group* g_disturber_;             //!< Group for disturber controls
 	Fl_Choice* ch_disturber_type_;      //!< Disturber type choice
-	Fl_Value_Slider* sl_timing_dist_;   //!< Timing disturbance slider
-	Fl_Value_Slider* sl_softness_;      //!< Rise/fall time disturbance slider
-	Fl_Value_Slider* sl_noise_vol_;     //!< Noise disturbance slider
-	Fl_Value_Slider* sl_noise_severity_;    //!< Noise severity slider
-	Fl_Value_Slider* sl_drift_rate_;    //!< Frequency drift rate slider
-	Fl_Value_Slider* sl_drift_amplitude_;   //!< Frequency drift amplitude slider
-	Fl_Value_Slider* sl_drift_period_;  //!< Frequency drift period slider
-	Fl_Value_Slider* sl_fading_period_;  //!< Fading period slider
-	Fl_Value_Slider* sl_fading_depth_;   //!< Fading depth slider
+	zc_wheel_value_slider* sl_timing_dist_;   //!< Timing disturbance slider
+	zc_wheel_value_slider* sl_softness_;      //!< Rise/fall time disturbance slider
+	zc_wheel_value_slider* sl_noise_vol_;     //!< Noise disturbance slider
+	zc_wheel_value_slider* sl_noise_severity_;    //!< Noise severity slider
+	zc_wheel_value_slider* sl_drift_rate_;    //!< Frequency drift rate slider
+	zc_wheel_value_slider* sl_drift_amplitude_;   //!< Frequency drift amplitude slider
+	zc_wheel_value_slider* sl_drift_period_;  //!< Frequency drift period slider
+	zc_wheel_value_slider* sl_fading_period_;  //!< Fading period slider
+	zc_wheel_value_slider* sl_fading_depth_;   //!< Fading depth slider
 	Fl_Button* bt_default_;             //!< Reset default values
 
 	Fl_Group* g_tone_;                  //!< Group for volume and pitch of tone
-	Fl_Value_Slider* sl_volume_;        //!< Volume slider
-	Fl_Value_Slider* sl_pitch_;         //!< Pitch slider
+	zc_wheel_value_slider* sl_volume_;        //!< Volume slider
+	zc_wheel_value_slider* sl_pitch_;         //!< Pitch slider
 
 	Fl_Group* g_controls_;              //!< Group for play/stop/repeat controls
 	Fl_Button* bt_new_;                //!< New button
