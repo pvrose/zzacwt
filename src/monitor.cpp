@@ -98,8 +98,7 @@ void monitor::load_parameters()
 	// Use set dot speed as a basis for setting decoding thresholds
 	double dot_speed;
 	settings.get("Dot Speed", dot_speed, 20.0);
-	if (dot_times_.empty()) dot_times_.add(1.2 / dot_speed);
-	if (dash_times_.empty()) dash_times_.add(3.0 * dot_times_.value());
+	dot_time_ = 1.2 / dot_speed;
 	// Squelch level is set to 0.0 by default, but can be adjusted by the user.
 	settings.get("Squelch Level", squelch_level_, squelch_level_);
 	update_derived_times();
@@ -475,9 +474,13 @@ symbol_t monitor::decode_logic(bool logic) {
 		}
 		else if (image_count_ < max_dit_size_) {
 			result = symbol_t::DOT_MARK;
+			previous_mark_count_ = current_mark_count_;
+			current_mark_count_ = image_count_;
 		} 
 		else {
 			result = symbol_t::DASH_MARK;
+			previous_mark_count_ = current_mark_count_;
+			current_mark_count_ = image_count_;
 		}
 	}
 	previous_logic_ = logic;
@@ -510,85 +513,26 @@ void monitor::accumulate_symbol() {
 
 // Update the speed 
 void monitor::update_speed() {
-	// Constants
-	double MAX_DASH_DOT = 4.8;    // Maximum dash:dot ratio.
-	double MIN_DASH_DOT = 2.6;    // Minimum dash:dot ration.
-	double duration = static_cast<double>(image_count_ * image_interval_) / sample_rate_;
-	switch (current_symbol_) {
-	case symbol_t::DOT_MARK:
-#ifdef ENABLE_SPEED_MONITORING
-		printf("Decoded DOT_MARK, duration: %g\n", duration);
-#endif
-		// Do not update the speed if it will takes us above 40 WPM on average.
-		if (dot_times_.value() > MINIMUM_DOT_TIME) {
-			dot_times_.add(duration);
-#ifdef ENABLE_SPEED_MONITORING
-			printf("Adding %g to dot time - average now %g\n", duration, dot_times_.value());
-#endif
-		}
-		break;
-	case symbol_t::INTERNAL_SPACE:
-#ifdef ENABLE_SPEED_MONITORING
-		printf("Decoded INTERNAL_SPACE, duration: %g\n", duration);
-#endif
-		// Do not update the speed if it will takes us above 40 WPM on average.
-		if (dot_times_.value() > MINIMUM_DOT_TIME) {
-			dot_times_.add(duration);
-#ifdef ENABLE_SPEED_MONITORING
-			printf("Adding %g to dot time - average now %g\n", duration, dot_times_.value());
-#endif
-		}
-		break;
-	case symbol_t::DASH_MARK: {
-#ifdef ENABLE_SPEED_MONITORING
-		printf("Decoded DASH_MARK, duration: %g\n", duration);
-#endif
-		dash_times_.add(duration);
-#ifdef ENABLE_SPEED_MONITORING
-		printf("Adding %g to dash time - average now %g\n", duration, dash_times_.value());
-#endif
-		double weight = dash_times_.value() / dot_times_.value();
-		double new_dot;
-		if (weight < MIN_DASH_DOT) {
-			dot_times_.clear();
-			new_dot = dash_times_.value() / MIN_DASH_DOT;
-			if (new_dot < MINIMUM_DOT_TIME) new_dot = MINIMUM_DOT_TIME;
-			dot_times_.add(new_dot);
-#ifdef ENABLE_SPEED_MONITORING
-			printf("Adding %g to dot time - average now %g\n", new_dot, dot_times_.value());
-#endif
-		}
-		else if (weight > MAX_DASH_DOT) {
-			dot_times_.clear();
-			new_dot = dash_times_.value() / MAX_DASH_DOT;
-			if (new_dot > MAXIMUM_DOT_TIME) new_dot = MAXIMUM_DOT_TIME;
-			dot_times_.add(new_dot);
-#ifdef ENABLE_SPEED_MONITORING
-			printf("Adding %g to dot time - average now %g\n", new_dot, dot_times_.value());
-#endif
+	// If we have just had a mark
+	if (current_symbol_ == symbol_t::DASH_MARK ||
+		current_symbol_ == symbol_t::DOT_MARK) {
+		double current_duration = static_cast<double>(current_mark_count_ * image_interval_) / sample_rate_;
+		double previous_duration = static_cast<double>(previous_mark_count_ * image_interval_) / sample_rate_;
+
+		// Now compare the previous two marks
+		if ((current_duration >= 2.0 * previous_duration &&
+			current_duration <= 4.0 * previous_duration)  ||
+			(previous_duration >= 2.0 * current_duration &&
+			previous_duration <= 4.0 * current_duration)) {
+			dot_time_ = (current_duration + previous_duration) / 4.0;
+			update_derived_times();
 		}
 	}
-		break;
-	case symbol_t::CHARACTER_SPACE:
-#ifdef ENABLE_SPEED_MONITORING
-		printf("Decoded CHARACTER_SPACE, duration: %g\n", duration);
-#endif
-		break;
-	case symbol_t::WORD_SPACE:
-#ifdef ENABLE_SPEED_MONITORING
-		printf("Decoded WORD_SPACE, duration: %g\n", duration);
-#endif
-		break;
-	default:
-		// Do nothing
-		break;
-	}
-	update_derived_times();
 }
 
 // Convert monitored dot time into the cvarious threshold times
 void monitor::update_derived_times() {
-	unsigned int dit_samples = static_cast<unsigned int>(dot_times_.value() * sample_rate_);
+	unsigned int dit_samples = static_cast<unsigned int>(dot_time_ * sample_rate_);
 	dit_size_ = dit_samples / image_interval_;
 	min_dit_size_ = dit_size_ / 2; 
 	max_dit_size_ = dit_size_ * 2;
@@ -598,6 +542,5 @@ void monitor::update_derived_times() {
 
 // Get the decoded WPM 
 double monitor::get_wpm() const {
-	if (dot_times_.empty()) return 0.0;
-	return 1.2 / dot_times_.value();
+	return 1.2 / dot_time_;
 }

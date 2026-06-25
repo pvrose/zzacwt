@@ -266,15 +266,17 @@ private:
 	unsigned int max_int_size_ = 0;
 	//! Maximum character space in images
 	unsigned int max_char_size_ = 0;
-	//! Running average of dot times
-	zc_running_average<double, SPEED_HISTORY_LENGTH> dot_times_;
-	//! Running average of dash times
-	zc_running_average<double, SPEED_HISTORY_LENGTH> dash_times_;
+	//! Current do time
+	double dot_time_;
 
 	//! Current monitored high signal level.
 	double high_signal_level_ = 0.0;
 	//! "Squelch" level for detecting the presence of a signal.
 	double squelch_level_ = 0.0;
+	//! Previous mark time
+	int previous_mark_count_ = 0;
+	//! Current mark time
+	int current_mark_count_;
 
 	//! Selected frequency bin number for extracting signal
 	int selected_signal_bin_ = -1;
