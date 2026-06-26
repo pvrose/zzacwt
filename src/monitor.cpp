@@ -40,7 +40,7 @@
 // Enable queue monitoring in debug builds
 #ifdef _DEBUG
 #define ENABLE_QUEUE_MONITORING
-#define ENABLE_SPEED_MONITORING
+// #define ENABLE_SPEED_MONITORING
 #endif
 
 #ifdef ENABLE_QUEUE_MONITORING
@@ -388,8 +388,10 @@ void monitor::identify_signal_bin() {
 	image_count_++;
 	symbol_t symbol = decode_logic(logic);
 	if (symbol != symbol_t::UNFINISHED && symbol != symbol_t::NOISE) {
+#ifdef ENABLE_SPEED_MONITORING
 		printf("Decoded symbol: %20s, Duration: %3d, Dit size: %2d, Trigger: %2.0f\n", 
 			symbol_strings_.at(symbol).c_str(), image_count_, dit_size_, high_signal_level_);
+#endif
 		current_symbol_ = symbol;
 		accumulate_symbol();
 		update_speed();
@@ -435,6 +437,7 @@ bool monitor::get_logic(double signal, bool silent) {
 			// Gradually decay the high signal level to allow for a slow drop in signal strength.
 			high_signal_level_ = high_signal_level_ * DECAY_FACTOR + squelch_level_ * (1.0 - DECAY_FACTOR);
 		}
+		//printf("Changed high signal level to: %f\n", high_signal_level_);
 	}
 	//if (result != previous_signal_) 
 	//	printf("Signal: %f, Result: %d, Duration: %d\n", signal, previous_signal_, image_count_);
@@ -520,13 +523,19 @@ void monitor::update_speed() {
 		double current_duration = static_cast<double>(current_mark_count_ * image_interval_) / sample_rate_;
 		double previous_duration = static_cast<double>(previous_mark_count_ * image_interval_) / sample_rate_;
 
-		// Now compare the previous two marks
+		// Now compare the previous two marks.
 		if ((current_duration >= 2.0 * previous_duration &&
 			current_duration <= 4.0 * previous_duration)  ||
 			(previous_duration >= 2.0 * current_duration &&
 			previous_duration <= 4.0 * current_duration)) {
-			dot_time_ = (current_duration + previous_duration) / 4.0;
-			update_derived_times();
+			// It looks like we have a dot and a dash: This makes a putative dot time
+			// of a quarter of the sum of the two durations. 
+			// If this looks practicable then update the dot time and derived times.
+			double putative = (current_duration + previous_duration) / 4.0;
+			if (putative >= MINIMUM_DOT_TIME && putative <= MAXIMUM_DOT_TIME) {
+				dot_time_ = putative;
+				update_derived_times();
+			}
 		}
 	}
 }
@@ -534,6 +543,7 @@ void monitor::update_speed() {
 // Convert monitored dot time into the cvarious threshold times
 void monitor::update_derived_times() {
 	unsigned int dit_samples = static_cast<unsigned int>(dot_time_ * sample_rate_);
+//	printf("Changing dit time to %f seconds, %d samples\n", dot_time_, dit_samples);
 	dit_size_ = dit_samples / image_interval_;
 	min_dit_size_ = 2; 
 	max_dit_size_ = dit_size_ * 2;
