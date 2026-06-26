@@ -756,30 +756,40 @@ void user_if::update_audio_widgets() {
 	std::string selected_input_device;
 	settings.get<std::string>("Audio Input Device", selected_input_device, "");
 	// Populate the audio input device choice with available devices
+#ifdef _WIN32
+	std::string selected_audio_host = "Windows DirectSound";
+#else
+	std::string selected_audio_host = "pulse";
+#endif
+	settings.get<std::string>("Audio Manager", selected_audio_host, selected_audio_host);
 	ch_audio_in_device_->clear();
-	auto input_devices = microphone_->get_ports(sample_rate);
+	auto input_devices = microphone_->get_ports();
 	int i = 0;
 	for (const auto& device : input_devices) {
-		ch_audio_in_device_->add(device.c_str());
-		if (device == selected_input_device) {
-			ch_audio_in_device_->value(i);
-			microphone_port_ = i;
+		if (device.audio_host == selected_audio_host) {
+			ch_audio_in_device_->add(device.port_name.c_str());
+			if (device.port_name == selected_input_device) {
+				ch_audio_in_device_->value(i);
+				microphone_port_ = { selected_audio_host, selected_input_device };
+			}
+			i++;
 		}
-		i++;
 	}
 	// Populate the audio output device choice with available devices
 	std::string selected_output_device;
 	settings.get<std::string>("Audio Output Device", selected_output_device, "");
 	ch_audio_out_device_->clear();
-	auto output_devices = speaker_->get_ports(sample_rate);
+	auto output_devices = speaker_->get_ports();
 	i = 0;
 	for (const auto& device : output_devices) {
-		ch_audio_out_device_->add(device.c_str());
-		if (device == selected_output_device) {
-			ch_audio_out_device_->value(i);
-			speaker_port_ = i;
+		if (device.audio_host == selected_audio_host) {
+			ch_audio_out_device_->add(device.port_name.c_str());
+			if (device.port_name == selected_output_device) {
+				ch_audio_out_device_->value(i);
+				speaker_port_ = { selected_audio_host, selected_output_device };
+			}
+			i++;
 		}
-		i++;
 	}
 	// populate the sample rate.
 	ch_sample_rate_->clear();
@@ -1183,7 +1193,7 @@ void user_if::cb_enable_audio_in(Fl_Widget* w, void* data)
 	zc_settings settings;
 	if (cb->value()) {
 		const char* device = ui->ch_audio_in_device_->text();
-		ui->microphone_port_ = ui->ch_audio_in_device_->value();
+		ui->microphone_port_.port_name = ui->ch_audio_in_device_->value();
 		if (device && device[0]) {
 			std::string selected_input_device = device;
 			settings.set("Audio Input Enabled", true);
@@ -1207,7 +1217,7 @@ void user_if::cb_enable_audio_out(Fl_Widget* w, void* data)
 	zc_settings settings;
 	if (cb->value()) {
 		const char* device = ui->ch_audio_out_device_->text();
-		ui->speaker_port_ = ui->ch_audio_out_device_->value();
+		ui->speaker_port_.port_name = ui->ch_audio_out_device_->value();
 		if (device && device[0]) {
 			std::string selected_output_device = device;
 			settings.set("Audio Output Enabled", true);

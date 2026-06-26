@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "zc_audio.h"
+
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Group.H>
 
@@ -147,9 +149,9 @@ private:
 	static void open_help_file(const std::string& full_filename);
 
 	//! Speaker port number
-	int speaker_port_;
+	zc_audio::port_id speaker_port_;
 	//! Microphone port number
-	int microphone_port_;
+	zc_audio::port_id microphone_port_;
 
 public:
 
