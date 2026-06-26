@@ -388,7 +388,8 @@ void monitor::identify_signal_bin() {
 	image_count_++;
 	symbol_t symbol = decode_logic(logic);
 	if (symbol != symbol_t::UNFINISHED && symbol != symbol_t::NOISE) {
-//		printf("Decoded symbol: %s, Duration: %d, Dit size: %d\n", symbol_strings_.at(symbol).c_str(), image_count_, dit_size_);
+		printf("Decoded symbol: %20s, Duration: %3d, Dit size: %2d, Trigger: %2.0f\n", 
+			symbol_strings_.at(symbol).c_str(), image_count_, dit_size_, high_signal_level_);
 		current_symbol_ = symbol;
 		accumulate_symbol();
 		update_speed();
@@ -534,7 +535,7 @@ void monitor::update_speed() {
 void monitor::update_derived_times() {
 	unsigned int dit_samples = static_cast<unsigned int>(dot_time_ * sample_rate_);
 	dit_size_ = dit_samples / image_interval_;
-	min_dit_size_ = dit_size_ / 2; 
+	min_dit_size_ = 2; 
 	max_dit_size_ = dit_size_ * 2;
 	max_int_size_ = dit_size_ * 2;
 	max_char_size_ = dit_size_ * 6;
