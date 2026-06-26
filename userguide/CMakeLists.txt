@@ -27,7 +27,9 @@ if(DOXYGEN_FOUND)
   set(DOXY_UG_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile_ug)
 
   set(DOXY_UG_FILES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/audio.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/src/data.dox
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/decoder.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generation.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/src/index.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/src/overview.dox
@@ -36,8 +38,10 @@ if(DOXYGEN_FOUND)
   )
 
   set(DOXY_UG_IMAGES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/images/decoder.png
     ${CMAKE_CURRENT_SOURCE_DIR}/images/review.png
     ${CMAKE_CURRENT_SOURCE_DIR}/images/user_if.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/images/user_if_2.png
   )
 
 

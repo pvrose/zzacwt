@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ZZACWT VERSION 0.4)
+project(ZZACWT VERSION 0.4.1)
 
 # Add shared CMake modules
 # Add shared CMake modules

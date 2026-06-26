@@ -171,7 +171,7 @@ The frequency of each burst is randomly generated between 300 Hz and 3 kHz.
 The "Volume (dB)" and "Severity" controls work in the same as for Impact
 Noise.
 
-\todo Consider a more realistic model of interfering signals.
+\todo Consider a more realistic model of interfering signals than just random tones.
 
 \subsection drift Frequency Drift
 

@@ -1,0 +1,46 @@
+/** \page decoder Decoder Controls and Displays
+
+The image below shows the display for controlling the decoder.
+It also shows views of the signal being decoded.
+
+\image html decoder.png "Decoder Controls"
+\image latex decoder.png "Decoder Controls" width=8cm
+
+\section controls Controls
+
+- <B>Source</B> Shows the source of the signal being decoded:
+  - <B>No Audio</B> No audio is decoded or displayed.
+  - <B>Sent Audio</B> The generated audio is fed back from the output 
+to the monitor.
+  - <B>Microphone</B> Audio sampled by an input device is roured to
+the monitor.
+- <B>FFT Size</B> This specifies the size of the FFT data when transforming
+the audio signals into the image in the frequency domain. The larger this
+size, the more resolution can be obtained in the frequecny domain at the expense
+of resolution in the time domain. 
+- <B>Overlap</B> This specifies the percentage over lap between consecutive
+sets of data presented to the FFT. So with an FFT size indicated in the figure
+of 256 audio samples and an overlap of 75%, a new image in the frequency domain is
+sampled every 64 audio samples. The higher the overlap, the more frequent the
+frequency snap-shots are taken providing greater resolution in the time
+domain.
+- <B>Max Freq</B> This specifies the maximum frequency displayed in the spectrogram.
+This can be configured between 0 Hz and the Nyquist frequency of the audio sampling.
+At a sample rate of 22050 samples per second, this is 11.025 kHz.
+- <B>Squelch</B> Sets the level below which the signal is ignored. \todo Squelch is 
+yet to be calibrated.
+
+- <B>Max Time</B> This specifies the time window of the spectrogram and waveform displays.
+- <B>Step (Hz)</B> This displays the resolution (in hertz) in the frequency domain.
+- <B>Step (ms)</B> This displays the resolution (in milliseconds) in the tiem domain.
+- <B>Freq (Hz)</B> This displays the frequency (in hertz) at which the signal is being decoded.
+- <B>WPM</B> This displays the decoded speed.
+
+\section signals Signal views
+
+- <B>Spectrogram</B> The spectrogram or "sideways waterfall" view showing
+frequency against time.
+- <B>Waveform</B> The waveform view showing received signal strength against time.
+
+
+*/

@@ -9,8 +9,8 @@ A file "word_list.txt" containing 1000 commonly used words is supplied.
 A file "text.txt" containing plain language text is supplied to allow sensical 
 text to be sent and copied.
 
-\todo There is currently a place-holder text. More relevant text is to
-be source.
+\todo The text file is currently a place-holder. More relevant text is to
+be sourced.
 
 \section qso-proforma QSO proformas
 
