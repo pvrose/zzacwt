@@ -327,17 +327,23 @@ void monitor::update_display_buffer() {
 	}
 	// Update the waveform display buffer with the current waveform data.
 	// Shift the waveform display buffer N samples left and add the current waveform data at the right.
-	int iw = 0;
-	int iv = iw + image_interval_;
-	int copy_last = (int)waveform_display_buffer_->size() - image_interval_;
-	while(iw < copy_last) {
-			
-		(*waveform_display_buffer_)[iw++].second = (*waveform_display_buffer_)[iv++].second;
+	// Note we cannot use std::copy here as the buffer is a vector of XY-pairs and we are only shifting
+	// the Y values keeping the X values as they are.
+	auto d_start = waveform_display_buffer_->begin();
+	auto s_start = d_start + image_interval_;
+	auto d_end = waveform_display_buffer_->end();
+	auto s_end = d_end;
+	auto d = d_start;
+	auto s = s_start;
+	while(s != s_end) {
+		// Only copy the Y member of the pair.
+		(d++)->second = (s++)->second;
 	}
-	double d = 0.0;
-	while(iw < waveform_display_buffer_->size()) {
-		d = waveform_interim_buffer_.empty() ? 0.0 : waveform_interim_buffer_.front();
-		(*waveform_display_buffer_)[iw++].second = d;
+	double v = 0.0;
+	while(d != d_end) {
+		// Add new Y value
+		v = waveform_interim_buffer_.empty() ? 0.0 : waveform_interim_buffer_.front();
+		(d++)->second = v;
 		if (!waveform_interim_buffer_.empty()) {
 			waveform_interim_buffer_.pop();
 		}
