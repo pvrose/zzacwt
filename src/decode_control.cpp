@@ -465,9 +465,9 @@ void decode_control::cb_update_spectrogram(void* data) {
 	decode_control* r = static_cast<decode_control*>(data);
 	// Signal that new spectrogram data is ready for swap
 	r->spectrogram_data_ready_.store(true, std::memory_order_release);
-	// Note: redraw() is safe to call from worker threads - it only sets damage flags
-	r->spectrogram_->redraw();
-	r->waveform_->redraw();
+	// // Note: redraw() is safe to call from worker threads - it only sets damage flags
+	// r->spectrogram_->redraw();
+	// r->waveform_->redraw();
 }
 
 // Callback to update the decoded text with new data.
