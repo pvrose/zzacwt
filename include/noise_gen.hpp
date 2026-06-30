@@ -18,7 +18,7 @@
 
 #include "params.hpp"
 
-#include "zc_async_queue.h"
+#include "zc_active_queue.h"
 
 #include <condition_variable>
 #include <mutex>
@@ -71,7 +71,7 @@ class noise_gen
 {
 public:
 	//! Constructor. Takes the audio data queue as arguments.
-	noise_gen(zc_async_queue<double>* audio_data_queue);
+	noise_gen(zc_active_queue<double>* audio_data_queue);
 	//! Destructor.
 	~noise_gen();
 
@@ -91,17 +91,11 @@ private:
 	//! \param noise An array of audio samples to which the generated noise samples will be pushed.
 	void generate_plink_plonk();
 
-	//! Thread function that continuously generates noise samples according to the current settings and pushes them onto the audio data queue.
-	static void generation_loop(noise_gen* instance);
-	//! Flag to signal the generation thread to stop when the noise generator is destroyed.
-	bool stop_generation_ = false;
-	//! Flag to request clearing the output queue and resetting internal state. This will be set when the clear() method is called and will be checked by the generation thread.
-	bool clear_requested_ = false;
-	//! Thread object for the noise generation thread.
-	std::thread generation_thread_;
+	//! Callback function for when the audio data queue is low.
+	static void cb_audio_data_queue_low(void* user_data);
 
 	//! Pointer to the audio data queue where generated noise samples will be pushed.
-	zc_async_queue<double>* audio_data_queue_;
+	zc_active_queue<double>* audio_data_queue_;
 
 	//! Random number generator for generating noise samples and determining when noise events occur.
 	std::mt19937 rng_;
@@ -127,15 +121,5 @@ private:
 	//! when the next noise event should occur.
 	int next_noise_event_time_ = 0;
 
-	//! Condition variable for waking up the generation thread when more samples are needed.
-	std::condition_variable wake_condition_;
-	//! Mutex for the wake condition variable.
-	std::mutex wake_mutex_;
-
-public:
-	//! Wake up the generation thread to produce more samples.
-	void wake();
-
-private:
 };
 

@@ -1133,8 +1133,6 @@ void user_if::cb_stop(Fl_Widget* w, void* data)
 	(void)w;
 	user_if* ui = static_cast<user_if*>(data);
 	text_gen_->stop_sequence(); // Stop the text generator to stop any ongoing sequence
-	noise_gen_->clear(); // Clear the noise generator to stop any ongoing noise
-	shaper_->clear(); // Clear the shaper to stop any ongoing playback
 	mod_mixer_->clear(); // Clear the mod mixer to stop any ongoing modulation
 }
 

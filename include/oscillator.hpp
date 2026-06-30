@@ -19,7 +19,7 @@
 
 #include "params.hpp"
 
-#include "zc_async_queue.h"
+#include "zc_active_queue.h"
 
 #include <condition_variable>
 #include <mutex>
@@ -69,7 +69,7 @@ class oscillator {
 public:
 	//! Constructor
 	//! \param output_queue Pointer to the queue where the oscillator will push generated audio samples
-	oscillator(zc_async_queue<double>* output_queue);
+	oscillator(zc_active_queue<double>* output_queue);
 
 	//! Destructor
 	~oscillator();
@@ -82,8 +82,11 @@ private:
 	//! Generate next sample based on current settings. Update the phase accumulator and apply any frequency drift as needed.
 	double next_sample();
 
+	//! Output queue callback.
+	static void cb_output_queue_low(void* user_data);
+
 	//! Pointer to the output queue.
-	zc_async_queue<double>* output_queue_ = nullptr;
+	zc_active_queue<double>* output_queue_ = nullptr;
 
 	//! Current phase accumulator for the oscillator (in radians).
 	double phase_accumulator_ = 0.0F;
@@ -123,21 +126,4 @@ private:
 	//! Update the current fading level based on the fading settings and return the current fading multiplier (0 to 1) to apply to the output sample.
 	double update_fading_and_get_multiplier();
 
-	//! Thread for generating audio samples.
-	std::thread generation_thread_;
-	//! Flag to signal the generation thread to stop.
-	bool stop_generation_ = false;
-	//! Method for the generation thread to continuously generate audio samples and push them onto the output queue.
-	static void generation_loop(oscillator* osc);
-
-	//! Condition variable for waking up the generation thread when more samples are needed.
-	std::condition_variable wake_condition_;
-	//! Mutex for the wake condition variable.
-	std::mutex wake_mutex_;
-
-public:
-	//! Wake up the generation thread to produce more samples.
-	void wake();
-
-private:
 };

@@ -27,6 +27,7 @@
 #include "text_gen.hpp"
 #include "user_if.hpp"
 
+#include "zc_active_queue.h"
 #include "zc_async_queue.h"
 #include "zc_audio.h"
 #include "zc_drawing.h"
@@ -74,8 +75,9 @@ double DEFAULT_RISE_FALL = 0.005; //!< Default rise time for the audio envelope 
 double DEFAULT_WPM = 12.0; //!< Default speed in words per minute
 double MAXIMUM_WPM = 40.0; //!< Maximum speed in words per minute. Do not let decode go beyond this.
 double MINIMUM_WPM = 6.0;  //!< Minimum speed in words per minute.
-int OUTPUT_CHUNK_SIZE = 4096; //!< Threshold for when the oscillator should generate more audio samples (in samples)
-int GENERATION_CHUNK_SIZE = 4096; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
+int OUTPUT_CHUNK_SIZE = 4096; //!< Threshold for when the mod_mixer should generate more audio samples (in samples)
+//! \todo With the following sizes, is there a case for having different sizes for the different components? 
+//! We do not want all queues needing to be filled at the same time.
 int OSCILLATOR_CHUNK_SIZE = 4096; //!< Number of audio samples to generate in each batch when the oscillator is generating audio samples
 int NOISE_CHUNK_SIZE = 4096; //!< Number of audio samples to generate in each batch when the noise generator is generating audio samples
 int SHAPER_CHUNK_SIZE = 4096; //!< Number of audio samples to process in each batch when the shaper is processing audio samples
@@ -141,17 +143,17 @@ int main(int argc, char** argv)
 	std::string label = APP_NAME + " v" + APP_VERSION + " - CW Trainer";
 	window->copy_label(label.c_str());
 	// Create the oscillator output queue
-	zc_async_queue<double>* carrier_queue = new zc_async_queue<double>();
+	zc_active_queue<double>* carrier_queue = new zc_active_queue<double>(OSCILLATOR_CHUNK_SIZE);
 	// Create the oscilaltor
 	oscillator_ = new oscillator(carrier_queue);
 	// Create the audio envelope queue
-	zc_async_queue<double>* envelope_queue = new zc_async_queue<double>();
+	zc_active_queue<double>* envelope_queue = new zc_active_queue<double>(SHAPER_CHUNK_SIZE);
 	// Create the shaper
 	shaper_ = new shaper(envelope_queue, mon_text_q_);
 	// Create the text generator
 	text_gen_ = new text_gen();
 	// Create the inserted noise queue
-	zc_async_queue<double>* noise_queue = new zc_async_queue<double>();
+	zc_active_queue<double>* noise_queue = new zc_active_queue<double>(NOISE_CHUNK_SIZE);
 	// Create the noise generator
 	noise_gen_ = new noise_gen(noise_queue);
 	// Create the modulator/mixer, passing producer objects for wake-up
@@ -195,9 +197,6 @@ int main(int argc, char** argv)
 
 	// Step 2: Shutdown all queues to wake up any blocked threads before deleting consumers/producers
 	// This prevents threads from being blocked in wait_and_pop() when their objects are destroyed
-	if (carrier_queue) carrier_queue->shutdown();
-	if (envelope_queue) envelope_queue->shutdown();
-	if (noise_queue) noise_queue->shutdown();
 	if (audio_out_queue) audio_out_queue->shutdown();
 	if (audio_monitor_queue) audio_monitor_queue->shutdown();
 	if (mon_text_q_) mon_text_q_->shutdown();

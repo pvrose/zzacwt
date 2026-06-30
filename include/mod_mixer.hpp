@@ -37,6 +37,7 @@
 //! 
 //! This operation shall be performed in a separate thread.
 
+#include "zc_active_queue.h"
 #include "zc_async_queue.h"
 
 #include <queue>
@@ -50,9 +51,9 @@ class noise_gen;
 class mod_mixer
 {
 public:
-	mod_mixer(zc_async_queue<double>* oscillator_queue, 
-		zc_async_queue<double>* shaper_queue, 
-		zc_async_queue<double>* noise_queue, 
+	mod_mixer(zc_active_queue<double>* oscillator_queue, 
+		zc_active_queue<double>* shaper_queue, 
+		zc_active_queue<double>* noise_queue, 
 		zc_async_queue<double>* output_queue,
 		oscillator* oscillator_ptr,
 		shaper* shaper_ptr,
@@ -64,9 +65,9 @@ public:
 
 private:
 	//! Pointers to the input and output queues
-	zc_async_queue<double>* oscillator_queue_;
-	zc_async_queue<double>* shaper_queue_;
-	zc_async_queue<double>* noise_queue_;
+	zc_active_queue<double>* oscillator_queue_;
+	zc_active_queue<double>* shaper_queue_;
+	zc_active_queue<double>* noise_queue_;
 	zc_async_queue<double>* output_queue_;
 	//! Pointers to the producer objects for waking them up
 	oscillator* oscillator_;
@@ -76,7 +77,7 @@ private:
 	std::thread modulation_thread_;
 	bool stop_modulation_ = false; //!< Flag to signal the modulation thread to stop
 	//! Clear the internal state of the modulator/mixer, including any buffers or state variables used for modulation and mixing
-	bool clear_requested_;
+	bool clear_requested_ = false;
 	//! Modulation/mixing loop for the modulation thread
 	static void modulation_loop(mod_mixer* mixer);
 

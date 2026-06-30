@@ -17,6 +17,7 @@
 
 #include "oscillator.hpp"
 
+#include "zc_active_queue.h"
 #include "zc_settings.h"
 
 // Enable queue monitoring in debug builds
@@ -33,33 +34,20 @@
 namespace {
 	constexpr double PI = 3.14159265358979323846;
 }
-extern int LOWER_CHUNK_SIZE; //!< Threshold for when the oscillator should stop generating audio samples (in samples)
 extern int OSCILLATOR_CHUNK_SIZE; //!< Number of samples to generate in each chunk when generating oscillator samples
 
 //! \brief Constructor for the oscillator class
 //! \param output_queue Pointer to the queue where generated audio samples will be pushed
 //! 
-oscillator::oscillator(zc_async_queue<double>* output_queue) {
+oscillator::oscillator(zc_active_queue<double>* output_queue) {
 	apply_settings();
+	phase_accumulator_ = 0.0;
 	output_queue_ = output_queue;
-	// Start the generation thread
-	generation_thread_ = std::thread(generation_loop, this);
+	output_queue_->set_low_callback(cb_output_queue_low, this, true);
 }
 
 //! \brief Destructor for the oscillator class
 oscillator::~oscillator() {
-	// Signal the generation thread to stop and wait for it to finish
-	stop_generation_ = true;
-	wake(); // Wake up the thread so it can exit
-	if (generation_thread_.joinable()) {
-		generation_thread_.join();
-	}
-}
-
-//! \brief Wake up the generation thread to produce more samples
-void oscillator::wake() {
-	std::lock_guard<std::mutex> lock(wake_mutex_);
-	wake_condition_.notify_one();
 }
 
 //! \brief Apply the current settings to the oscillator
@@ -83,42 +71,18 @@ void oscillator::apply_settings() {
 	fading_phase_accumulator_ = 0.0;
 }
 
-//! \brief Generation loop for the oscillator thread
-void oscillator::generation_loop(oscillator* osc) {
-#ifdef ENABLE_QUEUE_MONITORING
-	fprintf(stderr, "[THREAD] Oscillator thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
-	try {
-#endif
-		// Set first phase accumulator value to 0 and set first output value to 0.
-		osc->phase_accumulator_ = 0.0;
-		osc->output_queue_->push(0.0);
-		while (!osc->stop_generation_) {
-		// If the output queue is nearly empty, generate more samples
-		if (osc->output_queue_ && osc->output_queue_->size() < LOWER_CHUNK_SIZE) {
-			// Generate a block of samples up to the upper threshold.
-			while (osc->output_queue_->size() < OSCILLATOR_CHUNK_SIZE) {
-				double sample = osc->next_sample();
-				if (osc->output_queue_) {
-					osc->output_queue_->push(sample);
-				}
+//! \brief Callback function for when the output queue is low
+void oscillator::cb_output_queue_low(void* user_data) {
+	oscillator* osc = static_cast<oscillator*>(user_data);
+	if (osc && osc->output_queue_) {
+		// Generate samples and push into the output queue until it reaches the upper threshold
+		for (int i = 0; i < OSCILLATOR_CHUNK_SIZE; ++i) {
+			double sample = osc->next_sample();
+			if (osc->output_queue_) {
+				osc->output_queue_->push(sample);
 			}
 		}
-		else {
-			// Wait for wake-up signal instead of busy-waiting
-			std::unique_lock<std::mutex> lock(osc->wake_mutex_);
-			osc->wake_condition_.wait(lock);
-		}
-		}
-#ifdef ENABLE_QUEUE_MONITORING
-		fprintf(stderr, "[THREAD] Oscillator thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
-	catch (const std::exception& e) {
-		fprintf(stderr, "[THREAD] Oscillator thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
-	}
-	catch (...) {
-		fprintf(stderr, "[THREAD] Oscillator thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
-	}
-#endif
 }
 
 //! \brief Generate the next audio sample based on the current settings

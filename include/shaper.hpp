@@ -20,6 +20,7 @@
 
 #include "codec.hpp"
 
+#include "zc_active_queue.h"
 #include "zc_async_queue.h"
 
 #include <atomic>
@@ -102,15 +103,11 @@ class shaper
 {
 public:
 	//! Constructor. Takes the audio data queue as arguments.
-	shaper(zc_async_queue<double>* audio_data_queue, zc_async_queue<std::string>* text_queue);
+	shaper(zc_active_queue<double>* audio_data_queue, zc_async_queue<std::string>* text_queue);
 	//! Destructor.
 	~shaper();
 	//! Apply the current settings to update the internal state of the shaper.
 	void apply_settings();
-	//! Clear the generation of audio samples.
-	//! This will clear the output queue and reset the internal
-	//! state of the shaper to be ready for a new sequence of symbols.
-	void clear();
 
 private:
 	//! Generate the audio envelope for the specified symbol. 
@@ -118,16 +115,22 @@ private:
 	//! to the new state (mark or space) using a raised cosine function 
 	//! and then continues in the new state for the remaining duration of the symbol.
 	//! \param symbol The symbol for which to generate the audio envelope.
-	void generate_envelope(symbol_t symbol);
+	//! \return The number of audio samples generated for the symbol.
+	int generate_envelope(symbol_t symbol);
 
 	//! Generate timing disturbance value.
 	double generate_delta_t();
 
-	//! Add a raised cosine transition onto the specified audio sample queue.
-	void add_raised_cosine(zc_async_queue<double>* audio_samples, double duration, bool target_mark);
+	//! Add a raised cosine transition onto the specified audio output queue.
+	//! \return The number of samples added to the queue.
+	int add_raised_cosine(double duration, bool target_mark);
 
-	//! Add an overshoot disturbance to the specified audio sample queue.
-	void add_overshoot(zc_async_queue<double>* audio_samples, double duration, bool target_mark);
+	//! Add an overshoot disturbance to the specified audio output queue.
+	//! \return The number of samples added to the queue.
+	int add_overshoot(double duration, bool target_mark);
+
+	//! Callback function for when the audio data queue is low.
+	static void cb_audio_data_queue_low(void* user_data);
 
 	//! Current state of the shaper (mark or space)
 	bool is_mark_ = false;
@@ -152,17 +155,8 @@ private:
 	//! Update the symbol durations based on the current speed settings.
 	void update_symbol_durations();
 
-	//! Thread for generating audio samples.
-	std::thread generation_thread_;
-	//! Flag to signal the generation thread to stop.
-	std::atomic<bool> stop_generation_ = false;
-	//! Flag to suspend and clear down the existing generated samples.
-	std::atomic<bool> clear_requested_ = false;
-	//! Method for the generation thread to continuously generate audio samples based on the symbol sequence and push them onto the audio data queue.
-	static void generation_loop(shaper* shaper_instance);
-
 	//! Pointer to the audio data queue.
-	zc_async_queue<double>* audio_data_queue_ = nullptr;
+	zc_active_queue<double>* audio_data_queue_ = nullptr;
 	//! Monitored text queue
 	zc_async_queue<std::string>* text_queue_ = nullptr;
 
@@ -173,14 +167,4 @@ private:
 	//! Test mode B - Solid tone
 	bool test_mode_b_ = false;
 
-	//! Condition variable for waking up the generation thread when more samples are needed.
-	std::condition_variable wake_condition_;
-	//! Mutex for the wake condition variable.
-	std::mutex wake_mutex_;
-
-public:
-	//! Wake up the generation thread to produce more samples.
-	void wake();
-
-private:
 };

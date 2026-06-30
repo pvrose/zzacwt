@@ -18,7 +18,7 @@
 
 #include "params.hpp"
 
-#include "zc_async_queue.h"
+#include "zc_active_queue.h"
 #include "zc_settings.h"
 
 #include <chrono>
@@ -40,33 +40,20 @@
 
 extern double DEFAULT_SAMPLE_RATE; //!< Default audio sample rate
 extern int NOISE_CHUNK_SIZE; //!< Number of samples to generate in each chunk when generating noise
-extern int LOWER_CHUNK_SIZE;
 
 //! Constructor
-noise_gen::noise_gen(zc_async_queue<double>* output_queue)
+noise_gen::noise_gen(zc_active_queue<double>* output_queue)
 	: audio_data_queue_(output_queue),
 	rng_(std::random_device{}())
 {
 	// Initialise settings
 	apply_settings();
-	// Start the generation thread
-	generation_thread_ = std::thread(generation_loop, this);
+
+	audio_data_queue_->set_low_callback(cb_audio_data_queue_low, this, true);
 }
 
 //! Destructor
 noise_gen::~noise_gen() {
-	// Signal the generation thread to stop and wait for it to finish
-	stop_generation_ = true;
-	wake(); // Wake up the thread so it can exit
-	if (generation_thread_.joinable()) {
-		generation_thread_.join();
-	}
-}
-
-//! Wake up the generation thread to produce more samples
-void noise_gen::wake() {
-	std::lock_guard<std::mutex> lock(wake_mutex_);
-	wake_condition_.notify_one();
 }
 
 //! Apply settings and update internal state
@@ -113,85 +100,55 @@ void noise_gen::apply_settings() {
 
 }
 
-//! Thread function that continuously generates noise samples 
-//! according to the current settings and pushes them onto 
-//! the audio data queue.
-void noise_gen::generation_loop(noise_gen* instance) {
-#ifdef ENABLE_QUEUE_MONITORING
-	fprintf(stderr, "[THREAD] Noise_gen thread started, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
-	try {
-#endif
-		while (!instance->stop_generation_) {
-		if (instance->clear_requested_) {
-			// Clear the output queue and reset internal state
-			if (instance->audio_data_queue_) {
-				instance->audio_data_queue_->clear();
+//! Callback function for when the audio data queue is low.
+void noise_gen::cb_audio_data_queue_low(void* user_data) {
+	noise_gen* instance = static_cast<noise_gen*>(user_data);
+	if (instance && instance->audio_data_queue_) {
+		int samples_to_generate = NOISE_CHUNK_SIZE;
+		// Generate noise samples based on the current disturber type
+		switch (instance->current_disturber_) {
+		case disturber_type::NOISE_WHITE:
+			// Generate a block of white noise samples
+			for (int i = 0; i < samples_to_generate; ++i) {
+				instance->audio_data_queue_->push(instance->white_noise_dist_(instance->rng_));
 			}
-			instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * instance->sample_rate_);
-			instance->clear_requested_ = false;
-		}
-		// Check if we need to generate more noise samples
-		if (instance->audio_data_queue_ && instance->audio_data_queue_->size() < LOWER_CHUNK_SIZE) {
-			int samples_to_generate = NOISE_CHUNK_SIZE - instance->audio_data_queue_->size();
-			// Generate noise samples based on the current disturber type
-			switch (instance->current_disturber_) {
-			case disturber_type::NOISE_WHITE:
-				// Generate a block of white noise samples
-				for (int i = 0; i < samples_to_generate; ++i) {
-					instance->audio_data_queue_->push(instance->white_noise_dist_(instance->rng_));
-				}
-				break;
-			case disturber_type::NOISE_IMPACT:
-			case disturber_type::NOISE_TONES:
-				if (instance->next_noise_event_time_ > samples_to_generate) {
-					instance->next_noise_event_time_ -= samples_to_generate;
-					// Generate no noise samples, just push zeros
-					for (int i = 0; i < samples_to_generate; ++i) {
-						instance->audio_data_queue_->push(0.0);
-					}
-				}
-				else {
-					// Generate no noise samples until the next noise event time, then generate the noise event
-					for (int i = 0; i < instance->next_noise_event_time_; ++i) {
-						instance->audio_data_queue_->push(0.0);
-					}
-					if (instance->current_disturber_ == disturber_type::NOISE_IMPACT) {
-						// Time to generate a new impact noise event
-						instance->generate_impact_noise();
-					}
-					else {
-						// Time to generate a new plink/plonk noise event
-						instance->generate_plink_plonk();
-					}
-					// Schedule the next noise event
-					instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * instance->sample_rate_);
-				}
-				break;
-			default:
-				// No noise generation, just push zeros
+			break;
+		case disturber_type::NOISE_IMPACT:
+		case disturber_type::NOISE_TONES:
+			if (instance->next_noise_event_time_ > samples_to_generate) {
+				instance->next_noise_event_time_ -= samples_to_generate;
+				// Generate no noise samples, just push zeros
 				for (int i = 0; i < samples_to_generate; ++i) {
 					instance->audio_data_queue_->push(0.0);
 				}
-				break;
 			}
+			else {
+				// Generate no noise samples until the next noise event time, then generate the noise event
+				for (int i = 0; i < instance->next_noise_event_time_; ++i) {
+					instance->audio_data_queue_->push(0.0);
+				}
+				if (instance->current_disturber_ == disturber_type::NOISE_IMPACT) {
+					// Time to generate a new impact noise event
+					instance->generate_impact_noise();
+				}
+				else {
+					// Time to generate a new plink/plonk noise event
+					instance->generate_plink_plonk();
+				}
+				// Schedule the next noise event
+				instance->next_noise_event_time_ = static_cast<int>(instance->noise_event_dist_(instance->rng_) * instance->sample_rate_);
+			}
+			break;
+		default:
+			// No noise generation, just push zeros
+			for (int i = 0; i < samples_to_generate; ++i) {
+				instance->audio_data_queue_->push(0.0);
+			}
+			break;
 		}
-		else {
-			// Wait for wake-up signal instead of busy-waiting
-			std::unique_lock<std::mutex> lock(instance->wake_mutex_);
-			instance->wake_condition_.wait(lock);
-		}
-		}
-#ifdef ENABLE_QUEUE_MONITORING
-		fprintf(stderr, "[THREAD] Noise_gen thread exiting normally, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 	}
-	catch (const std::exception& e) {
-		fprintf(stderr, "[THREAD] Noise_gen thread exception, ID: %zu, error: %s\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), e.what());
-	}
-	catch (...) {
-		fprintf(stderr, "[THREAD] Noise_gen thread unknown exception, ID: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
-	}
-#endif
 }
+
 
 //! Generate a single burst of impact noise. This will consist of a short burst of white noise.
 void noise_gen::generate_impact_noise() {
@@ -229,10 +186,4 @@ void noise_gen::generate_plink_plonk() {
 			phase -= TWO_PI;
 		}
 	}
-}
-
-//! Clear the generation of audio samples. This will clear the output queue and reset the internal state of the noise generator to be ready for a new sequence of symbols.
-void noise_gen::clear() {
-	clear_requested_ = true; // Signal the generation loop to clear the queue and reset state
-	wake(); // Wake up the thread to process the clear request
 }
