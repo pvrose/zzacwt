@@ -759,7 +759,7 @@ void user_if::update_audio_widgets() {
 #ifdef _WIN32
 	std::string selected_audio_host = "Windows DirectSound";
 #else
-	std::string selected_audio_host = "pulse";
+	std::string selected_audio_host = "ALSA";
 #endif
 	settings.get<std::string>("Audio Manager", selected_audio_host, selected_audio_host);
 	ch_audio_in_device_->clear();
