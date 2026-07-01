@@ -1,0 +1,39 @@
+ZZACWT is an CW training application developed by Philip Rose for personal use.
+
+I am now making this publicly available.
+
+Windows Installation
+--------------------
+
+A file ZZACWT-[version].msi is available from https://sourceforge/projects/zzacwt. 
+Please follow instructions to install this. ZZACWT will be installed in 
+"C:\Program Files\GM3ZZA\ZZACWT\". 
+
+The source may be cloned from https://github.com/pvrose/zzacwt. 
+However this has dependencies on the following libraries: 
+FLTK. 
+The documentation also requires the use of Doxygen and LateX.
+
+It may be built using CMake under MSVC. See the appropriate section in the User Guide.
+
+
+
+Linux Installation
+------------------
+
+ZZACWT is available in source form. It may be cloned from 
+"https://github.com/pvrose/zzacwt". 
+It has dependencies on the external libraries: fltk and 
+nlohmann/json. To date this has only been developed on Debian trixie.
+
+FLTK can either be compiled from source cloned from github (https://github.com/fltk/fltk) or 
+installed form a tarball. It is also available in most distros. Version 1.4.3 
+or greater is required.
+
+Nlohmann/json is available in most distros.
+
+Doxygen is available in most distros.
+
+The build and install processes use CMake.
+
+For more details see the installation section in the User Guide.

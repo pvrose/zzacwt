@@ -1,0 +1,44 @@
+Welcome to GM3ZZA CW Trainer - ZZACWT.
+
+Installation Instructions - Linux:
+
+1. Ensure you have the necessary dependencies installed.
+
+Make sure that you have cmake and the gnu tools.
+   
+FLTK can either be compiled from source cloned from github 
+(https://github.com/fltk/fltk) or installed form a tarball. 
+It is also available in most distros. Version 1.4.3 
+or greater is required.
+
+Nlohmann/json can either be compiled from source cloned from 
+github (https://github.com/nlohmann/json).
+It is also available in most distros.
+
+Install the following packages on Debian/Ubuntu:
+   sudo apt install cmake build-essential \
+   doxygen texlive-latex-base texlive-latex-extra 
+
+
+1. Clone the latest version of the code from the GitHub repository:
+   git clone https://github.com/pvrose/zzalog.git
+
+2. Navigate to the project directory and run the following commands
+to build ZZACWT.
+   cd zzalog
+   cmake -B build -DZZACWT_DOX=ON
+   cmake --build build -j4
+
+3. After the build process is complete, you can find the 
+executable in the build directory: build/zzacwt.
+
+4. To install. This may need to be run as supervisor.
+   cmake --install build
+
+5. Alternatively to build and install as user, you can use the following command:
+   cmake --install build --prefix ~/.local
+
+
+Phil Rose, 
+GM3ZZA
+July 2026.
