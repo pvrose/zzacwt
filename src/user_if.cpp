@@ -20,6 +20,7 @@
 #include "decode_control.hpp"
 #include "oscillator.hpp"
 #include "mod_mixer.hpp"
+#include "monitor.hpp"
 #include "noise_gen.hpp"
 #include "params.hpp"
 #include "review.hpp"
@@ -64,6 +65,7 @@
 extern decode_control* decoder_;
 extern oscillator* oscillator_;
 extern mod_mixer* mod_mixer_;
+extern monitor* monitor_;
 extern noise_gen* noise_gen_;
 extern shaper* shaper_;
 extern zc_audio* speaker_;
@@ -816,7 +818,7 @@ void user_if::update_audio_widgets() {
 	else {
 		ch_audio_in_device_->activate();
 	}
-	if (audio_out_enabled && audio_in_enabled) {
+	if (audio_out_enabled || audio_in_enabled) {
 		ch_sample_rate_->deactivate();
 	}
 	else {
@@ -850,6 +852,10 @@ void user_if::apply_speaker_settings()
 	}
 	else {
 		if (speaker_->enabled()) speaker_->disconnect_port();
+		zc_settings settings;
+		double sample_rate;
+		settings.get("Sample Rate", sample_rate, DEFAULT_SAMPLE_RATE);
+		speaker_->sample_rate(sample_rate);
 	}
 }
 
@@ -861,6 +867,13 @@ void user_if::apply_microphone_settings()
 	else {
 		if (microphone_->enabled()) microphone_->disconnect_port();
 	}
+}
+
+void user_if::apply_monitor_settings()
+{
+	monitor_->stop_monitor();
+	monitor_->load_parameters();
+	decoder_->start_decoder();
 }
 
 // Callback implementations (placeholders)
@@ -1239,8 +1252,13 @@ void user_if::cb_sample_rate(Fl_Widget* w, void* data) {
 	unsigned int rate = sample_rates_[ix];
 	zc_settings settings;
 	settings.set("Sample Rate", rate);
-	ui->update_audio_widgets();
 	ui->apply_speaker_settings();
+
+	ui->update_audio_widgets();
+	ui->apply_oscillator_settings();
+	ui->apply_shaper_settings();
+	ui->apply_noise_settings();
+	ui->apply_monitor_settings();
 }
 
 // Callback function for the "Open HTML" button.

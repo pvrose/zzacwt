@@ -77,13 +77,19 @@ public:
 	//! Needs to run in main thread to avoid FLTK crashing when trying to draw from another thread.
 	static void cb_redraw(void* data);
 
+	//! \brief Load settings.
+	void load_settings();
+
+	//! \brief Start decoder and spectrogram display.
+	void start_decoder() {
+		update_decoder_controls();
+		configure_spectrogram();
+	}
+
 private:
 
 	//! \brief Create the widgets for the review window.
 	void create_widgets();
-
-	//! \brief Load settings.
-	void load_settings();
 
 	//! \brief Save settings.
 	void save_settings() const;

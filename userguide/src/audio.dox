@@ -18,8 +18,5 @@ generated audio is played. In this case the Windows sound mixer has been selecte
 
 There is also a "Sample Rate" control. This allows the user to specify the 
 sample rate used for <B>both</B> input and output. 
-\todo A sample-rate of 22050 and 24000 samples per second has been successfully 
-tried. Further work has been identified to improve the performance with
-44100 and 48000 samples per second.
 
 */

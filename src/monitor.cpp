@@ -180,7 +180,7 @@ void monitor::stop_monitor() {
 };
 
 // (Re-)configure, initialise FFT and start proeccsing.
-void monitor::start_monitor(double max_value) {
+void monitor::start_monitor() {
 	load_parameters();
 	image_queue_.clear();
 	selected_signal_bin_ = -1;
@@ -260,8 +260,6 @@ void monitor::process_audio_samples() {
 				audio_queue_copy_.pop_front();
 			}
 		}
-		// TODO The below code is in the audio processing path - consider moving it as it is not 
-		// needed for the FFT processing. 
 		// Drain the queues that are not being monitored to prevent them from 
 		// filling up and blocking the audio callback thread.
 		if (active_audio_queue_ != audio_sent_queue_) {
@@ -471,7 +469,6 @@ symbol_t monitor::decode_logic(bool logic) {
 		}
 	} 
 	else if (logic && previous_logic_) {
-		// \todo handle stuck high
 	}
 	else if (!logic && !previous_logic_) {
 		if (image_count_ > max_char_size_) {

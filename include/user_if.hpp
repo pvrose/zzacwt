@@ -144,6 +144,8 @@ private:
 	void apply_speaker_settings();
 	//! Apply the current settings to the microphone.
 	void apply_microphone_settings();
+	//! Apply the current settings to the monitor/decoder.
+	void apply_monitor_settings();
 
 	//! Open the provided help file
 	static void open_help_file(const std::string& full_filename);

@@ -292,9 +292,6 @@ void review::clear_display(text_source_t source) {
 		td_decoded_->style_buffer()->text("");
 		td_decoded_->redraw();
 	}
-	else {
-		// TODO - handle other sources of text if needed.
-	}
 }
 
 // Clear all displays of text.

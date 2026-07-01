@@ -400,7 +400,7 @@ void decode_control::configure_spectrogram() {
 	monitor_->set_monitoring_source(decode_source_);
 
 	// Now it's safe to start the monitor processing thread
-	monitor_->start_monitor(max_z);
+	monitor_->start_monitor();
 
 }
 
@@ -415,6 +415,7 @@ void decode_control::update_decoder_controls() {
 	settings.get("Spectrogram Frequency Span", max_freq, max_freq);
 	double max_time = DEFAULT_MAX_TIME;
 	settings.get("Spectrogram Time Span", max_time, max_time);
+	settings.get("Sample Rate", sample_rate_, DEFAULT_SAMPLE_RATE);
 	double freq_bin = sample_rate_ / static_cast<double>(fft_size);
 	double time_per_sample = static_cast<double>(fft_size) * (1.0 - overlap * 0.01) / sample_rate_;
 

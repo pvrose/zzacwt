@@ -116,7 +116,7 @@ public:
 	void stop_monitor();
 
 	//! \brief Start processing. Configure FFT and start proeccsing thread.
-	void start_monitor(double max_value);
+	void start_monitor();
 
 	//! Set the decoded string callback
 	void set_decode_callback(std::function<void(void*, const std::string&)> callback, void* user_data);
@@ -151,6 +151,10 @@ public:
 	}
 
 
+	//! Load the parameters from the settings and update the internal variables accordingly.
+	//! \return True if enabled.
+	void load_parameters();
+
 private:
 
 	//! Start the processing thread to process the audio samples and recover the symbols.
@@ -167,10 +171,6 @@ private:
 
 	//! Processing thread function to continuously process the audio samples and recover the symbols until signalled to stop.
 	static void processing_thread_function(monitor* self);
-
-	//! Load the parameters from the settings and update the internal variables accordingly.
-	//! \return True if enabled.
-	void load_parameters();
 
 	//! Store the parameters from the settings.
 	void store_parameters() const;

@@ -46,7 +46,6 @@ constexpr double SPACE_VALUE = 0.0F; //!< Value of the audio envelope when in sp
 
 extern int SHAPER_CHUNK_SIZE;
 extern double DEFAULT_RISE_FALL;
-extern double sample_rate_;
 
 extern text_gen* text_gen_; //!< Pointer to the text generator instance
 extern review* review_; //!< Pointer to the review instance
@@ -262,9 +261,7 @@ double shaper::generate_delta_t() {
 	// Define the disturbance range based on the level
 	double min_factor = 1.0F - 0.05F * timing_disturbance_level_; // Minimum factor (e.g. 0.98 for level 1)
 	double max_factor = 1.0F + 0.10F * timing_disturbance_level_; // Maximum factor (e.g. 1.05 for level 1)
-	// TODO: Implement a non-uniform distribution with a mean of 1.0F. 
-	// For simplicity, we will use a uniform distribution here, 
-	// but you can replace this with a more complex distribution as needed.
+	// For simplicity, we will use a uniform distribution here.
 	std::uniform_real_distribution<double> dist(min_factor, max_factor);
 	return (dist(rng_) - 1.0F) * dot_time_; // Return the disturbance as a delta time based on the dot time
 }
