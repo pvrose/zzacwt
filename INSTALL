@@ -21,11 +21,11 @@ Install the following packages on Debian/Ubuntu:
 
 
 1. Clone the latest version of the code from the GitHub repository:
-   git clone https://github.com/pvrose/zzalog.git
+   git clone https://github.com/pvrose/zzacwt.git
 
 2. Navigate to the project directory and run the following commands
 to build ZZACWT.
-   cd zzalog
+   cd zzacwt
    cmake -B build -DZZACWT_DOX=ON
    cmake --build build -j4
 
