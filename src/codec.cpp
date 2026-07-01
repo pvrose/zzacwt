@@ -217,7 +217,9 @@ void codec::decode(const std::vector<symbol_t>& symbols, std::string& output)
 					output += it->second;
 				}
 				else {
+#ifdef SHOW_DECODER_WARNINGS
 					std::cerr << "Warning: Invalid Morse code '" << current_morse << "' ignored in decoding." << std::endl;
+#endif
 					// Unicode replacement character U+FFFD in UTF-8: 0xEF 0xBF 0xBD
 					output += "\xEF\xBF\xBD";
 				}

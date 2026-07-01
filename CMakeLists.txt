@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ZZACWT VERSION 0.4.4)
+project(ZZACWT VERSION 1.0)
 
 # Add shared CMake modules
 # Add shared CMake modules
@@ -38,7 +38,7 @@ include(deps/fftw_helper OPTIONAL)
 set(TARGET zzacwt)
 set(APP_VENDOR "GM3ZZA")
 set(APP_NAME "ZZACWT")
-set(APP_RC_VALUE "")
+set(APP_RC_VALUE "-rc1")
 string(TIMESTAMP APP_TIMESTAMP UTC)
 set(APP_SOURCE_DIR ${ZZACWT_SOURCE_DIR})
 
