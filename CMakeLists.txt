@@ -91,9 +91,9 @@ if(MSVC)
 endif()
 
 ## Find PortAudio library
-gm3zza_find_portaudio()
-message(STATUS "PortAudio include dir: ${PORTAUDIO_INCLUDE_DIR}")
-message(STATUS "PortAudio library: ${PORTAUDIOLIB}")
+#gm3zza_find_portaudio()
+#message(STATUS "PortAudio include dir: ${PORTAUDIO_INCLUDE_DIR}")
+#message(STATUS "PortAudio library: ${PORTAUDIOLIB}")
 
 ## FFTW library integration
 gm3zza_find_fftw()
@@ -126,7 +126,19 @@ if(MSVC)
     zzacommon::zzad
     zzacommon::zzap
     zzacommon::zzafb
+    zzacommon::zzab
   )
+
+    # Conditionally add documentation
+    if (ZZACWT_DOX) 
+      message(STATUS "Adding documentation")
+      add_dependencies(${TARGET}
+        ug_html
+        ug_pdf
+        api_html
+        zzacommon_api_html
+      )
+    endif()
 endif()
 
 target_include_directories(${TARGET} PRIVATE 
@@ -151,6 +163,7 @@ target_link_libraries(${TARGET} PRIVATE
   zzacommon::zzam
   zzacommon::zzad
   zzacommon::zzafb
+  zzacommon::zzab
   zzacommon::zzap
   ${FLTK_LIBRARIES}
   ${FFTW3_LIBRARIES}
@@ -193,7 +206,7 @@ gm3zza_install_runtime_files(FILES ${DATAFILES} COMPONENT data)
 
 if(MSVC)
   gm3zza_register_fftw_dlls()
-  zzacommon_install_runtime_dlls(DESTINATION bin COMPONENT application)
+  zzacommon_install_runtime_dlls(TARGET ${TARGET} DESTINATION bin COMPONENT application)
   gm3zza_install_registered_runtime_dlls()
 endif()
 
