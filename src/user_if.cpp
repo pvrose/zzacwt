@@ -30,6 +30,7 @@
 #include "zc_audio.h"
 #include "zc_fltk.h"
 #include "zc_settings.h"
+#include "zc_ticker.h"
 #include "zc_wheel_value_slider.h"
 
 #include <FL/Enumerations.H>
@@ -38,9 +39,11 @@
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Fill_Dial.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_SVG_Image.H>
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Widget.H>
@@ -72,6 +75,7 @@ extern zc_audio* speaker_;
 extern zc_audio* microphone_;
 extern text_gen* text_gen_;
 extern review* review_;
+extern zc_ticker* ticker_;
 
 extern double DEFAULT_RISE_FALL;
 extern double DEFAULT_WPM;
@@ -83,6 +87,7 @@ user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)
 {
 	callback(cb_close, this);
 	create_widgets();
+	ticker_->add_ticker(this, cb_ticker, 1, false);
 }
 
 user_if::~user_if()
@@ -153,8 +158,8 @@ void user_if::create_widgets() {
 	bt_help_html_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
 	bt_help_html_->callback(cb_open_html, this);
 	bt_help_html_->tooltip("Open the help documentation as HTML");
-	std::string fn_html = file_holder_->get_filename(FILE_ICON_ZZA);
-	Fl_PNG_Image* img_html = new Fl_PNG_Image(fn_html.c_str());
+	std::string fn_html = file_holder_->get_filename(FILE_ICON_USERGUIDE);
+	Fl_Image* img_html = new Fl_PNG_Image(fn_html.c_str());
 	Fl_Image* icon = img_html->copy(HBUTTON, HBUTTON);
 	bt_help_html_->image(icon);
 
@@ -163,7 +168,7 @@ void user_if::create_widgets() {
 	bt_help_pdf_->callback(cb_open_pdf, this);
 	bt_help_pdf_->tooltip("Open the help documentation as PDF");
 	std::string fn_pdf = file_holder_->get_filename(FILE_ICON_PDF);
-	Fl_PNG_Image* img_pdf = new Fl_PNG_Image(fn_pdf.c_str());
+	Fl_Image* img_pdf = new Fl_PNG_Image(fn_pdf.c_str());
 	Fl_Image* icon_pdf = img_pdf->copy(HBUTTON, HBUTTON);
 	bt_help_pdf_->image(icon_pdf);
 
@@ -215,6 +220,16 @@ void user_if::create_widgets() {
 	in_text_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
+	// File dial for progress
+	fd_message_ = new Fl_Fill_Dial(cx, cy, HBUTTON, HBUTTON, "Progress");
+	fd_message_->align(FL_ALIGN_LEFT);
+	fd_message_->range(0.0, 1.0);
+	fd_message_->color(FL_BACKGROUND_COLOR);
+	fd_message_->angles(180, 540);
+	fd_message_->box(FL_OVAL_BOX);
+
+	cx += WBUTTON;
+
 	// Create the customise button for QSO generation (only active in QSO mode)
 	bt_customise_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Customise");
 	bt_customise_->callback(cb_customise, this);
@@ -1273,6 +1288,13 @@ void user_if::cb_open_pdf(Fl_Widget* widget, void* data) {
 	std::string full_path = file_holder_->get_directory(FDD_DOCUMENTS) +
 		"userguide/ZZACWT.pdf";
 	open_help_file(full_path);
+}
+
+// Callback for the ticker =- update medsage progress
+void user_if::cb_ticker(void* data) {
+	user_if* self = (user_if*)data;
+	double progress = text_gen_->pc_complete();
+	self->fd_message_->value(progress);
 }
 
 void user_if::open_help_file(const std::string& full_filename) {

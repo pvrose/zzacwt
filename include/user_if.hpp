@@ -30,6 +30,7 @@
 class Fl_Button;
 class Fl_Check_Button;
 class Fl_Choice;
+class Fl_Fill_Dial;
 class Fl_Group;
 class Fl_Input;
 class Fl_Text_Editor;
@@ -75,6 +76,9 @@ public:
 	//! Callback on close - closes the application.
 	static void cb_close(Fl_Widget* w, void* data);
 
+	//! Ticker callback
+	static void cb_ticker(void* data);
+
 	//! Override the handle method to catch CTRL/+ and CTRL/- for adjusting font size.
 	int handle(int event) override;
 
@@ -96,6 +100,7 @@ private:
 	zc_wheel_value_slider* sl_tx_size_;       //!< Transmission size slider
 	Fl_Input* in_text_;                 //!< User input for text mode
 	Fl_Button* bt_customise_;             //!< Customise button for QSO generation - gets user's credentials
+	Fl_Fill_Dial* fd_message_;          //!< Message progress
 
 	Fl_Group* g_speed_;                 //!< Group for speed controls
 	Fl_Choice* ch_speed_type_;          //!< Speed type choice
