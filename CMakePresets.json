@@ -39,9 +39,9 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "VCPKG_ROOT": "C:/Users/pvros/source/repos/vcpkg",
-        "PORTAUDIO_ROOT": "C:/Users/pvros/source/repos/portaudio",
-        "FFTW_ROOT": "C:/Users/pvros/Downloads/fftw-3.3.5-dll64",
+        "VCPKG_ROOT": "$env{USERPROFILE}/source/repos/vcpkg",
+        "PORTAUDIO_ROOT": "$env{USERPROFILE}/source/repos/portaudio",
+        "FFTW_ROOT": "$env{USERPROFILE}/Downloads/fftw-3.3.5-dll64",
         "ZZACWT_DOX": "ON",
         "ZZACWT_PDF": "OFF"
       },
@@ -62,7 +62,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "FLTK_DIR": "C:\\Users\\pvros\\source\\repos\\fltk\\out\\install\\x64-debug\\CMake"
+        "FLTK_DIR": "$env{USERPROFILE}/source/repos/fltk/out/install/x64-debug/CMake"
       }
     },
     {
@@ -72,7 +72,7 @@
       "inherits": "x64-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "FLTK_DIR": "C:\\Users\\pvros\\source\\repos\\fltk\\out\\install\\x64-release\\CMake",
+        "FLTK_DIR": "$env{USERPROFILE}/source/repos/fltk/out/install/x64-release/CMake",
         "ZZACWT_PDF": "ON"
       }
     },
