@@ -178,15 +178,8 @@ gm3zza_copy_runtime_dlls(TARGET ${TARGET})
 
 
 # Generate documents - userguide and API documentation.
-if(ZZACWT_DOX)
   # Paths to the include directories used by api/Doxyfile.in
   set(ZZACWT_INCLUDE_DIR          "${ZZACWT_SOURCE_DIR}/include")
-
-  if(ZZACWT_PDF)
-    set(_docs_pdf_flag PDF)
-  else()
-    set(_docs_pdf_flag "")
-  endif()
 
   gm3zza_enable_docs(
     TARGET        ${TARGET}
@@ -194,12 +187,10 @@ if(ZZACWT_DOX)
     USERGUIDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/userguide"
     API_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/api"
     API_FILES     ${HPPFILES}
-    ${_docs_pdf_flag}
   )
 
   # Copy zzacommon API docs into the api html output tree
   zzacommon_copy_api_docs(${GM3ZZA_API_HTML_DIR}/zzacommon)
-endif()
 
 ## Install
 install(TARGETS ${TARGET} RUNTIME COMPONENT applications)

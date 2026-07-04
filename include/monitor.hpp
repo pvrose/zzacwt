@@ -152,7 +152,6 @@ public:
 
 
 	//! Load the parameters from the settings and update the internal variables accordingly.
-	//! \return True if enabled.
 	void load_parameters();
 
 private:
