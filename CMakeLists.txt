@@ -109,7 +109,7 @@ gm3zza_generate_app_source(
 set(ALL_CPPFILES ${GENERATED_APP_CPP} ${CPPFILES})
 
 ## Use shared zzacommon (includes zzaf, zzam, zzad, zzafb)
-gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzab zzafb zzap GIT_TAG v1.2.10)
+gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzab zzafb zzap GIT_TAG master)
 
 
 # Define the zzacwt executable
