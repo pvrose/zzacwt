@@ -120,6 +120,12 @@ public:
 	//! Overwrite the existing user's QSO macros with the provided map of macro names to their token lists (single token).
 	void set_qso_user_macros(const std::map<std::string, std::string>& macros);
 
+	//! Get the percentage complete.
+	double pc_complete() {
+		return static_cast<double>(next_word_index_) /
+			static_cast<double>(current_sequence_.size());
+	}
+
 private:
 	//! Read word-list file and store words in internal state.
 	void load_word_list();

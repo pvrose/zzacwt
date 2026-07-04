@@ -30,6 +30,7 @@
 #include "zc_audio.h"
 #include "zc_fltk.h"
 #include "zc_settings.h"
+#include "zc_ticker.h"
 #include "zc_wheel_value_slider.h"
 
 #include <FL/Enumerations.H>
@@ -38,6 +39,7 @@
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Fill_Dial.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_PNG_Image.H>
@@ -73,6 +75,7 @@ extern zc_audio* speaker_;
 extern zc_audio* microphone_;
 extern text_gen* text_gen_;
 extern review* review_;
+extern zc_ticker* ticker_;
 
 extern double DEFAULT_RISE_FALL;
 extern double DEFAULT_WPM;
@@ -84,6 +87,7 @@ user_if::user_if(int W, int H, const char* L) : Fl_Double_Window(W, H, L)
 {
 	callback(cb_close, this);
 	create_widgets();
+	ticker_->add_ticker(this, cb_ticker, 1, false);
 }
 
 user_if::~user_if()
@@ -216,6 +220,16 @@ void user_if::create_widgets() {
 	in_text_->align(FL_ALIGN_LEFT);
 
 	cy += HBUTTON;
+	// File dial for progress
+	fd_message_ = new Fl_Fill_Dial(cx, cy, HBUTTON, HBUTTON, "Progress");
+	fd_message_->align(FL_ALIGN_LEFT);
+	fd_message_->range(0.0, 1.0);
+	fd_message_->color(FL_BACKGROUND_COLOR);
+	fd_message_->angles(180, 540);
+	fd_message_->box(FL_OVAL_BOX);
+
+	cx += WBUTTON;
+
 	// Create the customise button for QSO generation (only active in QSO mode)
 	bt_customise_ = new Fl_Button(cx, cy, WBUTTON, HBUTTON, "Customise");
 	bt_customise_->callback(cb_customise, this);
@@ -1274,6 +1288,13 @@ void user_if::cb_open_pdf(Fl_Widget* widget, void* data) {
 	std::string full_path = file_holder_->get_directory(FDD_DOCUMENTS) +
 		"userguide/ZZACWT.pdf";
 	open_help_file(full_path);
+}
+
+// Callback for the ticker =- update medsage progress
+void user_if::cb_ticker(void* data) {
+	user_if* self = (user_if*)data;
+	double progress = text_gen_->pc_complete();
+	self->fd_message_->value(progress);
 }
 
 void user_if::open_help_file(const std::string& full_filename) {
