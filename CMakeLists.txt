@@ -136,6 +136,7 @@ if(MSVC)
         ug_html
         ug_pdf
         api_html
+        pdf
         zzacommon_api_html
       )
     endif()
@@ -152,7 +153,7 @@ target_include_directories(${TARGET} PRIVATE
 if(MSVC)
   message(STATUS "Including other libraries for MSVC from ${USER_HOME_DIR}")
   target_include_directories(${TARGET} PRIVATE 
-    "${USER_HOME_DIR}\\source\\repos\\json\\include"
+    "${USER_HOME_DIR}/source/repos/json/include"
   )
 endif()
 
