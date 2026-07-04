@@ -41,6 +41,7 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_SVG_Image.H>
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Widget.H>
@@ -153,8 +154,8 @@ void user_if::create_widgets() {
 	bt_help_html_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
 	bt_help_html_->callback(cb_open_html, this);
 	bt_help_html_->tooltip("Open the help documentation as HTML");
-	std::string fn_html = file_holder_->get_filename(FILE_ICON_ZZA);
-	Fl_PNG_Image* img_html = new Fl_PNG_Image(fn_html.c_str());
+	std::string fn_html = file_holder_->get_filename(FILE_ICON_USERGUIDE);
+	Fl_Image* img_html = new Fl_PNG_Image(fn_html.c_str());
 	Fl_Image* icon = img_html->copy(HBUTTON, HBUTTON);
 	bt_help_html_->image(icon);
 
@@ -163,7 +164,7 @@ void user_if::create_widgets() {
 	bt_help_pdf_->callback(cb_open_pdf, this);
 	bt_help_pdf_->tooltip("Open the help documentation as PDF");
 	std::string fn_pdf = file_holder_->get_filename(FILE_ICON_PDF);
-	Fl_PNG_Image* img_pdf = new Fl_PNG_Image(fn_pdf.c_str());
+	Fl_Image* img_pdf = new Fl_PNG_Image(fn_pdf.c_str());
 	Fl_Image* icon_pdf = img_pdf->copy(HBUTTON, HBUTTON);
 	bt_help_pdf_->image(icon_pdf);
 
