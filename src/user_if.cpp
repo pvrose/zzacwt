@@ -29,6 +29,7 @@
 
 #include "zc_audio.h"
 #include "zc_fltk.h"
+#include "zc_icons.h"
 #include "zc_settings.h"
 #include "zc_ticker.h"
 #include "zc_wheel_value_slider.h"
@@ -158,18 +159,14 @@ void user_if::create_widgets() {
 	bt_help_html_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
 	bt_help_html_->callback(cb_open_html, this);
 	bt_help_html_->tooltip("Open the help documentation as HTML");
-	std::string fn_html = file_holder_->get_filename(FILE_ICON_USERGUIDE);
-	Fl_Image* img_html = new Fl_PNG_Image(fn_html.c_str());
-	Fl_Image* icon = img_html->copy(HBUTTON, HBUTTON);
+	Fl_Image* icon = zc_icon(zc_icon_t::ICON_HTML, HBUTTON, HBUTTON, FL_FOREGROUND_COLOR);
 	bt_help_html_->image(icon);
 
 	cy += HBUTTON;
 	bt_help_pdf_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
 	bt_help_pdf_->callback(cb_open_pdf, this);
 	bt_help_pdf_->tooltip("Open the help documentation as PDF");
-	std::string fn_pdf = file_holder_->get_filename(FILE_ICON_PDF);
-	Fl_Image* img_pdf = new Fl_PNG_Image(fn_pdf.c_str());
-	Fl_Image* icon_pdf = img_pdf->copy(HBUTTON, HBUTTON);
+	Fl_Image* icon_pdf = zc_icon(zc_icon_t::ICON_BOOK, HBUTTON, HBUTTON, FL_FOREGROUND_COLOR);
 	bt_help_pdf_->image(icon_pdf);
 
 	cy += HBUTTON + GAP;
