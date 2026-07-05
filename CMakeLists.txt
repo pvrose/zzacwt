@@ -152,7 +152,6 @@ if(MSVC)
         ug_pdf
         api_html
         pdf
-        zzacommon_api_html
       )
     endif()
 endif()
@@ -205,7 +204,11 @@ gm3zza_copy_runtime_dlls(TARGET ${TARGET})
   )
 
   # Copy zzacommon API docs into the api html output tree
-  zzacommon_copy_api_docs(${GM3ZZA_API_HTML_DIR}/zzacommon)
+  zzacommon_copy_api_docs(${GM3ZZA_API_HTML_DIR}/zzacommon  OUT_TARGET ZZACOMMON_DOCS_COPY)
+
+  if (ZZACWT_DOX)
+    add_dependencies(${TARGET} ${ZZACOMMON_DOCS_COPY})
+  endif()
 
 ## Install
 install(TARGETS ${TARGET} RUNTIME COMPONENT applications)
