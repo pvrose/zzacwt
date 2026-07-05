@@ -34,6 +34,7 @@ if(DOXYGEN_FOUND)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/index.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/src/overview.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/src/review.dox
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/release_notes.dox
     ${CMAKE_CURRENT_SOURCE_DIR}/new_header.tex
   )
 

@@ -66,6 +66,22 @@ set(CPPFILES
   ${ZZACWT_SOURCE_DIR}/src/user_if.cpp
 )
 
+## Set header files (used to trigger documentation generation)
+set(HPPFILES
+  ${ZZACWT_SOURCE_DIR}/include/codec.hpp
+  ${ZZACWT_SOURCE_DIR}/include/cred_dialog.hpp
+  ${ZZACWT_SOURCE_DIR}/include/decode_control.hpp
+  ${ZZACWT_SOURCE_DIR}/include/main.hpp
+  ${ZZACWT_SOURCE_DIR}/include/mod_mixer.hpp
+  ${ZZACWT_SOURCE_DIR}/include/monitor.hpp
+  ${ZZACWT_SOURCE_DIR}/include/noise_gen.hpp
+  ${ZZACWT_SOURCE_DIR}/include/oscillator.hpp
+  ${ZZACWT_SOURCE_DIR}/include/review.hpp
+  ${ZZACWT_SOURCE_DIR}/include/shaper.hpp
+  ${ZZACWT_SOURCE_DIR}/include/text_gen.hpp
+  ${ZZACWT_SOURCE_DIR}/include/user_if.hpp
+)
+
 ## Data files
 set(DATAFILES
   ${ZZACWT_SOURCE_DIR}/rose.png 
