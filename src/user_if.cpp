@@ -159,15 +159,13 @@ void user_if::create_widgets() {
 	bt_help_html_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
 	bt_help_html_->callback(cb_open_html, this);
 	bt_help_html_->tooltip("Open the help documentation as HTML");
-	Fl_Image* icon = zc_icon(zc_icon_t::ICON_HTML, HBUTTON - 2, HBUTTON - 2, FL_FOREGROUND_COLOR);
-	bt_help_html_->image(icon);
+	zc_add_icon_to_widget(bt_help_html_, zc_icon_t::ICON_HTML);
 
 	cy += HBUTTON;
 	bt_help_pdf_ = new Fl_Button(cx, cy, HBUTTON, HBUTTON);
 	bt_help_pdf_->callback(cb_open_pdf, this);
 	bt_help_pdf_->tooltip("Open the help documentation as PDF");
-	Fl_Image* icon_pdf = zc_icon(zc_icon_t::ICON_BOOK, HBUTTON - 2, HBUTTON - 2, FL_FOREGROUND_COLOR);
-	bt_help_pdf_->image(icon_pdf);
+	zc_add_icon_to_widget(bt_help_pdf_, zc_icon_t::ICON_BOOK);
 
 	cy += HBUTTON + GAP;
 
