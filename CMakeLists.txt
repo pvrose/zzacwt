@@ -181,11 +181,12 @@ target_link_libraries(${TARGET} PRIVATE
   zzacommon::zzab
   zzacommon::zzap
   ${FLTK_LIBRARIES}
-  ${FFTW3_LIBRARIES}
+  FFTW3::fftw3
 )
 
 ## Stage runtime assets for development
 gm3zza_stage_runtime_files(TARGET ${TARGET} FILES ${DATAFILES})
+gm3zza_register_fftw_dlls()
 
 ## Copy runtime DLLs for development
 gm3zza_copy_runtime_dlls(TARGET ${TARGET})
@@ -213,7 +214,6 @@ install(TARGETS ${TARGET} RUNTIME COMPONENT applications)
 gm3zza_install_runtime_files(FILES ${DATAFILES} COMPONENT data)
 
 if(MSVC)
-  gm3zza_register_fftw_dlls()
   zzacommon_install_runtime_dlls(TARGET ${TARGET} DESTINATION bin COMPONENT application)
   gm3zza_install_registered_runtime_dlls()
 endif()
