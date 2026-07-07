@@ -206,9 +206,7 @@ gm3zza_copy_runtime_dlls(TARGET ${TARGET})
   # Copy zzacommon API docs into the api html output tree
   zzacommon_copy_api_docs(${GM3ZZA_API_HTML_DIR}/zzacommon  OUT_TARGET ZZACOMMON_DOCS_COPY)
 
-  if (ZZACWT_DOX)
     add_dependencies(${TARGET} ${ZZACOMMON_DOCS_COPY})
-  endif()
 
 ## Install
 install(TARGETS ${TARGET} RUNTIME COMPONENT applications)
@@ -222,28 +220,26 @@ endif()
 
 
 # Install userguide and API documentation
-if(ZZACWT_DOX)
-    if(GM3ZZA_USERGUIDE_HTML_DIR)
-      gm3zza_install_runtime_files(
-        DIRECTORIES ${GM3ZZA_USERGUIDE_HTML_DIR}
-        DEST_SUBDIR userguide
-        COMPONENT documentation
-      )
-    endif()
+  if(GM3ZZA_USERGUIDE_HTML_DIR)
+    gm3zza_install_runtime_files(
+      DIRECTORIES ${GM3ZZA_USERGUIDE_HTML_DIR}
+      DEST_SUBDIR userguide
+      COMPONENT documentation
+    )
+  endif()
 
-    if(ZZACWT_PDF AND GM3ZZA_USERGUIDE_PDF_FILE)
-      gm3zza_install_runtime_files(
-        FILES ${GM3ZZA_USERGUIDE_PDF_FILE}
-        DEST_SUBDIR userguide
-        COMPONENT documentation
-      )
-    endif()
+  if(GM3ZZA_USERGUIDE_PDF_FILE)
+    gm3zza_install_runtime_files(
+      FILES ${GM3ZZA_USERGUIDE_PDF_FILE}
+      DEST_SUBDIR userguide
+      COMPONENT documentation
+    )
+  endif()
 
-    if(GM3ZZA_API_HTML_DIR)
-      gm3zza_install_runtime_files(
-        DIRECTORIES ${GM3ZZA_API_HTML_DIR}
-        DEST_SUBDIR api
-        COMPONENT documentation
-      )
-    endif()
-endif()
+  if(GM3ZZA_API_HTML_DIR)
+    gm3zza_install_runtime_files(
+      DIRECTORIES ${GM3ZZA_API_HTML_DIR}
+      DEST_SUBDIR api
+      COMPONENT documentation
+    )
+  endif()
