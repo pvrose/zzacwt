@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ZZACWT VERSION 1.0)
-
 # Add shared CMake modules
 # Add shared CMake modules
 # First look in sibling path for development, then in installed location for users
@@ -34,6 +32,9 @@ include(Gm3zzaDocs)
 include(deps/portaudio_helper)
 include(deps/fftw_helper OPTIONAL)
 
+gm3zza_get_git_version(MY_DYNAMIC_VERSION)
+project(ZZACWT VERSION ${MY_DYNAMIC_VERSION})
+
 ## Set target executable and program metadata
 set(TARGET zzacwt)
 set(APP_VENDOR "GM3ZZA")
@@ -51,7 +52,7 @@ gm3zza_split_version(${PROJECT_NAME})
 set(APP_VERSION "${ZZACWT_VERSION}${APP_RC_VALUE}")
 
 ## Set source files (excluding app.cpp which is generated)
-set(CPPFILES 
+set(ZZACWT_CPPFILES 
   ${ZZACWT_SOURCE_DIR}/src/codec.cpp
   ${ZZACWT_SOURCE_DIR}/src/cred_dialog.cpp
   ${ZZACWT_SOURCE_DIR}/src/decode_control.cpp
@@ -67,7 +68,7 @@ set(CPPFILES
 )
 
 ## Set header files (used to trigger documentation generation)
-set(HPPFILES
+set(ZZACWT_HPPFILES
   ${ZZACWT_SOURCE_DIR}/include/codec.hpp
   ${ZZACWT_SOURCE_DIR}/include/cred_dialog.hpp
   ${ZZACWT_SOURCE_DIR}/include/decode_control.hpp
@@ -105,11 +106,6 @@ if(MSVC)
   )
 endif()
 
-## Find PortAudio library
-#gm3zza_find_portaudio()
-#message(STATUS "PortAudio include dir: ${PORTAUDIO_INCLUDE_DIR}")
-#message(STATUS "PortAudio library: ${PORTAUDIOLIB}")
-
 ## FFTW library integration
 gm3zza_find_fftw()
 message(STATUS "FFTW include dir: ${FFTW3_INCLUDE_DIRS}")   
@@ -121,7 +117,7 @@ gm3zza_generate_app_source(
   OUTPUT_VAR GENERATED_APP_CPP
 )
 
-set(ALL_CPPFILES ${GENERATED_APP_CPP} ${CPPFILES})
+set(ALL_CPPFILES ${GENERATED_APP_CPP} ${ZZACWT_CPPFILES})
 
 ## Use shared zzacommon (includes zzaf, zzam, zzad, zzafb)
 gm3zza_use_zzacommon(COMPONENTS zzaf zzam zzad zzab zzafb zzap GIT_TAG master)
@@ -144,17 +140,18 @@ if(MSVC)
     zzacommon::zzab
   )
 
-    # Conditionally add documentation
-    if (ZZACWT_DOX) 
-      message(STATUS "Adding documentation")
-      add_dependencies(${TARGET}
-        ug_html
-        ug_pdf
-        api_html
-        pdf
-      )
-    endif()
 endif()
+
+
+add_subdirectory(${ZZACWT_SOURCE_DIR}/userguide EXCLUDE_FROM_ALL)
+add_subdirectory(${ZZACWT_SOURCE_DIR}/api EXCLUDE_FROM_ALL)
+
+add_custom_target(docs
+    COMMENT "Building all project documentation"
+)
+
+add_dependencies(docs ug_html pdf api_html zzacommon_api_html)
+
 
 target_include_directories(${TARGET} PRIVATE 
   ${ZZACWT_SOURCE_DIR}/include
@@ -191,23 +188,6 @@ gm3zza_register_fftw_dlls()
 ## Copy runtime DLLs for development
 gm3zza_copy_runtime_dlls(TARGET ${TARGET})
 
-
-# Generate documents - userguide and API documentation.
-  # Paths to the include directories used by api/Doxyfile.in
-  set(ZZACWT_INCLUDE_DIR          "${ZZACWT_SOURCE_DIR}/include")
-
-  gm3zza_enable_docs(
-    TARGET        ${TARGET}
-    APP_NAME      ${APP_NAME}
-    USERGUIDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/userguide"
-    API_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/api"
-    API_FILES     ${HPPFILES}
-  )
-
-  # Copy zzacommon API docs into the api html output tree
-  zzacommon_copy_api_docs(${GM3ZZA_API_HTML_DIR}/zzacommon  OUT_TARGET ZZACOMMON_DOCS_COPY)
-
-    add_dependencies(${TARGET} ${ZZACOMMON_DOCS_COPY})
 
 ## Install
 install(TARGETS ${TARGET} RUNTIME COMPONENT applications)

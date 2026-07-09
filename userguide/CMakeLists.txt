@@ -45,59 +45,10 @@ if(DOXYGEN_FOUND)
     ${CMAKE_CURRENT_SOURCE_DIR}/images/user_if_2.png
   )
 
-
-
-  # Copy Doxyfile
-  configure_file(${DOXY_UG_IN} ${DOXY_UG_OUT} @ONLY)
- 
-  # Command for generating dox from config file
-  message("Adding command to generate: ${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
-  
-add_custom_target(ug_html 
-    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXY_UG_OUT}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "ZZACWT: Generating userguide"
-    VERBATIM
+  setup_ug_documentation(
+      ZZACWT
+      ${DOXY_UG_FILES}
+      ${SOXY_UG_IMAGES}
   )
-  add_dependencies(ug_html
-    ${DOXY_UG_FILES} ${DOXY_UG_OUT} ${DOXY_UG_IMAGES}
-  )
-    
-      # Command for generating PDF from userguide latex files
-      if(MSVC)
-        add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
-                    ug_html
-            COMMAND miktex-texworks.exe  ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
-            COMMENT "ZZACWT: Generating PDF Userguide"
-            VERBATIM
-        )
-      else()
-        add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
-                    ug_html
-            COMMAND make -C ${CMAKE_CURRENT_BINARY_DIR}/latex >> /dev/null
-            COMMENT "ZZACWT: Generating PDF Userguide"
-            VERBATIM
-        )
-      endif()
-      add_custom_target(ug_pdf)
-      add_dependencies(ug_pdf ug_html)
 
-      # Copy from latex/refman.pdf to ZZACWT.pdf
-      add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${APP_NAME}.pdf
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-                ug_pdf
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-        ${CMAKE_CURRENT_BINARY_DIR}/${APP_NAME}.pdf
-        COMMENT "Copying PDF"
-      )
-     add_custom_target(
-        pdf 
-     )
-     add_dependencies(pdf ug_pdf)
 endif()
