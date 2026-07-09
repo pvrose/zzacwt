@@ -38,7 +38,7 @@ include(deps/fftw_helper OPTIONAL)
 set(TARGET zzacwt)
 set(APP_VENDOR "GM3ZZA")
 set(APP_NAME "ZZACWT")
-set(APP_RC_VALUE "-rc1")
+set(APP_RC_VALUE "-rc2")
 string(TIMESTAMP APP_TIMESTAMP UTC)
 set(APP_SOURCE_DIR ${ZZACWT_SOURCE_DIR})
 
