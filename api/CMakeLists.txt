@@ -21,14 +21,9 @@ if(DOXYGEN_FOUND)
 
   message(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE}")
 
-  # Set project files
-  set(DOXY_API_INDEX_FILE index.html)
-  set(DOXY_API_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-  set(DOXY_API_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-
   setup_api_documentation(
       ZZACWT
-      ${ZZACWT_HPPFILES}
+      "${ZZACWT_HPPFILES}"
   )
 
   # Set output directory for API HTML

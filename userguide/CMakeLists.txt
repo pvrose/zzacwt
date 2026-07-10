@@ -47,8 +47,8 @@ if(DOXYGEN_FOUND)
 
   setup_ug_documentation(
       ZZACWT
-      ${DOXY_UG_FILES}
-      ${DOXY_UG_IMAGES}
+      "${DOXY_UG_FILES}"
+      "${DOXY_UG_IMAGES}"
   )
 
   
