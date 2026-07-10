@@ -34,6 +34,6 @@ if(DOXYGEN_FOUND)
   )
 
   # Set output directory for API HTML
-  set(ZZACWT_API_HTML_DIR "${API_HTML_DIR}" PARENT_SCOPE)
+  set(ZZACWT_API_HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/html" PARENT_SCOPE)
 
 endif()

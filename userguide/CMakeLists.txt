@@ -48,7 +48,14 @@ if(DOXYGEN_FOUND)
   setup_ug_documentation(
       ZZACWT
       ${DOXY_UG_FILES}
-      ${SOXY_UG_IMAGES}
+      ${DOXY_UG_IMAGES}
   )
+
+  
+  # Set output directory for API HTML
+  set(ZZACWT_USERGUIDE_HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/html" PARENT_SCOPE)
+  set(ZZACWT_USERGUIDE_PDF_FILE "${CMAKE_CURRENT_BINARY_DIR}/ZZACWT.pdf" PARENT_SCOPE)
+
+
 
 endif()

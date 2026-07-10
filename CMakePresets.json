@@ -42,8 +42,6 @@
         "VCPKG_ROOT": "$penv{USERPROFILE}/source/repos/vcpkg",
         "PORTAUDIO_ROOT": "$penv{USERPROFILE}/source/repos/portaudio",
         "FFTW_ROOT": "$penv{USERPROFILE}/Downloads/fftw-3.3.5-dll64",
-        "ZZACWT_DOX": "ON",
-        "ZZACWT_PDF": "OFF"
       },
       "condition": {
         "type": "equals",
@@ -73,7 +71,6 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "FLTK_DIR": "$penv{USERPROFILE}/source/repos/fltk/out/install/x64-release/CMake",
-        "ZZACWT_PDF": "ON"
       }
     },
     {
