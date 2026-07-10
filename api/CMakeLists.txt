@@ -26,8 +26,6 @@ if(DOXYGEN_FOUND)
   set(DOXY_API_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
   set(DOXY_API_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-  message(STATUS "ZZACWT: Generating API docs from ${ZZACWT_HPPFILES}")
-
   setup_api_documentation(
       ZZACWT
       ${ZZACWT_HPPFILES}
