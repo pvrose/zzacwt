@@ -11,7 +11,7 @@
     <ROW Property="ProductCode" Value="2057:{BE848F6B-33A3-45D8-B555-50EAAEA061A0} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="ZZACWT"/>
-    <ROW Property="ProductVersion" Value="1.0" Options="32"/>
+    <ROW Property="ProductVersion" Value="1.0.0" Options="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{6DD6E898-1217-461D-8428-0E916A13133F}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -49,13 +49,13 @@
     <ROW Component="APPDIR" ComponentId="{3778D4F5-0896-4539-8781-782539C8EFE6}" Directory_="APPDIR" Attributes="0"/>
     <ROW Component="ProductInformation" ComponentId="{AF83B35D-CA56-479E-8256-3CA8AAD99B61}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
     <ROW Component="SHORTCUTDIR" ComponentId="{44DD7D6E-0DE8-4EA2-A75A-603009761CC0}" Directory_="SHORTCUTDIR" Attributes="0"/>
-    <ROW Component="ZZACWT.pdf" ComponentId="{CDB2FCF8-5796-43D0-A5E9-FAD22FAFAD07}" Directory_="userguide_Dir" Attributes="0" KeyPath="ZZACWT.pdf" Type="0"/>
-    <ROW Component="ack.html" ComponentId="{A9C552F0-D0AE-4BF2-BC26-39ADB4784C9A}" Directory_="html_1_Dir" Attributes="0" KeyPath="ack.html" Type="0"/>
-    <ROW Component="all_0.js" ComponentId="{A6932CE4-4783-447D-ABA5-0BCF374ED4BA}" Directory_="search_Dir" Attributes="0" KeyPath="all_0.js" Type="0"/>
-    <ROW Component="all_0.js_1" ComponentId="{C61D9DAB-8BA1-4994-86A9-2FFD2EDD4B92}" Directory_="search_1_Dir" Attributes="0" KeyPath="all_0.js_1" Type="0"/>
-    <ROW Component="all_0.js_2" ComponentId="{A916B616-05C5-4F82-B99E-9AB86E314826}" Directory_="search_2_Dir" Attributes="0" KeyPath="all_0.js_2" Type="0"/>
-    <ROW Component="annotated.html" ComponentId="{D845967A-D895-43EB-A477-50F8DEA89B6A}" Directory_="html_Dir" Attributes="0" KeyPath="annotated.html" Type="0"/>
-    <ROW Component="annotated.html_1" ComponentId="{8048C672-C7A0-4F82-B6C7-86406F4A8870}" Directory_="zzacommon_Dir" Attributes="0" KeyPath="annotated.html_1" Type="0"/>
+    <ROW Component="ZZACWT.pdf" ComponentId="{769FC7A2-A9B0-4BFF-B897-8601FA487845}" Directory_="userguide_Dir" Attributes="0" KeyPath="ZZACWT.pdf" Type="0"/>
+    <ROW Component="ack.html" ComponentId="{C6955705-F14E-456F-94CC-82F460099A4F}" Directory_="html_1_Dir" Attributes="0" KeyPath="ack.html" Type="0"/>
+    <ROW Component="all_0.js" ComponentId="{F3D336C1-BB11-4528-ACD5-131D8FBD1373}" Directory_="search_Dir" Attributes="0" KeyPath="all_0.js" Type="0"/>
+    <ROW Component="all_0.js_1" ComponentId="{81981653-F87B-49CD-953C-5037EEB7110F}" Directory_="search_1_Dir" Attributes="0" KeyPath="all_0.js_1" Type="0"/>
+    <ROW Component="all_0.js_2" ComponentId="{30D5107B-3AA2-43BF-BE59-8E3599755429}" Directory_="search_2_Dir" Attributes="0" KeyPath="all_0.js_2" Type="0"/>
+    <ROW Component="annotated.html" ComponentId="{C7EDB3FE-D087-4F97-AEA0-E14526E9C2B2}" Directory_="html_Dir" Attributes="0" KeyPath="annotated.html" Type="0"/>
+    <ROW Component="annotated.html_1" ComponentId="{5E373610-9B42-4E91-9478-FEFBA3A1B4E9}" Directory_="zzacommon_Dir" Attributes="0" KeyPath="annotated.html_1" Type="0"/>
     <ROW Component="boost_filesystemvc144mtx641_85.dll" ComponentId="{82452856-2A90-4DC5-9BEB-E7046608C84E}" Directory_="bin_Dir" Attributes="256" KeyPath="boost_filesystemvc144mtx641_85.dll"/>
     <ROW Component="boost_systemvc144mtx641_85.dll" ComponentId="{D7807041-ADA4-43FC-97A4-D239C557F173}" Directory_="bin_Dir" Attributes="256" KeyPath="boost_systemvc144mtx641_85.dll"/>
     <ROW Component="libfftw33.dll" ComponentId="{F7EBD334-19C6-46A0-8529-7883DF765E35}" Directory_="bin_Dir" Attributes="256" KeyPath="libfftw33.dll"/>
@@ -67,6 +67,14 @@
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="qso_data.txt" Component_="qso_data.txt" FileName="qso_data.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\qso_data.txt" SelfReg="false"/>
+    <ROW File="rose.png_2" Component_="qso_data.txt" FileName="rose.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\rose.png" SelfReg="false"/>
+    <ROW File="text.txt" Component_="qso_data.txt" FileName="text.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\text.txt" SelfReg="false"/>
+    <ROW File="word_list.txt" Component_="qso_data.txt" FileName="WORD_L~1.TXT|word_list.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\word_list.txt" SelfReg="false"/>
+    <ROW File="boost_filesystemvc144mtx641_85.dll" Component_="boost_filesystemvc144mtx641_85.dll" FileName="BOOST_~1.DLL|boost_filesystem-vc144-mt-x64-1_85.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\boost_filesystem-vc144-mt-x64-1_85.dll" SelfReg="false"/>
+    <ROW File="boost_systemvc144mtx641_85.dll" Component_="boost_systemvc144mtx641_85.dll" FileName="BOOST_~2.DLL|boost_system-vc144-mt-x64-1_85.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\boost_system-vc144-mt-x64-1_85.dll" SelfReg="false"/>
+    <ROW File="libfftw33.dll" Component_="libfftw33.dll" FileName="LIBFFT~1.DLL|libfftw3-3.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\libfftw3-3.dll" SelfReg="false"/>
+    <ROW File="zzacwt.exe" Component_="zzacwt.exe" FileName="zzacwt.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\zzacwt.exe" SelfReg="false" DigSign="true"/>
     <ROW File="annotated.html" Component_="annotated.html" FileName="ANNOTA~1.HTM|annotated.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\api\html\annotated.html" SelfReg="false"/>
     <ROW File="annotated_dup.js" Component_="annotated.html" FileName="ANNOTA~1.JS|annotated_dup.js" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\api\html\annotated_dup.js" SelfReg="false"/>
     <ROW File="classcodecmembers.html" Component_="annotated.html" FileName="CLASSC~1.HTM|classcodec-members.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\api\html\classcodec-members.html" SelfReg="false"/>
@@ -908,9 +916,6 @@
     <ROW File="zc__wheel__value__slider_8h_source.html" Component_="annotated.html_1" FileName="ZC__WH~2.HTM|zc__wheel__value__slider_8h_source.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\api\html\zzacommon\zc__wheel__value__slider_8h_source.html" SelfReg="false"/>
     <ROW File="zzacommon_8h.html" Component_="annotated.html_1" FileName="ZZACOM~1.HTM|zzacommon_8h.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\api\html\zzacommon\zzacommon_8h.html" SelfReg="false"/>
     <ROW File="zzacommon_8h_source.html" Component_="annotated.html_1" FileName="ZZACOM~2.HTM|zzacommon_8h_source.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\api\html\zzacommon\zzacommon_8h_source.html" SelfReg="false"/>
-    <ROW File="qso_data.txt" Component_="qso_data.txt" FileName="qso_data.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\qso_data.txt" SelfReg="false"/>
-    <ROW File="rose.png_2" Component_="qso_data.txt" FileName="rose.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\rose.png" SelfReg="false"/>
-    <ROW File="text.txt" Component_="qso_data.txt" FileName="text.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\text.txt" SelfReg="false"/>
     <ROW File="ack.html" Component_="ack.html" FileName="ACK~1.HTM|ack.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\ack.html" SelfReg="false"/>
     <ROW File="audio.html" Component_="ack.html" FileName="AUDIO~1.HTM|audio.html" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\audio.html" SelfReg="false"/>
     <ROW File="clipboard.js_2" Component_="ack.html" FileName="CLIPBO~1.JS|clipboard.js" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\clipboard.js" SelfReg="false"/>
@@ -990,11 +995,6 @@
     <ROW File="user_if.png" Component_="ack.html" FileName="user_if.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\user_if.png" SelfReg="false"/>
     <ROW File="user_if_2.png" Component_="ack.html" FileName="USER_I~1.PNG|user_if_2.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\html\user_if_2.png" SelfReg="false"/>
     <ROW File="ZZACWT.pdf" Component_="ZZACWT.pdf" FileName="ZZACWT.pdf" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\userguide\ZZACWT.pdf" SelfReg="false"/>
-    <ROW File="word_list.txt" Component_="qso_data.txt" FileName="WORD_L~1.TXT|word_list.txt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\etc\word_list.txt" SelfReg="false"/>
-    <ROW File="boost_filesystemvc144mtx641_85.dll" Component_="boost_filesystemvc144mtx641_85.dll" FileName="BOOST_~1.DLL|boost_filesystem-vc144-mt-x64-1_85.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\boost_filesystem-vc144-mt-x64-1_85.dll" SelfReg="false"/>
-    <ROW File="boost_systemvc144mtx641_85.dll" Component_="boost_systemvc144mtx641_85.dll" FileName="BOOST_~2.DLL|boost_system-vc144-mt-x64-1_85.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\boost_system-vc144-mt-x64-1_85.dll" SelfReg="false"/>
-    <ROW File="libfftw33.dll" Component_="libfftw33.dll" FileName="LIBFFT~1.DLL|libfftw3-3.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\libfftw3-3.dll" SelfReg="false"/>
-    <ROW File="zzacwt.exe" Component_="zzacwt.exe" FileName="zzacwt.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="out\install\x64-release\bin\zzacwt.exe" SelfReg="false" DigSign="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiPersistentPropComponent">
     <ROW Property="AI_INSTALLPERUSER" Registry="AI_INSTALLPERUSER" HklmSearch="AI_INSTALLPERUSER" HkcuSearch="AI_INSTALLPERUSER_1" Hklm64Search="AI_INSTALLPERUSER_2" Hkcu64Search="AI_INSTALLPERUSER_3"/>
@@ -1003,7 +1003,7 @@
     <ROW Action="AI_DetectSoftware" Sequence="151"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="ZZACWT-1.0-rc2" Languages="en_GB" InstallationType="4" SummInfoMetadata="Page Count:450" UseLargeSchema="true" MsiPackageType="x64"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="ZZACWT-1.0.0-rc3" Languages="en_GB" InstallationType="4" SummInfoMetadata="Page Count:450" UseLargeSchema="true" MsiPackageType="x64"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
     <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
@@ -1088,19 +1088,19 @@
     <ROW Feature_="MainFeature" Component_="APPDIR"/>
     <ROW Feature_="MainFeature" Component_="ProductInformation"/>
     <ROW Feature_="MainFeature" Component_="AI_INSTALLPERUSER"/>
-    <ROW Feature_="MainFeature" Component_="annotated.html"/>
-    <ROW Feature_="MainFeature" Component_="all_0.js"/>
-    <ROW Feature_="MainFeature" Component_="annotated.html_1"/>
-    <ROW Feature_="MainFeature" Component_="all_0.js_1"/>
     <ROW Feature_="MainFeature" Component_="qso_data.txt"/>
-    <ROW Feature_="MainFeature" Component_="ack.html"/>
     <ROW Feature_="MainFeature" Component_="SHORTCUTDIR"/>
-    <ROW Feature_="MainFeature" Component_="all_0.js_2"/>
-    <ROW Feature_="MainFeature" Component_="ZZACWT.pdf"/>
+    <ROW Feature_="MainFeature" Component_="annotated.html"/>
     <ROW Feature_="MainFeature" Component_="boost_filesystemvc144mtx641_85.dll"/>
     <ROW Feature_="MainFeature" Component_="boost_systemvc144mtx641_85.dll"/>
     <ROW Feature_="MainFeature" Component_="libfftw33.dll"/>
     <ROW Feature_="MainFeature" Component_="zzacwt.exe"/>
+    <ROW Feature_="MainFeature" Component_="all_0.js"/>
+    <ROW Feature_="MainFeature" Component_="annotated.html_1"/>
+    <ROW Feature_="MainFeature" Component_="all_0.js_1"/>
+    <ROW Feature_="MainFeature" Component_="ack.html"/>
+    <ROW Feature_="MainFeature" Component_="all_0.js_2"/>
+    <ROW Feature_="MainFeature" Component_="ZZACWT.pdf"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
@@ -1144,7 +1144,6 @@
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="ZZACWT.pdf" Directory_="SHORTCUTDIR" Name="ZZACWT.pdf" Component_="ZZACWT.pdf" Target="[#ZZACWT.pdf]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="userguide_Dir"/>
     <ROW Shortcut="zzacwt" Directory_="SHORTCUTDIR" Name="zzacwt" Component_="zzacwt.exe" Target="[#zzacwt.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="bin_Dir"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">

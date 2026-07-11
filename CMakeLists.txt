@@ -39,7 +39,7 @@ project(ZZACWT VERSION ${MY_DYNAMIC_VERSION})
 set(TARGET zzacwt)
 set(APP_VENDOR "GM3ZZA")
 set(APP_NAME "ZZACWT")
-set(APP_RC_VALUE "-rc2")
+set(APP_RC_VALUE " (R1.0.0-rc3)")
 string(TIMESTAMP APP_TIMESTAMP UTC)
 set(APP_SOURCE_DIR ${ZZACWT_SOURCE_DIR})
 
@@ -150,7 +150,7 @@ add_custom_target(docs
     COMMENT "Building all project documentation"
 )
 
-add_dependencies(docs ug_html pdf api_html zzacommon_api_html)
+add_dependencies(docs ug_html pdf api_html ug_pdf zzacommon_api_html)
 
 
 target_include_directories(${TARGET} PRIVATE 
