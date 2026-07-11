@@ -1,6 +1,16 @@
 /** \page release_notes Revision History
 
-\section rev_1_0 Revision 1.0 [Unreleased]
+\section rev_1_0_1 Revision 1.0.1
+  - Functional changes.
+    - None.
+  - Cosmetic and non-functional changes.
+    - PDF build flow.
+  - Performance changes.
+    - None.
+  - Bug fixes.
+    - None.
+
+\section rev_1_0 Revision 1.0
     Initial release of ZZACWT.
 
 */
