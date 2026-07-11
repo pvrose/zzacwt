@@ -150,7 +150,13 @@ add_custom_target(docs
     COMMENT "Building all project documentation"
 )
 
-add_dependencies(docs ug_html pdf api_html ug_pdf zzacommon_api_html)
+add_dependencies(docs 
+  ZZACWT_ug_html
+  ZZACWT_pdf 
+  ZZACWT_api_html 
+  ZZACWT_ug_pdf 
+  zzacommon_api_html
+)
 
 
 target_include_directories(${TARGET} PRIVATE 
