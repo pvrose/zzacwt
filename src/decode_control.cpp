@@ -318,17 +318,17 @@ void decode_control::configure_spectrogram() {
 	spectrogram_->start_config();
 	// Axis 0 - time
 	spectrogram_->set_axis_params(0, zc_graph_::SI_PREFIX, "s", "Time");
-	zc_graph_::range_t time_range = { 0.0, max_time };
+	zc_range<double> time_range = { 0.0, max_time };
 	spectrogram_->set_axis_ranges(0, time_range, time_range, time_range);
 	// Axis 1 - frequency
 	spectrogram_->set_axis_params(1, zc_graph_::SI_PREFIX, "Hz", "Frequency");
-	zc_graph_::range_t freq_range = { 0, max_freq };
+	zc_range<double> freq_range = { 0, max_freq };
 	spectrogram_->set_axis_ranges(1, freq_range, freq_range, freq_range);
 	// Axis 2 - magnitude
 	spectrogram_->set_axis_params(2, zc_graph_::NO_MODIFIER);
 
 	double max_z = static_cast<double>(fft_size);
-	zc_graph_::range_t mag_range = { 0.0, static_cast<double>(fft_size) };
+	zc_range<double> mag_range = { 0.0, static_cast<double>(fft_size) };
 	spectrogram_->set_axis_ranges(2, mag_range, mag_range, mag_range);
 	if (spectrogram_data_display_) delete spectrogram_data_display_;
 	spectrogram_data_display_ = new zc_graph_::data_set_dens_t;
@@ -369,7 +369,7 @@ void decode_control::configure_spectrogram() {
 	waveform_->set_axis_ranges(0, time_range, time_range, time_range);
 	// Axis 1 - amplitude
 	waveform_->set_axis_params(1, zc_graph_::NO_MODIFIER, "", "Amplitude");
-	zc_graph_::range_t amp_range = { -1.0, 1.0 };
+	zc_range<double> amp_range = { -1.0, 1.0 };
 	waveform_->set_axis_ranges(1, amp_range, amp_range, amp_range);
 	if (waveform_data_display_) delete waveform_data_display_;
 	waveform_data_display_ = new std::vector<zc_graph_::data_point_t>;
