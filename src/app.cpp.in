@@ -23,6 +23,7 @@ std::string APP_VERSION = "@APP_VERSION@";
 std::string APP_VENDOR = "@APP_VENDOR@";
 std::string APP_TIMESTAMP = "@APP_TIMESTAMP@";
 std::string APP_SOURCE_DIR = "@APP_SOURCE_DIR@";
+std::string APP_CONFIG_NAME = "";
 //! Program copyright - displayed in all windows.
 std::string COPYRIGHT = "\302\251 Philip Rose GM3ZZA";
 //! Third-party acknowledgments.
