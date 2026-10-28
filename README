@@ -16,6 +16,23 @@ The documentation also requires the use of Doxygen and LateX.
 
 It may be built using CMake under MSVC. See the appropriate section in the User Guide.
 
+Building and debugging with Visual Studio Code
+-----------------------------------------------
+
+Install Visual Studio Code with the Microsoft CMake Tools and C/C++ extensions,
+then open the repository folder. CMake Tools will read the included CMake
+presets. Choose a configure preset from the status bar (for example,
+"x64-debug" or "x64-release" on Windows, or "linux-debug" on Linux), then use
+the CMake: Build command or press F7. Select the matching "ZZACWT" launch
+configuration and press F5 to debug.
+
+On Windows, start VS Code from an x64 Visual Studio Developer PowerShell or
+Developer Command Prompt so the compiler and Windows SDK environment is set.
+The Windows presets expect the same local dependencies and paths as the
+existing CMake setup: Visual Studio C++ tools, vcpkg, PortAudio, FFTW, and FLTK.
+Linux builds require the dependencies listed below. The CMake preset format
+requires CMake 3.21 or newer.
+
 
 
 Linux Installation

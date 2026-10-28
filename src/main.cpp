@@ -94,11 +94,11 @@ text_gen* text_gen_ = nullptr; //!< Pointer to the text generator instance
 shaper* shaper_ = nullptr; //!< Pointer to the shaper instance
 noise_gen* noise_gen_ = nullptr; //!< Pointer to the noise generator instance
 mod_mixer* mod_mixer_ = nullptr; //!< Pointer to the modulator/mixer instance
-zc_audio* speaker_ = nullptr; //!< Pointer to the speaker instance
+zc_audio<>* speaker_ = nullptr; //!< Pointer to the speaker instance
 review* review_ = nullptr; //!< Pointer to the review window instance
 monitor* monitor_ = nullptr; //!< Pointer to the monitor window instance
 decode_control* decoder_ = nullptr; //!< Pointer to the decode control window instance
-zc_audio* microphone_ = nullptr; //!< Pointer to the microphone instance
+zc_audio<>* microphone_ = nullptr; //!< Pointer to the microphone instance
 zc_async_queue<std::string>* mon_text_q_ = nullptr; //!< Pointer to monitored text interface
 
 bool restart_ = false; //!< Flag to indicate that the app should be restarted - when the user changes a setting that requires a restart
@@ -133,9 +133,9 @@ int main(int argc, char** argv)
 	double sample_rate;
 	settings.get("Sample Rate", sample_rate, DEFAULT_SAMPLE_RATE);
 	// Create the speaker before user if.
-	speaker_ = new zc_audio(zc_audio_direction::AUDIO_OUT, 1, sample_rate, audio_out_queue, audio_monitor_queue);
+	speaker_ = new zc_audio<>(zc_audio_direction::AUDIO_OUT, 1, sample_rate, audio_out_queue, audio_monitor_queue);
 	// Create the microphone
-	microphone_ = new zc_audio(zc_audio_direction::AUDIO_IN, 1, sample_rate, audio_receive_queue, nullptr);
+	microphone_ = new zc_audio<>(zc_audio_direction::AUDIO_IN, 1, sample_rate, audio_receive_queue, nullptr);
 
 	// Create the main user interface window
 	user_if* window = new user_if(600, 800);
